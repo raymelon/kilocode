@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.51.1
-
-### Patch Changes
+## [v4.51.1]
 
 - [#1163](https://github.com/Kilo-Org/kilocode/pull/1163) [`3f0592a`](https://github.com/Kilo-Org/kilocode/commit/3f0592a95282b6f2b6486b31146f322ea3324916) Thanks [@chrarnoldus](https://github.com/chrarnoldus)! - Context condensing error messages are now more detailed
 
