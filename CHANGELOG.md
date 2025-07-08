@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.54.0
-
-### Minor Changes
+## [v4.54.0]
 
 - [#1124](https://github.com/Kilo-Org/kilocode/pull/1124) [`468019d`](https://github.com/Kilo-Org/kilocode/commit/468019dc7c07e3994a5cac1103bae658befcf948) Thanks [@alexandrevilain](https://github.com/alexandrevilain)! - Allow configuring autocomplete API provider
 
