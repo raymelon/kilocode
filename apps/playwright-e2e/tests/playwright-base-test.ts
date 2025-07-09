@@ -24,6 +24,11 @@ export const test = base.extend<TestFixtures>({
 	vscodeVersion: ["stable", { option: true }],
 
 	workbox: async ({ createProject, createTempDir }, use) => {
+		// Fail early if OPENROUTER_API_KEY is not set
+		if (!process.env.OPENROUTER_API_KEY) {
+			throw new Error("OPENROUTER_API_KEY environment variable is required for Playwright tests")
+		}
+
 		const defaultCachePath = await createTempDir()
 
 		// Use the pre-downloaded VS Code from global setup
