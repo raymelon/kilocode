@@ -55,15 +55,6 @@
 				"languages": ["*"],
 				"providedCodeActionKinds": ["vscode.CodeActionKind.QuickFix"]
 			}
-		],
-		"chatParticipants": [
-			{
-				"id": "kilocode.ghost-writer",
-				"fullName": "Kilo Code Agent",
-				"name": "Agent",
-				"description": "I can help you with quick tasks and suggested edits.",
-				"isSticky": true
-			}
 		]
 	}
 }
