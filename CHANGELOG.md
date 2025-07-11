@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.56.0
-
-### Minor Changes
+## [v4.56.0]
 
 - [#785](https://github.com/Kilo-Org/kilocode/pull/785) [`24cc186`](https://github.com/Kilo-Org/kilocode/commit/24cc1860fe6f220a0df95f7d81ffbd9e21022d7a) Thanks [@kevinvandijk](https://github.com/kevinvandijk)! - Add idea suggestion box to get you inspired with some ideas when starting out fresh
 
