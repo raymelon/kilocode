@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { parsePatch, ParsedDiff, applyPatch, structuredPatch } from "diff"
-import { GhostSuggestionContext, GhostSuggestionEditOperation, GhostSuggestionEditOperationType } from "./types"
+import { GhostSuggestionContext, GhostSuggestionEditOperationType } from "./types"
+import { GhostSuggestionsState } from "./GhostSuggestions"
 
 export class GhostStrategy {
 	getSystemPrompt(customInstructions: string = "") {
@@ -126,6 +127,8 @@ ${sections.filter(Boolean).join("\n\n")}
 				fuzzFactor: 0.75, // Adjust fuzz factor as needed
 			})
 
+			console.log("New content after applying patch:", newContent)
+
 			if (!newContent) {
 				continue // Skip if the patch could not be applied
 			}
@@ -135,11 +138,11 @@ ${sections.filter(Boolean).join("\n\n")}
 		return filePatches as ParsedDiff[]
 	}
 
-	async parseResponse(response: string): Promise<GhostSuggestionEditOperation[]> {
-		const operations: GhostSuggestionEditOperation[] = []
+	async parseResponse(response: string): Promise<GhostSuggestionsState> {
+		const suggestions = new GhostSuggestionsState()
 		const cleanedResponse = response.replace(/```diff\s*|\s*```/g, "").trim()
 		if (!cleanedResponse) {
-			return [] // No valid diff found
+			return suggestions // No valid diff found
 		}
 		const filePatches = await this.FuzzyMatchDiff(cleanedResponse)
 		for (const filePatch of filePatches) {
@@ -155,6 +158,8 @@ ${sections.filter(Boolean).join("\n\n")}
 
 			const fileUri = vscode.Uri.parse(filePath)
 
+			const suggestionFile = suggestions.addFile(fileUri)
+
 			// Each file patch contains one or more "hunks," which are contiguous
 			// blocks of changes.
 			for (const hunk of filePatch.hunks) {
@@ -169,9 +174,8 @@ ${sections.filter(Boolean).join("\n\n")}
 					switch (operationType) {
 						// Case 1: The line is an addition.
 						case "+":
-							operations.push({
+							suggestionFile.addOperation({
 								type: "+",
-								fileUri: fileUri,
 								line: currentNewLineNumber - 1,
 								content: content,
 							})
@@ -181,9 +185,8 @@ ${sections.filter(Boolean).join("\n\n")}
 
 						// Case 2: The line is a deletion.
 						case "-":
-							operations.push({
+							suggestionFile.addOperation({
 								type: "-",
-								fileUri: fileUri,
 								line: currentOldLineNumber - 1,
 								content: content,
 							})
@@ -203,6 +206,7 @@ ${sections.filter(Boolean).join("\n\n")}
 			}
 		}
 
-		return operations
+		suggestions.sortGroups()
+		return suggestions
 	}
 }

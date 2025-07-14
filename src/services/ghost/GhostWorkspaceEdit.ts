@@ -1,20 +1,21 @@
 import * as vscode from "vscode"
 import { GhostSuggestionEditOperation } from "./types"
+import { GhostSuggestionsState } from "./GhostSuggestions"
 
 export class GhostWorkspaceEdit {
-	public async applyOperations(operations: GhostSuggestionEditOperation[]) {
-		const editor = vscode.window.activeTextEditor
-
-		if (!editor) {
-			console.log("No active editor found, returning.")
-			return
+	private async applyOperations(documentUri: vscode.Uri, operations: GhostSuggestionEditOperation[]) {
+		const workspaceEdit = new vscode.WorkspaceEdit()
+		if (operations.length === 0) {
+			return // No operations to apply
 		}
 
-		const documentUri = editor.document.uri
-		const workspaceEdit = new vscode.WorkspaceEdit()
-
-		const deleteOps = operations.filter((op) => op.type === "-").sort((a, b) => a.line - b.line)
-		const insertOps = operations.filter((op) => op.type === "+").sort((a, b) => a.line - b.line)
+		const document = await vscode.workspace.openTextDocument(documentUri)
+		if (!document) {
+			console.log(`Could not open document: ${documentUri.toString()}`)
+			return
+		}
+		const deleteOps = operations.filter((op) => op.type === "-")
+		const insertOps = operations.filter((op) => op.type === "+")
 
 		let delPtr = 0
 		let insPtr = 0
@@ -27,7 +28,7 @@ export class GhostWorkspaceEdit {
 			if (nextDeleteOriginalLine <= nextInsertOriginalLine) {
 				// Process the deletion next
 				const op = deleteOps[delPtr]
-				const range = editor.document.lineAt(op.line).rangeIncludingLineBreak
+				const range = document.lineAt(op.line).rangeIncludingLineBreak
 				workspaceEdit.delete(documentUri, range)
 
 				lineOffset--
@@ -47,22 +48,10 @@ export class GhostWorkspaceEdit {
 		await vscode.workspace.applyEdit(workspaceEdit)
 	}
 
-	public async revertOperationsPlaceHolder(operations: GhostSuggestionEditOperation[]): Promise<void> {
+	private async revertOperationsPlaceholder(documentUri: vscode.Uri, operations: GhostSuggestionEditOperation[]) {
 		let workspaceEdit = new vscode.WorkspaceEdit()
-		const editor = vscode.window.activeTextEditor
-
-		if (!editor) {
-			console.log("No active editor found, returning")
-			return
-		}
-
-		// Filter Operations of the current file
-		const filteredOperations = operations
-			.filter((op) => op.fileUri.toString() === editor.document.uri.toString())
-			.sort((a, b) => a.line - b.line)
-
 		let deletedLines: number = 0
-		for (const op of filteredOperations) {
+		for (const op of operations) {
 			if (op.type === "-") {
 				deletedLines++
 			}
@@ -70,27 +59,22 @@ export class GhostWorkspaceEdit {
 				const startPosition = new vscode.Position(op.line + deletedLines, 0)
 				const endPosition = new vscode.Position(op.line + deletedLines + 1, 0)
 				const range = new vscode.Range(startPosition, endPosition)
-				workspaceEdit.delete(op.fileUri, range)
+				workspaceEdit.delete(documentUri, range)
 			}
 		}
 		await vscode.workspace.applyEdit(workspaceEdit)
 	}
 
-	public async applyOperationsPlaceholders(operations: GhostSuggestionEditOperation[]) {
-		const editor = vscode.window.activeTextEditor
+	private async applyOperationsPlaceholders(documentUri: vscode.Uri, operations: GhostSuggestionEditOperation[]) {
 		const workspaceEdit = new vscode.WorkspaceEdit()
-		if (!editor) {
-			console.log("No active editor found, returning.")
+		const document = await vscode.workspace.openTextDocument(documentUri)
+		if (!document) {
+			console.log(`Could not open document: ${documentUri.toString()}`)
 			return
 		}
 
-		const documentUri = editor.document.uri
-		const fileOperations = operations
-			.filter((op) => op.fileUri.toString() === documentUri.toString())
-			.sort((a, b) => a.line - b.line)
-
 		let lineOffset = 0
-		for (const op of fileOperations) {
+		for (const op of operations) {
 			// Calculate the equivalent line in the *original* document.
 			const originalLine = op.line - lineOffset
 
@@ -108,12 +92,97 @@ export class GhostWorkspaceEdit {
 
 			if (op.type === "-") {
 				// Guard against deleting a line that doesn't exist.
-				if (originalLine >= editor.document.lineCount) {
+				if (originalLine >= document.lineCount) {
 					continue
 				}
 				lineOffset--
 			}
 		}
+
 		await vscode.workspace.applyEdit(workspaceEdit)
+	}
+
+	private getActiveFileOperations(suggestions: GhostSuggestionsState) {
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return {
+				documentUri: null,
+				operations: [],
+			}
+		}
+		const documentUri = editor.document.uri
+		const operations = suggestions.getFile(documentUri)?.getAllOperations() || []
+		return {
+			documentUri,
+			operations,
+		}
+	}
+
+	private async getActiveFileSelectedOperations(suggestions: GhostSuggestionsState) {
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return {
+				documentUri: null,
+				operations: [],
+			}
+		}
+		const documentUri = editor.document.uri
+		const suggestionsFile = suggestions.getFile(documentUri)
+		if (!suggestionsFile) {
+			return {
+				documentUri: null,
+				operations: [],
+			}
+		}
+		const operations = suggestionsFile.getSelectedGroupOperations()
+		return {
+			documentUri,
+			operations,
+		}
+	}
+
+	public async applySuggestions(suggestions: GhostSuggestionsState) {
+		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
+		if (!documentUri || operations.length === 0) {
+			console.log("No active document or no operations to apply.")
+			return
+		}
+		await this.applyOperations(documentUri, operations)
+	}
+
+	public async applySelectedSuggestions(suggestions: GhostSuggestionsState) {
+		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
+		if (!documentUri || operations.length === 0) {
+			console.log("No active document or no selected operations to apply.")
+			return
+		}
+		await this.applyOperations(documentUri, operations)
+	}
+
+	public async revertSuggestionsPlaceholder(suggestions: GhostSuggestionsState): Promise<void> {
+		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
+		if (!documentUri || operations.length === 0) {
+			console.log("No active document or no operations to apply.")
+			return
+		}
+		await this.revertOperationsPlaceholder(documentUri, operations)
+	}
+
+	public async revertSelectedSuggestionsPlaceholder(suggestions: GhostSuggestionsState): Promise<void> {
+		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
+		if (!documentUri || operations.length === 0) {
+			console.log("No active document or no selected operations to apply.")
+			return
+		}
+		await this.revertOperationsPlaceholder(documentUri, operations)
+	}
+
+	public async applySuggestionsPlaceholders(suggestions: GhostSuggestionsState) {
+		const { documentUri, operations } = await this.getActiveFileOperations(suggestions)
+		if (!documentUri || operations.length === 0) {
+			console.log("No active document or no operations to apply.")
+			return
+		}
+		await this.applyOperationsPlaceholders(documentUri, operations)
 	}
 }

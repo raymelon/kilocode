@@ -10,7 +10,6 @@ export type GhostSuggestionEditOperationType = "+" | "-"
 
 export interface GhostSuggestionEditOperation {
 	type: GhostSuggestionEditOperationType
-	fileUri: vscode.Uri
 	line: number
 	content: string
 }
