@@ -39,6 +39,16 @@ class GhostSuggestionFile {
 		return this.groups[this.selectedGroup]
 	}
 
+	public getPlaceholderOffsetSelectedGroupOperations() {
+		const selectedGroup = this.getSelectedGroup()
+		if (selectedGroup === null) {
+			return 0
+		}
+		const previousGroups = this.groups.slice(0, selectedGroup)
+		const operations = previousGroups.flat()
+		return operations.reduce((offset, op) => offset + (op.type === "+" ? 1 : 0), 0)
+	}
+
 	public getGroupsOperations(): GhostSuggestionEditOperation[][] {
 		return this.groups
 	}

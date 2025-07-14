@@ -3,7 +3,7 @@ import { GhostProvider } from "./GhostProvider"
 import { t } from "../../i18n"
 
 export class GhostCodeActionProvider implements vscode.CodeActionProvider {
-	public static readonly providedCodeActionKinds = {
+	public readonly providedCodeActionKinds = {
 		quickfix: vscode.CodeActionKind.QuickFix,
 	}
 
@@ -17,7 +17,7 @@ export class GhostCodeActionProvider implements vscode.CodeActionProvider {
 
 		const action = new vscode.CodeAction(
 			t("kilocode:ghost.codeAction.title"),
-			GhostCodeActionProvider.providedCodeActionKinds["quickfix"],
+			this.providedCodeActionKinds["quickfix"],
 		)
 
 		action.command = {

@@ -9,6 +9,8 @@ import { t } from "../../i18n"
 import { addCustomInstructions } from "../../core/prompts/sections/custom-instructions"
 import { getWorkspacePath } from "../../utils/path"
 import { GhostSuggestionsState } from "./GhostSuggestions"
+import { GhostCodeActionProvider } from "./GhostCodeActionProvider"
+import { GhostCodeLensProvider } from "./GhostCodeLensProvider"
 
 export class GhostProvider {
 	private static instance: GhostProvider | null = null
@@ -20,6 +22,10 @@ export class GhostProvider {
 	private suggestions: GhostSuggestionsState = new GhostSuggestionsState()
 	private context: vscode.ExtensionContext
 
+	// VSCode Providers
+	public codeActionProvider: GhostCodeActionProvider
+	public codeLensProvider: GhostCodeLensProvider
+
 	private constructor(context: vscode.ExtensionContext) {
 		this.context = context
 		this.decorations = new GhostDecorations()
@@ -27,6 +33,9 @@ export class GhostProvider {
 		this.model = new GhostModel()
 		this.strategy = new GhostStrategy()
 		this.workspaceEdit = new GhostWorkspaceEdit()
+		// Register the providers
+		this.codeActionProvider = new GhostCodeActionProvider()
+		this.codeLensProvider = new GhostCodeLensProvider()
 	}
 
 	public static getInstance(context?: vscode.ExtensionContext): GhostProvider {
@@ -127,29 +136,52 @@ export class GhostProvider {
 
 				if (cancelled) {
 					this.suggestions.clear()
-					await this.updateGlobalContext()
+					await this.render()
 					return
 				}
-				await this.updateGlobalContext()
-
 				progress.report({
 					message: t("kilocode:ghost.progress.showing"),
 				})
 				// Generate placeholder for show the suggestions
 				await this.workspaceEdit.applySuggestionsPlaceholders(this.suggestions)
-				// Display the suggestions in the active editor
-				await this.displaySuggestions()
+				await this.render()
 			},
 		)
+	}
+
+	private async render() {
+		await this.updateGlobalContext()
+		await this.displaySuggestions()
+		await this.displayCodeLens()
 	}
 
 	public async displaySuggestions() {
 		const editor = vscode.window.activeTextEditor
 		if (!editor) {
-			console.log("No active editor found, returning")
 			return
 		}
 		this.decorations.displaySuggestions(this.suggestions)
+	}
+
+	private async displayCodeLens() {
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			this.codeLensProvider.setSuggestionRange(undefined)
+			return
+		}
+		const file = this.suggestions.getFile(editor.document.uri)
+		if (!file) {
+			this.codeLensProvider.setSuggestionRange(undefined)
+			return
+		}
+		const selectedGroup = file.getSelectedGroupOperations()
+		const offset = file.getPlaceholderOffsetSelectedGroupOperations()
+		const minLine = selectedGroup?.length ? selectedGroup[0].line + offset : 0
+		const maxLine = selectedGroup?.length
+			? selectedGroup[selectedGroup.length - 1].line + offset + 1
+			: editor.document.lineCount
+
+		this.codeLensProvider.setSuggestionRange(new vscode.Range(minLine, 0, maxLine, 0))
 	}
 
 	private async updateGlobalContext() {
@@ -165,16 +197,10 @@ export class GhostProvider {
 		if (!this.havePendingSuggestions()) {
 			return
 		}
-		// Clear the decorations in the active editor
 		this.decorations.clearAll()
-
 		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
-
-		// Clear the pending suggestions
 		this.suggestions.clear()
-
-		// Update the global context
-		await this.updateGlobalContext()
+		await this.render()
 	}
 
 	public async applySelectedSuggestions() {
@@ -200,10 +226,7 @@ export class GhostProvider {
 		await this.workspaceEdit.applySelectedSuggestions(this.suggestions)
 		suggestionsFile.deleteSelectedGroup()
 		this.suggestions.validateFiles()
-		await this.updateGlobalContext()
-		if (this.havePendingSuggestions()) {
-			this.decorations.displaySuggestions(this.suggestions)
-		}
+		await this.render()
 	}
 
 	public async applyAllSuggestions() {
@@ -214,7 +237,7 @@ export class GhostProvider {
 		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 		await this.workspaceEdit.applySuggestions(this.suggestions)
 		this.suggestions.clear()
-		await this.updateGlobalContext()
+		await this.render()
 	}
 
 	public async selectNextSuggestion() {
@@ -232,7 +255,7 @@ export class GhostProvider {
 			return
 		}
 		suggestionsFile.selectNextGroup()
-		this.decorations.displaySuggestions(this.suggestions)
+		await this.render()
 	}
 
 	public async selectPreviousSuggestion() {
@@ -250,6 +273,6 @@ export class GhostProvider {
 			return
 		}
 		suggestionsFile.selectPreviousGroup()
-		this.decorations.displaySuggestions(this.suggestions)
+		await this.render()
 	}
 }

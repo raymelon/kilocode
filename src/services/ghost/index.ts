@@ -1,6 +1,5 @@
 import * as vscode from "vscode"
 import { GhostProvider } from "./GhostProvider"
-import { GhostCodeActionProvider } from "./GhostCodeActionProvider"
 import { t } from "../../i18n"
 
 export const registerGhostProvider = (context: vscode.ExtensionContext) => {
@@ -70,8 +69,11 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 
 	// Register GhostProvider Code Actions
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider("*", new GhostCodeActionProvider(), {
-			providedCodeActionKinds: Object.values(GhostCodeActionProvider.providedCodeActionKinds),
+		vscode.languages.registerCodeActionsProvider("*", ghost.codeActionProvider, {
+			providedCodeActionKinds: Object.values(ghost.codeActionProvider.providedCodeActionKinds),
 		}),
 	)
+
+	// Register GhostProvider Code Lens
+	context.subscriptions.push(vscode.languages.registerCodeLensProvider("*", ghost.codeLensProvider))
 }
