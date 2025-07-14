@@ -76,6 +76,20 @@ export class GhostProvider {
 		})
 	}
 
+	public async codeSuggestion() {
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return
+		}
+		const document = editor.document
+		const range = editor.selection.isEmpty ? undefined : editor.selection
+
+		await this.provideCodeSuggestions({
+			document,
+			range,
+		})
+	}
+
 	public async provideCodeActionQuickFix(
 		document: vscode.TextDocument,
 		range: vscode.Range | vscode.Selection,

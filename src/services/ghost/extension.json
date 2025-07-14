@@ -2,56 +2,62 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "kilo-code.ghostWriter.generateSuggestions",
+				"command": "kilo-code.ghost.generateSuggestions",
 				"title": "Kilo Code: Generate Suggested Edits",
 				"category": "%configuration.title%"
 			},
 			{
-				"command": "kilo-code.ghostWriter.cancelSuggestions",
+				"command": "kilo-code.ghost.cancelSuggestions",
 				"title": "Cancel Suggested Edits",
 				"category": "%configuration.title%"
 			},
 			{
-				"command": "kilo-code.ghostWriter.applyCurrentSuggestions",
+				"command": "kilo-code.ghost.applyCurrentSuggestions",
 				"title": "Apply Current Suggested Edit",
 				"category": "%configuration.title%"
 			},
 			{
-				"command": "kilo-code.ghostWriter.applyAllSuggestions",
+				"command": "kilo-code.ghost.applyAllSuggestions",
 				"title": "Apply All Suggested Edits",
 				"category": "%configuration.title%"
 			},
 			{
-				"command": "kilo-code.ghostWriter.promptCodeSuggestion",
+				"command": "kilo-code.ghost.promptCodeSuggestion",
 				"title": "Quick Task",
 				"category": "%configuration.title%"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "kilo-code.ghostWriter.keyTab",
+				"command": "kilo-code.ghost.keyTab",
 				"key": "tab",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
-				"command": "kilo-code.ghostWriter.keyEscape",
+				"command": "kilo-code.ghost.keyEscape",
 				"key": "escape",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
-				"command": "kilo-code.ghostWriter.keyDown",
+				"command": "kilo-code.ghost.keyDown",
 				"key": "down",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
-				"command": "kilo-code.ghostWriter.keyUp",
+				"command": "kilo-code.ghost.keyUp",
 				"key": "up",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
-				"command": "kilo-code.ghostWriter.keyCmdI",
+				"command": "kilo-code.ghost.keyCmdI",
 				"key": "ctrl+i",
 				"mac": "cmd+i",
+				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"
+			},
+			{
+				"command": "kilo-code.ghost.keyCmdL",
+				"key": "ctrl+l",
+				"mac": "cmd+l",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"
 			}
 		],
