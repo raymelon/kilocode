@@ -21,11 +21,6 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 		}),
 	)
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghostWriter.displaySuggestions", async () => {
-			ghost.displaySuggestions()
-		}),
-	)
-	context.subscriptions.push(
 		vscode.commands.registerCommand("kilo-code.ghostWriter.cancelSuggestions", async () => {
 			ghost.cancelSuggestions()
 		}),
@@ -33,6 +28,11 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kilo-code.ghostWriter.applyAllSuggestions", async () => {
 			ghost.applyAllSuggestions()
+		}),
+	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("kilo-code.ghostWriter.applyCurrentSuggestions", async () => {
+			ghost.applySelectedSuggestions()
 		}),
 	)
 	context.subscriptions.push(
@@ -44,20 +44,22 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 	// Register GhostProvider Key Bindings
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kilo-code.ghostWriter.keyTab", async () => {
-			if (ghost.isApplyAllSuggestionsEnabled()) {
-				await ghost.applyAllSuggestions()
-			} else {
-				vscode.commands.executeCommand("tab")
-			}
+			await ghost.applySelectedSuggestions()
 		}),
 	)
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kilo-code.ghostWriter.keyEscape", async () => {
-			if (ghost.isCancelSuggestionsEnabled()) {
-				await ghost.cancelSuggestions()
-			} else {
-				vscode.commands.executeCommand("escape")
-			}
+			await ghost.cancelSuggestions()
+		}),
+	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("kilo-code.ghostWriter.keyUp", async () => {
+			await ghost.selectPreviousSuggestion()
+		}),
+	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("kilo-code.ghostWriter.keyDown", async () => {
+			await ghost.selectNextSuggestion()
 		}),
 	)
 	context.subscriptions.push(

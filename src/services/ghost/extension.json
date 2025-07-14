@@ -7,11 +7,6 @@
 				"category": "%configuration.title%"
 			},
 			{
-				"command": "kilo-code.ghostWriter.displaySuggestions",
-				"title": "Display Suggested Edits",
-				"category": "%configuration.title%"
-			},
-			{
 				"command": "kilo-code.ghostWriter.cancelSuggestions",
 				"title": "Cancel Suggested Edits",
 				"category": "%configuration.title%"
@@ -36,12 +31,22 @@
 			{
 				"command": "kilo-code.ghostWriter.keyTab",
 				"key": "tab",
-				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"
+				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
 				"command": "kilo-code.ghostWriter.keyEscape",
 				"key": "escape",
-				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"
+				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
+			},
+			{
+				"command": "kilo-code.ghostWriter.keyDown",
+				"key": "down",
+				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
+			},
+			{
+				"command": "kilo-code.ghostWriter.keyUp",
+				"key": "up",
+				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.haveSuggestions"
 			},
 			{
 				"command": "kilo-code.ghostWriter.keyCmdI",

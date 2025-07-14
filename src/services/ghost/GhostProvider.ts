@@ -4,10 +4,11 @@ import { GhostStrategy } from "./GhostStrategy"
 import { GhostModel } from "./GhostModel"
 import { GhostWorkspaceEdit } from "./GhostWorkspaceEdit"
 import { GhostDecorations } from "./GhostDecorations"
-import { GhostSuggestionContext, GhostSuggestionEditOperation } from "./types"
+import { GhostSuggestionContext } from "./types"
 import { t } from "../../i18n"
 import { addCustomInstructions } from "../../core/prompts/sections/custom-instructions"
 import { getWorkspacePath } from "../../utils/path"
+import { GhostSuggestionsState } from "./GhostSuggestions"
 
 export class GhostProvider {
 	private static instance: GhostProvider | null = null
@@ -16,7 +17,7 @@ export class GhostProvider {
 	private model: GhostModel
 	private strategy: GhostStrategy
 	private workspaceEdit: GhostWorkspaceEdit
-	private pendingSuggestions: GhostSuggestionEditOperation[] = []
+	private suggestions: GhostSuggestionsState = new GhostSuggestionsState()
 	private context: vscode.ExtensionContext
 
 	private constructor(context: vscode.ExtensionContext) {
@@ -112,6 +113,8 @@ export class GhostProvider {
 
 				const response = await this.model.generateResponse(systemPrompt, userPrompt)
 
+				console.log("Ghost response:", response)
+
 				if (cancelled) {
 					return
 				}
@@ -120,21 +123,20 @@ export class GhostProvider {
 					message: t("kilocode:ghost.progress.processing"),
 				})
 				// First parse the response into edit operations
-				const operations = await this.strategy.parseResponse(response)
-				this.pendingSuggestions = operations
-
-				console.log("operations", operations)
+				this.suggestions = await this.strategy.parseResponse(response)
 
 				if (cancelled) {
-					this.pendingSuggestions = []
+					this.suggestions.clear()
+					await this.updateGlobalContext()
 					return
 				}
+				await this.updateGlobalContext()
 
 				progress.report({
 					message: t("kilocode:ghost.progress.showing"),
 				})
 				// Generate placeholder for show the suggestions
-				await this.workspaceEdit.applyOperationsPlaceholders(operations)
+				await this.workspaceEdit.applySuggestionsPlaceholders(this.suggestions)
 				// Display the suggestions in the active editor
 				await this.displaySuggestions()
 			},
@@ -147,39 +149,107 @@ export class GhostProvider {
 			console.log("No active editor found, returning")
 			return
 		}
-
-		const operations = this.pendingSuggestions
-		this.decorations.displaySuggestions(operations)
+		this.decorations.displaySuggestions(this.suggestions)
 	}
 
-	public isCancelSuggestionsEnabled(): boolean {
-		return this.pendingSuggestions.length > 0
+	private async updateGlobalContext() {
+		const haveSuggestions = this.suggestions.haveSuggestions()
+		await vscode.commands.executeCommand("setContext", "kilocode.ghost.haveSuggestions", haveSuggestions)
+	}
+
+	public havePendingSuggestions(): boolean {
+		return this.suggestions.haveSuggestions()
 	}
 
 	public async cancelSuggestions() {
-		const pendingSuggestions = [...this.pendingSuggestions]
-		if (pendingSuggestions.length === 0) {
+		if (!this.havePendingSuggestions()) {
 			return
 		}
 		// Clear the decorations in the active editor
 		this.decorations.clearAll()
 
-		await this.workspaceEdit.revertOperationsPlaceHolder(pendingSuggestions)
+		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 
 		// Clear the pending suggestions
-		this.pendingSuggestions = []
+		this.suggestions.clear()
+
+		// Update the global context
+		await this.updateGlobalContext()
 	}
 
-	public isApplyAllSuggestionsEnabled(): boolean {
-		return this.pendingSuggestions.length > 0
+	public async applySelectedSuggestions() {
+		if (!this.havePendingSuggestions()) {
+			return
+		}
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			console.log("No active editor found, returning")
+			return
+		}
+		const suggestionsFile = this.suggestions.getFile(editor.document.uri)
+		if (!suggestionsFile) {
+			console.log(`No suggestions found for document: ${editor.document.uri.toString()}`)
+			return
+		}
+		if (suggestionsFile.getSelectedGroup() === -1) {
+			console.log("No group selected, returning")
+			return
+		}
+		this.decorations.clearAll()
+		await this.workspaceEdit.revertSelectedSuggestionsPlaceholder(this.suggestions)
+		await this.workspaceEdit.applySelectedSuggestions(this.suggestions)
+		suggestionsFile.deleteSelectedGroup()
+		this.suggestions.validateFiles()
+		await this.updateGlobalContext()
+		if (this.havePendingSuggestions()) {
+			this.decorations.displaySuggestions(this.suggestions)
+		}
 	}
 
 	public async applyAllSuggestions() {
-		const pendingSuggestions = [...this.pendingSuggestions]
-		if (pendingSuggestions.length === 0) {
+		if (!this.havePendingSuggestions()) {
 			return
 		}
-		await this.cancelSuggestions()
-		await this.workspaceEdit.applyOperations(pendingSuggestions)
+		this.decorations.clearAll()
+		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
+		await this.workspaceEdit.applySuggestions(this.suggestions)
+		this.suggestions.clear()
+		await this.updateGlobalContext()
+	}
+
+	public async selectNextSuggestion() {
+		if (!this.havePendingSuggestions()) {
+			return
+		}
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			console.log("No active editor found, returning")
+			return
+		}
+		const suggestionsFile = this.suggestions.getFile(editor.document.uri)
+		if (!suggestionsFile) {
+			console.log(`No suggestions found for document: ${editor.document.uri.toString()}`)
+			return
+		}
+		suggestionsFile.selectNextGroup()
+		this.decorations.displaySuggestions(this.suggestions)
+	}
+
+	public async selectPreviousSuggestion() {
+		if (!this.havePendingSuggestions()) {
+			return
+		}
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			console.log("No active editor found, returning")
+			return
+		}
+		const suggestionsFile = this.suggestions.getFile(editor.document.uri)
+		if (!suggestionsFile) {
+			console.log(`No suggestions found for document: ${editor.document.uri.toString()}`)
+			return
+		}
+		suggestionsFile.selectPreviousGroup()
+		this.decorations.displaySuggestions(this.suggestions)
 	}
 }
