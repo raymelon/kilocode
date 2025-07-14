@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import { parsePatch, ParsedDiff, applyPatch, structuredPatch } from "diff"
 import { GhostSuggestionContext, GhostSuggestionEditOperationType } from "./types"
 import { GhostSuggestionsState } from "./GhostSuggestions"
+import Fuse from "fuse.js"
 
 export class GhostStrategy {
 	getSystemPrompt(customInstructions: string = "") {
@@ -103,7 +104,18 @@ ${sections.filter(Boolean).join("\n\n")}
 `
 	}
 
-	private async FuzzyMatchDiff(diff: string) {
+	private async FuzzyMatchDiff(diff: string, context: GhostSuggestionContext) {
+		const openFiles = context.openFiles || []
+		const openFilesUris = openFiles.map((doc) => ({
+			relativePath: vscode.workspace.asRelativePath(doc.uri, false),
+			uri: doc.uri,
+		}))
+		const openFilesRepository = new Fuse(openFilesUris, {
+			includeScore: true,
+			threshold: 0.6,
+			keys: ["relativePath"],
+		})
+
 		const filePatches = parsePatch(diff)
 		for (const filePatch of filePatches) {
 			// If the file patch has no hunks, skip it.
@@ -116,8 +128,12 @@ ${sections.filter(Boolean).join("\n\n")}
 				continue
 			}
 
-			const fileUri = vscode.Uri.parse(filePath)
-			const document = await vscode.workspace.openTextDocument(fileUri)
+			const matchedFiles = openFilesRepository.search(filePath)
+			if (matchedFiles.length === 0) {
+				continue // Skip if no files match the fuzzy search
+			}
+			const bestUriMatch = matchedFiles[0].item.uri
+			const document = await vscode.workspace.openTextDocument(bestUriMatch)
 			if (!document) {
 				continue // Skip if the document cannot be opened
 			}
@@ -138,13 +154,13 @@ ${sections.filter(Boolean).join("\n\n")}
 		return filePatches as ParsedDiff[]
 	}
 
-	async parseResponse(response: string): Promise<GhostSuggestionsState> {
+	async parseResponse(response: string, context: GhostSuggestionContext): Promise<GhostSuggestionsState> {
 		const suggestions = new GhostSuggestionsState()
 		const cleanedResponse = response.replace(/```diff\s*|\s*```/g, "").trim()
 		if (!cleanedResponse) {
 			return suggestions // No valid diff found
 		}
-		const filePatches = await this.FuzzyMatchDiff(cleanedResponse)
+		const filePatches = await this.FuzzyMatchDiff(cleanedResponse, context)
 		for (const filePatch of filePatches) {
 			// Determine the file path from the patch header.
 			// It prefers the new file name, falling back to the old one.
