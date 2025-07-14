@@ -191,7 +191,7 @@ export class GhostProvider {
 			console.log(`No suggestions found for document: ${editor.document.uri.toString()}`)
 			return
 		}
-		if (suggestionsFile.getSelectedGroup() === -1) {
+		if (suggestionsFile.getSelectedGroup() === null) {
 			console.log("No group selected, returning")
 			return
 		}
