@@ -94,8 +94,8 @@ class GhostSuggestionFile {
 		if (this.selectedGroup !== null && this.selectedGroup < this.groups.length) {
 			const deletedGroup = this.groups.splice(this.selectedGroup, 1)
 			const { removed } = this.computeOperationsOfset(deletedGroup[0])
-			// update deleted operations in other groups
-			for (let i = 0; i < this.groups.length; i++) {
+			// update deleted operations in the next groups
+			for (let i = this.selectedGroup; i < this.groups.length; i++) {
 				for (let j = 0; j < this.groups[i].length; j++) {
 					const op = this.groups[i][j]
 					if (op.type === "-") {
