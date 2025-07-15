@@ -76,9 +76,34 @@ class GhostSuggestionFile {
 		this.selectedGroup = this.groups.length > 0 ? 0 : null
 	}
 
+	private computeOperationsOfset(group: GhostSuggestionEditOperation[]) {
+		return group.reduce(
+			(acc, op) => {
+				if (op.type === "+") {
+					return { added: acc.added + 1, removed: acc.removed }
+				} else if (op.type === "-") {
+					return { added: acc.added, removed: acc.removed + 1 }
+				}
+				return acc
+			},
+			{ added: 0, removed: 0 },
+		)
+	}
+
 	public deleteSelectedGroup() {
 		if (this.selectedGroup !== null && this.selectedGroup < this.groups.length) {
-			this.groups.splice(this.selectedGroup, 1)
+			const deletedGroup = this.groups.splice(this.selectedGroup, 1)
+			const { removed } = this.computeOperationsOfset(deletedGroup[0])
+			// update deleted operations in other groups
+			for (let i = 0; i < this.groups.length; i++) {
+				for (let j = 0; j < this.groups[i].length; j++) {
+					const op = this.groups[i][j]
+					if (op.type === "-") {
+						op.line = op.line - removed
+					}
+				}
+			}
+			// reset selected group
 			if (this.groups.length === 0) {
 				this.selectedGroup = null
 			} else if (this.selectedGroup >= this.groups.length) {
