@@ -5,6 +5,13 @@ import { t } from "../../i18n"
 export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 	const ghost = GhostProvider.getInstance(context)
 
+	// Register Windows Events
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor((editor) => {
+			ghost.onDidChangeActiveTextEditor(editor)
+		}),
+	)
+
 	// Register GhostProvider Commands
 	context.subscriptions.push(
 		vscode.commands.registerCommand("kilo-code.ghost.codeActionQuickFix", async () => {

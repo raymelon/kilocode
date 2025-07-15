@@ -187,6 +187,13 @@ export class GhostProvider {
 		await this.moveCursorToSuggestion()
 	}
 
+	public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined) {
+		if (!editor) {
+			return
+		}
+		await this.render()
+	}
+
 	private async moveCursorToSuggestion() {
 		const topLine = this.getSelectedSuggestionLine()
 		if (topLine === null) {
