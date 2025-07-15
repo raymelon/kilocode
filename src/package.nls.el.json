@@ -42,5 +42,7 @@
 	"ghost.commands.cancelSuggestions": "Ακύρωση Προτεινόμενων Επεξεργασιών",
 	"ghost.commands.applyCurrentSuggestion": "Εφαρμογή Τρέχουσας Προτεινόμενης Επεξεργασίας",
 	"ghost.commands.applyAllSuggestions": "Εφαρμογή Όλων των Προτεινόμενων Επεξεργασιών",
-	"ghost.commands.promptCodeSuggestion": "Γρήγορη Εργασία"
+	"ghost.commands.promptCodeSuggestion": "Γρήγορη Εργασία",
+	"ghost.commands.goToNextSuggestion": "Μετάβαση στην Επόμενη Πρόταση",
+	"ghost.commands.goToPreviousSuggestion": "Μετάβαση στην Προηγούμενη Πρόταση"
 }

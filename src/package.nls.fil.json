@@ -42,5 +42,7 @@
 	"ghost.commands.cancelSuggestions": "Kanselahin ang Mga Iminungkahing Pagbabago",
 	"ghost.commands.applyCurrentSuggestion": "Gamitin ang Kasalukuyang Iminungkahing Pagbabago",
 	"ghost.commands.applyAllSuggestions": "Gamitin ang Lahat ng Iminungkahing Pagbabago",
-	"ghost.commands.promptCodeSuggestion": "Mabilis na Gawain"
+	"ghost.commands.promptCodeSuggestion": "Mabilis na Gawain",
+	"ghost.commands.goToNextSuggestion": "Pumunta sa Susunod na Suhestiyon",
+	"ghost.commands.goToPreviousSuggestion": "Pumunta sa Nakaraang Suhestiyon"
 }

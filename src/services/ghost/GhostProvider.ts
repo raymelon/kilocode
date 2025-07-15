@@ -33,6 +33,7 @@ export class GhostProvider {
 		this.model = new GhostModel()
 		this.strategy = new GhostStrategy()
 		this.workspaceEdit = new GhostWorkspaceEdit()
+
 		// Register the providers
 		this.codeActionProvider = new GhostCodeActionProvider()
 		this.codeLensProvider = new GhostCodeLensProvider()
@@ -57,7 +58,6 @@ export class GhostProvider {
 			prompt: t("kilocode:ghost.input.title"),
 			placeHolder: t("kilocode:ghost.input.placeholder"),
 		})
-
 		if (!userInput) {
 			return
 		}
@@ -69,11 +69,7 @@ export class GhostProvider {
 		const document = editor.document
 		const range = editor.selection.isEmpty ? undefined : editor.selection
 
-		await this.provideCodeSuggestions({
-			document,
-			range,
-			userInput,
-		})
+		await this.provideCodeSuggestions({ document, range, userInput })
 	}
 
 	public async codeSuggestion() {
@@ -84,10 +80,7 @@ export class GhostProvider {
 		const document = editor.document
 		const range = editor.selection.isEmpty ? undefined : editor.selection
 
-		await this.provideCodeSuggestions({
-			document,
-			range,
-		})
+		await this.provideCodeSuggestions({ document, range })
 	}
 
 	public async provideCodeActionQuickFix(
@@ -96,10 +89,7 @@ export class GhostProvider {
 	): Promise<void> {
 		// Store the document in the document store
 		this.getDocumentStore().storeDocument(document)
-		await this.provideCodeSuggestions({
-			document,
-			range,
-		})
+		await this.provideCodeSuggestions({ document, range })
 	}
 
 	private async enhanceContext(context: GhostSuggestionContext): Promise<GhostSuggestionContext> {
@@ -109,15 +99,14 @@ export class GhostProvider {
 		}
 		// Add open files to the context
 		const openFiles = vscode.workspace.textDocuments.filter((doc) => doc.uri.scheme === "file")
-		return {
-			...context,
-			openFiles,
-		}
+		return { ...context, openFiles }
 	}
 
 	private async provideCodeSuggestions(context: GhostSuggestionContext): Promise<void> {
-		let cancelled = false
+		// Cancel any ongoing suggestions
+		await this.cancelSuggestions()
 
+		let cancelled = false
 		const enhancedContext = await this.enhanceContext(context)
 
 		await vscode.window.withProgress(
@@ -131,9 +120,7 @@ export class GhostProvider {
 					cancelled = true
 				})
 
-				progress.report({
-					message: t("kilocode:ghost.progress.analyzing"),
-				})
+				progress.report({ message: t("kilocode:ghost.progress.analyzing") })
 
 				// Load custom instructions
 				const workspacePath = getWorkspacePath()
@@ -141,26 +128,19 @@ export class GhostProvider {
 
 				const systemPrompt = this.strategy.getSystemPrompt(customInstructions)
 				const userPrompt = this.strategy.getSuggestionPrompt(enhancedContext)
-
 				if (cancelled) {
 					return
 				}
-				progress.report({
-					message: t("kilocode:ghost.progress.generating"),
-				})
 
+				progress.report({ message: t("kilocode:ghost.progress.generating") })
 				const response = await this.model.generateResponse(systemPrompt, userPrompt)
-
 				console.log("Ghost response:", response)
-
 				if (cancelled) {
 					return
 				}
 
-				progress.report({
-					message: t("kilocode:ghost.progress.processing"),
-				})
 				// First parse the response into edit operations
+				progress.report({ message: t("kilocode:ghost.progress.processing") })
 				this.suggestions = await this.strategy.parseResponse(response, enhancedContext)
 
 				if (cancelled) {
@@ -168,10 +148,8 @@ export class GhostProvider {
 					await this.render()
 					return
 				}
-				progress.report({
-					message: t("kilocode:ghost.progress.showing"),
-				})
 				// Generate placeholder for show the suggestions
+				progress.report({ message: t("kilocode:ghost.progress.showing") })
 				await this.workspaceEdit.applySuggestionsPlaceholders(this.suggestions)
 				await this.render()
 			},
@@ -182,6 +160,27 @@ export class GhostProvider {
 		await this.updateGlobalContext()
 		await this.displaySuggestions()
 		await this.displayCodeLens()
+		await this.moveCursorToSuggestion()
+	}
+
+	public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined) {
+		if (!editor) {
+			return
+		}
+		await this.render()
+	}
+
+	private async moveCursorToSuggestion() {
+		const topLine = this.getSelectedSuggestionLine()
+		if (topLine === null) {
+			return
+		}
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return
+		}
+		editor.selection = new vscode.Selection(topLine, 0, topLine, 0)
+		editor.revealRange(new vscode.Range(topLine, 0, topLine, 0), vscode.TextEditorRevealType.InCenter)
 	}
 
 	public async displaySuggestions() {
@@ -192,25 +191,34 @@ export class GhostProvider {
 		this.decorations.displaySuggestions(this.suggestions)
 	}
 
-	private async displayCodeLens() {
+	private getSelectedSuggestionLine() {
 		const editor = vscode.window.activeTextEditor
 		if (!editor) {
-			this.codeLensProvider.setSuggestionRange(undefined)
-			return
+			return null
 		}
 		const file = this.suggestions.getFile(editor.document.uri)
 		if (!file) {
+			return null
+		}
+		const selectedGroup = file.getSelectedGroupOperations()
+		if (selectedGroup.length === 0) {
+			return null
+		}
+		const offset = file.getPlaceholderOffsetSelectedGroupOperations()
+		const topOperation = selectedGroup?.length ? selectedGroup[0] : null
+		if (!topOperation) {
+			return null
+		}
+		return topOperation.type === "+" ? topOperation.line + offset.removed : topOperation.line + offset.added
+	}
+
+	private async displayCodeLens() {
+		const topLine = this.getSelectedSuggestionLine()
+		if (topLine === null) {
 			this.codeLensProvider.setSuggestionRange(undefined)
 			return
 		}
-		const selectedGroup = file.getSelectedGroupOperations()
-		const offset = file.getPlaceholderOffsetSelectedGroupOperations()
-		const minLine = selectedGroup?.length ? selectedGroup[0].line + offset : 0
-		const maxLine = selectedGroup?.length
-			? selectedGroup[selectedGroup.length - 1].line + offset + 1
-			: editor.document.lineCount
-
-		this.codeLensProvider.setSuggestionRange(new vscode.Range(minLine, 0, maxLine, 0))
+		this.codeLensProvider.setSuggestionRange(new vscode.Range(topLine, 0, topLine, 0))
 	}
 
 	private async updateGlobalContext() {
@@ -218,12 +226,15 @@ export class GhostProvider {
 		await vscode.commands.executeCommand("setContext", "kilocode.ghost.hasSuggestions", hasSuggestions)
 	}
 
-	public havePendingSuggestions(): boolean {
+	public hasPendingSuggestions(): boolean {
 		return this.suggestions.hasSuggestions()
 	}
 
 	public async cancelSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
+			return
+		}
+		if (this.workspaceEdit.isLocked()) {
 			return
 		}
 		this.decorations.clearAll()
@@ -233,7 +244,10 @@ export class GhostProvider {
 	}
 
 	public async applySelectedSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
+			return
+		}
+		if (this.workspaceEdit.isLocked()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
@@ -259,9 +273,13 @@ export class GhostProvider {
 	}
 
 	public async applyAllSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
+		if (this.workspaceEdit.isLocked()) {
+			return
+		}
+
 		this.decorations.clearAll()
 		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 		await this.workspaceEdit.applySuggestions(this.suggestions)
@@ -270,7 +288,7 @@ export class GhostProvider {
 	}
 
 	public async selectNextSuggestion() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
@@ -288,7 +306,7 @@ export class GhostProvider {
 	}
 
 	public async selectPreviousSuggestion() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor

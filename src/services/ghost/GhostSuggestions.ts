@@ -42,11 +42,21 @@ class GhostSuggestionFile {
 	public getPlaceholderOffsetSelectedGroupOperations() {
 		const selectedGroup = this.getSelectedGroup()
 		if (selectedGroup === null) {
-			return 0
+			return { added: 0, removed: 0 }
 		}
 		const previousGroups = this.groups.slice(0, selectedGroup)
 		const operations = previousGroups.flat()
-		return operations.reduce((offset, op) => offset + (op.type === "+" ? 1 : 0), 0)
+		return operations.reduce(
+			(acc, op) => {
+				if (op.type === "+") {
+					return { added: acc.added + 1, removed: acc.removed }
+				} else if (op.type === "-") {
+					return { added: acc.added, removed: acc.removed + 1 }
+				}
+				return acc
+			},
+			{ added: 0, removed: 0 },
+		)
 	}
 
 	public getGroupsOperations(): GhostSuggestionEditOperation[][] {
@@ -66,9 +76,34 @@ class GhostSuggestionFile {
 		this.selectedGroup = this.groups.length > 0 ? 0 : null
 	}
 
+	private computeOperationsOffset(group: GhostSuggestionEditOperation[]) {
+		return group.reduce(
+			(acc, op) => {
+				if (op.type === "+") {
+					return { added: acc.added + 1, removed: acc.removed }
+				} else if (op.type === "-") {
+					return { added: acc.added, removed: acc.removed + 1 }
+				}
+				return acc
+			},
+			{ added: 0, removed: 0 },
+		)
+	}
+
 	public deleteSelectedGroup() {
 		if (this.selectedGroup !== null && this.selectedGroup < this.groups.length) {
-			this.groups.splice(this.selectedGroup, 1)
+			const deletedGroup = this.groups.splice(this.selectedGroup, 1)
+			const { removed } = this.computeOperationsOffset(deletedGroup[0])
+			// update deleted operations in the next groups
+			for (let i = this.selectedGroup; i < this.groups.length; i++) {
+				for (let j = 0; j < this.groups[i].length; j++) {
+					const op = this.groups[i][j]
+					if (op.type === "-") {
+						op.line = op.line - removed
+					}
+				}
+			}
+			// reset selected group
 			if (this.groups.length === 0) {
 				this.selectedGroup = null
 			} else if (this.selectedGroup >= this.groups.length) {

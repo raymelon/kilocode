@@ -21,7 +21,7 @@ export class GhostCodeActionProvider implements vscode.CodeActionProvider {
 		)
 
 		action.command = {
-			command: "kilocode.ghost.codeActionQuickFix",
+			command: "kilo-code.ghost.codeActionQuickFix",
 			title: "",
 			arguments: [document.uri, range],
 		}

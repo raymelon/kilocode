@@ -42,5 +42,7 @@
 	"ghost.commands.cancelSuggestions": "Bewerkingssuggesties Annuleren",
 	"ghost.commands.applyCurrentSuggestion": "Huidige Bewerkingssuggestie Toepassen",
 	"ghost.commands.applyAllSuggestions": "Alle Bewerkingssuggesties Toepassen",
-	"ghost.commands.promptCodeSuggestion": "Snelle Taak"
+	"ghost.commands.promptCodeSuggestion": "Snelle Taak",
+	"ghost.commands.goToNextSuggestion": "Ga Naar Volgende Suggestie",
+	"ghost.commands.goToPreviousSuggestion": "Ga Naar Vorige Suggestie"
 }

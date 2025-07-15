@@ -42,5 +42,7 @@
 	"ghost.commands.cancelSuggestions": "Avbryt Redigeringsförslag",
 	"ghost.commands.applyCurrentSuggestion": "Tillämpa Nuvarande Redigeringsförslag",
 	"ghost.commands.applyAllSuggestions": "Tillämpa Alla Redigeringsförslag",
-	"ghost.commands.promptCodeSuggestion": "Snabb Uppgift"
+	"ghost.commands.promptCodeSuggestion": "Snabb Uppgift",
+	"ghost.commands.goToNextSuggestion": "Gå Till Nästa Förslag",
+	"ghost.commands.goToPreviousSuggestion": "Gå Till Föregående Förslag"
 }

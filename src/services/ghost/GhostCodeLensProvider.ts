@@ -37,13 +37,13 @@ export class GhostCodeLensProvider implements vscode.CodeLensProvider {
 			const next = new vscode.CodeLens(this.activeSuggestionRange)
 			next.command = {
 				title: "Next (↓)",
-				command: "kilo-code.ghost.keyDown",
+				command: "kilo-code.ghost.goToNextSuggestion",
 				arguments: [],
 			}
 			const previous = new vscode.CodeLens(this.activeSuggestionRange)
 			previous.command = {
 				title: "Previous (↑)",
-				command: "kilo-code.ghost.keyUp",
+				command: "kilo-code.ghost.goToPreviousSuggestion",
 				arguments: [],
 			}
 			return [accept, dismiss, next, previous]
