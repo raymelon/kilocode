@@ -184,6 +184,20 @@ export class GhostProvider {
 		await this.updateGlobalContext()
 		await this.displaySuggestions()
 		await this.displayCodeLens()
+		await this.moveCursorToSuggestion()
+	}
+
+	private async moveCursorToSuggestion() {
+		const topLine = this.getSelectedSuggestionLine()
+		if (topLine === null) {
+			return
+		}
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return
+		}
+		editor.selection = new vscode.Selection(topLine, 0, topLine, 0)
+		editor.revealRange(new vscode.Range(topLine, 0, topLine, 0), vscode.TextEditorRevealType.InCenter)
 	}
 
 	public async displaySuggestions() {
@@ -194,29 +208,33 @@ export class GhostProvider {
 		this.decorations.displaySuggestions(this.suggestions)
 	}
 
-	private async displayCodeLens() {
+	private getSelectedSuggestionLine() {
 		const editor = vscode.window.activeTextEditor
 		if (!editor) {
-			this.codeLensProvider.setSuggestionRange(undefined)
-			return
+			return null
 		}
 		const file = this.suggestions.getFile(editor.document.uri)
 		if (!file) {
-			this.codeLensProvider.setSuggestionRange(undefined)
-			return
+			return null
 		}
 		const selectedGroup = file.getSelectedGroupOperations()
+		if (selectedGroup.length === 0) {
+			return null
+		}
 		const offset = file.getPlaceholderOffsetSelectedGroupOperations()
-
 		const topOperation = selectedGroup?.length ? selectedGroup[0] : null
 		if (!topOperation) {
+			return null
+		}
+		return topOperation.type === "+" ? topOperation.line + offset.removed : topOperation.line + offset.added
+	}
+
+	private async displayCodeLens() {
+		const topLine = this.getSelectedSuggestionLine()
+		if (topLine === null) {
 			this.codeLensProvider.setSuggestionRange(undefined)
 			return
 		}
-
-		const topLine =
-			topOperation.type === "+" ? topOperation.line + offset.removed : topOperation.line + offset.added
-
 		this.codeLensProvider.setSuggestionRange(new vscode.Range(topLine, 0, topLine, 0))
 	}
 
