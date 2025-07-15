@@ -149,6 +149,10 @@ ${sections.filter(Boolean).join("\n\n")}
 				continue // Skip if the patch could not be applied
 			}
 
+			// Update the file names in the patch to use the matched URI string
+			const matchedUriString = bestUriMatch.toString()
+			filePatch.oldFileName = matchedUriString
+			filePatch.newFileName = matchedUriString
 			filePatch.hunks = structuredPatch(filePath, filePath, documentContent, newContent, "", "").hunks
 		}
 		return filePatches as ParsedDiff[]
