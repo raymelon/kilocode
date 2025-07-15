@@ -273,6 +273,16 @@
 				"command": "kilo-code.ghost.promptCodeSuggestion",
 				"title": "%ghost.commands.promptCodeSuggestion%",
 				"category": "%configuration.title%"
+			},
+			{
+				"command": "kilo-code.ghost.goToNextSuggestion",
+				"title": "%ghost.commands.goToNextSuggestion%",
+				"category": "%configuration.title%"
+			},
+			{
+				"command": "kilo-code.ghost.goToPreviousSuggestion",
+				"title": "%ghost.commands.goToPreviousSuggestion%",
+				"category": "%configuration.title%"
 			}
 		],
 		"keybindings": [
@@ -294,33 +304,33 @@
 				"when": "inlineSuggestionVisible && editorTextFocus && !editorTabMovesFocus && !inSnippetMode && !suggestWidgetVisible && editorLangId != 'markdown'"
 			},
 			{
-				"command": "kilo-code.ghost.keyTab",
+				"command": "kilo-code.ghost.applyCurrentSuggestions",
 				"key": "tab",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.hasSuggestions"
 			},
 			{
-				"command": "kilo-code.ghost.keyEscape",
+				"command": "kilo-code.ghost.cancelSuggestions",
 				"key": "escape",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.hasSuggestions"
 			},
 			{
-				"command": "kilo-code.ghost.keyDown",
+				"command": "kilo-code.ghost.goToNextSuggestion",
 				"key": "down",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.hasSuggestions"
 			},
 			{
-				"command": "kilo-code.ghost.keyUp",
+				"command": "kilo-code.ghost.goToPreviousSuggestion",
 				"key": "up",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.hasSuggestions"
 			},
 			{
-				"command": "kilo-code.ghost.keyCmdI",
+				"command": "kilo-code.ghost.promptCodeSuggestion",
 				"key": "ctrl+i",
 				"mac": "cmd+i",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"
 			},
 			{
-				"command": "kilo-code.ghost.keyCmdL",
+				"command": "kilo-code.ghost.generateSuggestions",
 				"key": "ctrl+l",
 				"mac": "cmd+l",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode"

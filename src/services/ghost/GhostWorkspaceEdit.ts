@@ -3,6 +3,8 @@ import { GhostSuggestionEditOperation } from "./types"
 import { GhostSuggestionsState } from "./GhostSuggestions"
 
 export class GhostWorkspaceEdit {
+	private locked: boolean = false
+
 	private async applyOperations(documentUri: vscode.Uri, operations: GhostSuggestionEditOperation[]) {
 		const workspaceEdit = new vscode.WorkspaceEdit()
 		if (operations.length === 0) {
@@ -141,48 +143,77 @@ export class GhostWorkspaceEdit {
 		}
 	}
 
+	public isLocked(): boolean {
+		return this.locked
+	}
+
 	public async applySuggestions(suggestions: GhostSuggestionsState) {
+		if (this.locked) {
+			return
+		}
+		this.locked = true
 		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no operations to apply.")
 			return
 		}
 		await this.applyOperations(documentUri, operations)
+		this.locked = false
 	}
 
 	public async applySelectedSuggestions(suggestions: GhostSuggestionsState) {
+		if (this.locked) {
+			return
+		}
+		this.locked = true
 		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no selected operations to apply.")
 			return
 		}
 		await this.applyOperations(documentUri, operations)
+		this.locked = false
 	}
 
 	public async revertSuggestionsPlaceholder(suggestions: GhostSuggestionsState): Promise<void> {
+		if (this.locked) {
+			return
+		}
+		this.locked = true
 		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no operations to apply.")
 			return
 		}
 		await this.revertOperationsPlaceholder(documentUri, operations)
+		this.locked = false
 	}
 
 	public async revertSelectedSuggestionsPlaceholder(suggestions: GhostSuggestionsState): Promise<void> {
+		if (this.locked) {
+			return
+		}
+		this.locked = true
 		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no selected operations to apply.")
 			return
 		}
 		await this.revertOperationsPlaceholder(documentUri, operations)
+		this.locked = false
 	}
 
 	public async applySuggestionsPlaceholders(suggestions: GhostSuggestionsState) {
+		if (this.locked) {
+			return
+		}
+		this.locked = true
 		const { documentUri, operations } = await this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no operations to apply.")
 			return
 		}
 		await this.applyOperationsPlaceholders(documentUri, operations)
+		this.locked = false
 	}
 }

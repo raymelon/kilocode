@@ -7,14 +7,14 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 
 	// Register GhostProvider Commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kilocode.ghost.codeActionQuickFix", async () => {
+		vscode.commands.registerCommand("kilo-code.ghost.codeActionQuickFix", async () => {
 			return
 		}),
 	)
 
 	// Register GhostProvider Commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kilocode.ghost.generateSuggestions", async () => {
+		vscode.commands.registerCommand("kilo-code.ghost.generateSuggestions", async () => {
 			ghost.codeSuggestion()
 		}),
 	)
@@ -38,36 +38,14 @@ export const registerGhostProvider = (context: vscode.ExtensionContext) => {
 			await ghost.promptCodeSuggestion()
 		}),
 	)
-
-	// Register GhostProvider Key Bindings
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyTab", async () => {
-			await ghost.applySelectedSuggestions()
-		}),
-	)
-	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyEscape", async () => {
-			await ghost.cancelSuggestions()
-		}),
-	)
-	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyUp", async () => {
-			await ghost.selectPreviousSuggestion()
-		}),
-	)
-	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyDown", async () => {
+		vscode.commands.registerCommand("kilo-code.ghost.goToNextSuggestion", async () => {
 			await ghost.selectNextSuggestion()
 		}),
 	)
 	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyCmdI", async () => {
-			await ghost.promptCodeSuggestion()
-		}),
-	)
-	context.subscriptions.push(
-		vscode.commands.registerCommand("kilo-code.ghost.keyCmdL", async () => {
-			await ghost.codeSuggestion()
+		vscode.commands.registerCommand("kilo-code.ghost.goToPreviousSuggestion", async () => {
+			await ghost.selectPreviousSuggestion()
 		}),
 	)
 

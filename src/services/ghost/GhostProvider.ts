@@ -116,8 +116,10 @@ export class GhostProvider {
 	}
 
 	private async provideCodeSuggestions(context: GhostSuggestionContext): Promise<void> {
-		let cancelled = false
+		// Cancel any ongoing suggestions
+		await this.cancelSuggestions()
 
+		let cancelled = false
 		const enhancedContext = await this.enhanceContext(context)
 
 		await vscode.window.withProgress(
@@ -205,12 +207,17 @@ export class GhostProvider {
 		}
 		const selectedGroup = file.getSelectedGroupOperations()
 		const offset = file.getPlaceholderOffsetSelectedGroupOperations()
-		const minLine = selectedGroup?.length ? selectedGroup[0].line + offset : 0
-		const maxLine = selectedGroup?.length
-			? selectedGroup[selectedGroup.length - 1].line + offset + 1
-			: editor.document.lineCount
 
-		this.codeLensProvider.setSuggestionRange(new vscode.Range(minLine, 0, maxLine, 0))
+		const topOperation = selectedGroup?.length ? selectedGroup[0] : null
+		if (!topOperation) {
+			this.codeLensProvider.setSuggestionRange(undefined)
+			return
+		}
+
+		const topLine =
+			topOperation.type === "+" ? topOperation.line + offset.removed : topOperation.line + offset.added
+
+		this.codeLensProvider.setSuggestionRange(new vscode.Range(topLine, 0, topLine, 0))
 	}
 
 	private async updateGlobalContext() {
@@ -218,12 +225,15 @@ export class GhostProvider {
 		await vscode.commands.executeCommand("setContext", "kilocode.ghost.hasSuggestions", hasSuggestions)
 	}
 
-	public havePendingSuggestions(): boolean {
+	public hasPendingSuggestions(): boolean {
 		return this.suggestions.hasSuggestions()
 	}
 
 	public async cancelSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
+			return
+		}
+		if (this.workspaceEdit.isLocked()) {
 			return
 		}
 		this.decorations.clearAll()
@@ -233,7 +243,10 @@ export class GhostProvider {
 	}
 
 	public async applySelectedSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
+			return
+		}
+		if (this.workspaceEdit.isLocked()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
@@ -259,9 +272,13 @@ export class GhostProvider {
 	}
 
 	public async applyAllSuggestions() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
+		if (this.workspaceEdit.isLocked()) {
+			return
+		}
+
 		this.decorations.clearAll()
 		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 		await this.workspaceEdit.applySuggestions(this.suggestions)
@@ -270,7 +287,7 @@ export class GhostProvider {
 	}
 
 	public async selectNextSuggestion() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
@@ -288,7 +305,7 @@ export class GhostProvider {
 	}
 
 	public async selectPreviousSuggestion() {
-		if (!this.havePendingSuggestions()) {
+		if (!this.hasPendingSuggestions()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
