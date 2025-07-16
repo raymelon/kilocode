@@ -232,7 +232,7 @@ export class GhostWorkspaceEdit {
 		this.locked = true
 		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
-			console.log("No active document or no operations to apply.")
+			this.locked = false
 			return
 		}
 		await this.applyOperations(documentUri, operations, [])
@@ -246,7 +246,7 @@ export class GhostWorkspaceEdit {
 		this.locked = true
 		const { documentUri, operations, previousOperations } = await this.getActiveFileSelectedOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
-			console.log("No active document or no selected operations to apply.")
+			this.locked = false
 			return
 		}
 		await this.applyOperations(documentUri, operations, previousOperations)
@@ -260,7 +260,7 @@ export class GhostWorkspaceEdit {
 		this.locked = true
 		const { documentUri, operations } = this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
-			console.log("No active document or no operations to apply.")
+			this.locked = false
 			return
 		}
 		await this.revertOperationsPlaceholder(documentUri, operations)
@@ -274,7 +274,7 @@ export class GhostWorkspaceEdit {
 		this.locked = true
 		const { documentUri, operations } = await this.getActiveFileOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
-			console.log("No active document or no operations to apply.")
+			this.locked = false
 			return
 		}
 		await this.applyOperationsPlaceholders(documentUri, operations)

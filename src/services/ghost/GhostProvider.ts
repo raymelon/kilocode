@@ -223,6 +223,7 @@ export class GhostProvider {
 
 	private async updateGlobalContext() {
 		const hasSuggestions = this.suggestions.hasSuggestions()
+		console.log("hasSuggestions", hasSuggestions)
 		await vscode.commands.executeCommand("setContext", "kilocode.ghost.hasSuggestions", hasSuggestions)
 	}
 
@@ -231,10 +232,7 @@ export class GhostProvider {
 	}
 
 	public async cancelSuggestions() {
-		if (!this.hasPendingSuggestions()) {
-			return
-		}
-		if (this.workspaceEdit.isLocked()) {
+		if (!this.hasPendingSuggestions() || this.workspaceEdit.isLocked()) {
 			return
 		}
 		this.decorations.clearAll()
@@ -244,10 +242,7 @@ export class GhostProvider {
 	}
 
 	public async applySelectedSuggestions() {
-		if (!this.hasPendingSuggestions()) {
-			return
-		}
-		if (this.workspaceEdit.isLocked()) {
+		if (!this.hasPendingSuggestions() || this.workspaceEdit.isLocked()) {
 			return
 		}
 		const editor = vscode.window.activeTextEditor
@@ -274,13 +269,9 @@ export class GhostProvider {
 	}
 
 	public async applyAllSuggestions() {
-		if (!this.hasPendingSuggestions()) {
+		if (!this.hasPendingSuggestions() || this.workspaceEdit.isLocked()) {
 			return
 		}
-		if (this.workspaceEdit.isLocked()) {
-			return
-		}
-
 		this.decorations.clearAll()
 		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 		await this.workspaceEdit.applySuggestions(this.suggestions)
