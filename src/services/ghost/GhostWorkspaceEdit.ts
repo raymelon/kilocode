@@ -28,7 +28,7 @@ export class GhostWorkspaceEdit {
 	private async applyOperations(
 		documentUri: vscode.Uri,
 		operations: GhostSuggestionEditOperation[],
-		previousOperations: GhostSuggestionEditOperationsOffset | undefined = { added: 0, removed: 0, offset: 0 },
+		previousOperations: GhostSuggestionEditOperation[],
 	) {
 		const workspaceEdit = new vscode.WorkspaceEdit()
 		if (operations.length === 0) {
@@ -40,42 +40,68 @@ export class GhostWorkspaceEdit {
 			console.log(`Could not open document: ${documentUri.toString()}`)
 			return
 		}
-		// Helper to group contiguous operations.
-		const sortedDeletes = operations.filter((op) => op.type === "-").sort((a, b) => a.line - b.line)
-		const sortedInserts = operations.filter((op) => op.type === "+").sort((a, b) => a.line - b.line)
-
-		// --- 1. Translate Insertion Coordinates ---
-		const translatedInsertOps: { originalLine: number; content: string }[] = []
-		let delPtr = 0
-		let insPtr = 0
+		// --- 1. Calculate Initial State from Previous Operations ---
 		let originalLineCursor = 0
 		let finalLineCursor = 0
 
-		while (delPtr < sortedDeletes.length || insPtr < sortedInserts.length) {
-			const nextDelLine = sortedDeletes[delPtr]?.line ?? Infinity
-			const nextInsLine = sortedInserts[insPtr]?.line ?? Infinity
+		if (previousOperations.length > 0) {
+			const prevDeletes = previousOperations.filter((op) => op.type === "-").sort((a, b) => a.line - b.line)
+			const prevInserts = previousOperations.filter((op) => op.type === "+").sort((a, b) => a.line - b.line)
+			let prevDelPtr = 0
+			let prevInsPtr = 0
+
+			// "Dry run" the simulation on previous operations to set the cursors accurately.
+			while (prevDelPtr < prevDeletes.length || prevInsPtr < prevInserts.length) {
+				const nextDelLine = prevDeletes[prevDelPtr]?.line ?? Infinity
+				const nextInsLine = prevInserts[prevInsPtr]?.line ?? Infinity
+
+				if (nextDelLine <= originalLineCursor && nextDelLine !== Infinity) {
+					originalLineCursor++
+					prevDelPtr++
+				} else if (nextInsLine <= finalLineCursor && nextInsLine !== Infinity) {
+					finalLineCursor++
+					prevInsPtr++
+				} else if (nextDelLine === Infinity && nextInsLine === Infinity) {
+					break
+				} else {
+					originalLineCursor++
+					finalLineCursor++
+				}
+			}
+		}
+
+		// --- 2. Translate and Prepare Current Operations ---
+		const currentDeletes = operations.filter((op) => op.type === "-").sort((a, b) => a.line - b.line)
+		const currentInserts = operations.filter((op) => op.type === "+").sort((a, b) => a.line - b.line)
+		const translatedInsertOps: { originalLine: number; content: string }[] = []
+		let currDelPtr = 0
+		let currInsPtr = 0
+
+		// Run the simulation for the new operations, starting from the state calculated above.
+		while (currDelPtr < currentDeletes.length || currInsPtr < currentInserts.length) {
+			const nextDelLine = currentDeletes[currDelPtr]?.line ?? Infinity
+			const nextInsLine = currentInserts[currInsPtr]?.line ?? Infinity
 
 			if (nextDelLine <= originalLineCursor && nextDelLine !== Infinity) {
-				// Process a deletion at the current cursor
 				originalLineCursor++
-				delPtr++
+				currDelPtr++
 			} else if (nextInsLine <= finalLineCursor && nextInsLine !== Infinity) {
-				// Process an insertion at the current cursor
 				translatedInsertOps.push({
 					originalLine: originalLineCursor,
-					content: sortedInserts[insPtr].content || "",
+					content: currentInserts[currInsPtr].content || "",
 				})
 				finalLineCursor++
-				insPtr++
+				currInsPtr++
+			} else if (nextDelLine === Infinity && nextInsLine === Infinity) {
+				break
 			} else {
-				// Advance cursors until the next operation is found
 				originalLineCursor++
 				finalLineCursor++
 			}
 		}
 
-		// --- 2. Group and Apply Deletions ---
-		const deleteBlocks = this.groupOperationsIntoBlocks(sortedDeletes, "line")
+		// --- 3. Group and Apply Deletions ---
+		const deleteBlocks = this.groupOperationsIntoBlocks(currentDeletes, "line")
 		for (const block of deleteBlocks) {
 			const firstDeleteLine = block[0].line
 			const lastDeleteLine = block[block.length - 1].line
@@ -90,7 +116,7 @@ export class GhostWorkspaceEdit {
 			workspaceEdit.delete(documentUri, new vscode.Range(startPosition, endPosition))
 		}
 
-		// --- 3. Group and Apply Translated Insertions ---
+		// --- 4. Group and Apply Translated Insertions ---
 		const insertionBlocks = this.groupOperationsIntoBlocks(translatedInsertOps, "originalLine")
 		for (const block of insertionBlocks) {
 			const anchorLine = block[0].originalLine
@@ -172,42 +198,27 @@ export class GhostWorkspaceEdit {
 	}
 
 	private async getActiveFileSelectedOperations(suggestions: GhostSuggestionsState) {
+		const empty = {
+			documentUri: null,
+			operations: [],
+			previousOperations: [],
+		}
 		const editor = vscode.window.activeTextEditor
 		if (!editor) {
-			return {
-				documentUri: null,
-				operations: [],
-			}
+			return empty
 		}
 		const documentUri = editor.document.uri
 		const suggestionsFile = suggestions.getFile(documentUri)
 		if (!suggestionsFile) {
-			return {
-				documentUri: null,
-				operations: [],
-			}
+			return empty
 		}
 		const operations = suggestionsFile.getSelectedGroupOperations()
+		const previousOperations = suggestionsFile.getSelectedGroupPreviousOperations()
 		return {
 			documentUri,
 			operations,
+			previousOperations,
 		}
-	}
-
-	private async getActiveFileSelectedPreviousOperations(
-		suggestions: GhostSuggestionsState,
-	): Promise<GhostSuggestionEditOperationsOffset> {
-		const defaultOffset: GhostSuggestionEditOperationsOffset = { added: 0, removed: 0, offset: 0 }
-		const editor = vscode.window.activeTextEditor
-		if (!editor) {
-			return defaultOffset
-		}
-		const documentUri = editor.document.uri
-		const suggestionsFile = suggestions.getFile(documentUri)
-		if (!suggestionsFile) {
-			return defaultOffset
-		}
-		return suggestionsFile.getPlaceholderOffsetSelectedGroupOperations()
 	}
 
 	public isLocked(): boolean {
@@ -224,7 +235,7 @@ export class GhostWorkspaceEdit {
 			console.log("No active document or no operations to apply.")
 			return
 		}
-		await this.applyOperations(documentUri, operations)
+		await this.applyOperations(documentUri, operations, [])
 		this.locked = false
 	}
 
@@ -233,12 +244,12 @@ export class GhostWorkspaceEdit {
 			return
 		}
 		this.locked = true
-		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
+		const { documentUri, operations, previousOperations } = await this.getActiveFileSelectedOperations(suggestions)
 		if (!documentUri || operations.length === 0) {
 			console.log("No active document or no selected operations to apply.")
 			return
 		}
-		await this.applyOperations(documentUri, operations)
+		await this.applyOperations(documentUri, operations, previousOperations)
 		this.locked = false
 	}
 

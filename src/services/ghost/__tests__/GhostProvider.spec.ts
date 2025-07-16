@@ -372,6 +372,160 @@ function calculate() {
 			const expectedContent = normalizeWhitespace(expected)
 			expect(finalContent).toBe(expectedContent)
 		})
+
+		it("should handle sequential partial application of mixed operations", async () => {
+			const initialContent = normalizeWhitespace(`\
+function calculate() {
+  let a = 1
+  let b = 2
+
+  let sum = a + b
+  let product = a * b
+
+  console.log(sum)
+  console.log(product)
+
+  return sum
+}`)
+			const diffResponse = `\
+--- a/sequential.js
++++ b/sequential.js
+@@ -1,12 +1,15 @@
+ function calculate() {
+   let a = 1
+   let b = 2
++  let c = 3; // kilocode_change start: Add a new variable
+ 
+   let sum = a + b
+   let product = a * b
++  let difference = a - b; // kilocode_change end: Add a new variable
+ 
+   console.log(sum)
+   console.log(product)
++  console.log(difference); // kilocode_change start: Log the new variable
+ 
+-  return sum
++  return sum + difference; // kilocode_change end: Return sum and difference
+ }`
+
+			const expected = `\
+function calculate() {
+  let a = 1
+  let b = 2
+
+  let sum = a + b
+  let product = a * b
+  let difference = a - b; // kilocode_change end: Add a new variable
+
+  console.log(sum)
+  console.log(product)
+  console.log(difference); // kilocode_change start: Log the new variable
+
+  return sum + difference; // kilocode_change end: Return sum and difference
+}`
+			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
+			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+
+			const suggestionsFile = suggestions.getFile(testUri)
+			suggestionsFile!.sortGroups()
+
+			// Loop through each suggestion group and apply them one by one
+			const groups = suggestionsFile!.getGroupsOperations()
+			const groupsLength = groups.length
+			for (let i = 0; i < groupsLength; i++) {
+				if (i === 0) {
+					// Skip the first operation
+					suggestionsFile!.selectNextGroup()
+				} else {
+					// Apply the currently selected suggestion group
+					await workspaceEdit.applySelectedSuggestions(suggestions)
+					suggestionsFile!.deleteSelectedGroup()
+				}
+			}
+
+			// Verify the final document content is correct
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			const expectedContent = normalizeWhitespace(expected)
+			expect(finalContent).toBe(expectedContent)
+		})
+	})
+
+	it("should handle random individual application of mixed operations", async () => {
+		const initialContent = normalizeWhitespace(`\
+function calculate() {
+  let a = 1
+  let b = 2
+
+  let sum = a + b
+  let product = a * b
+
+  console.log(sum)
+  console.log(product)
+
+  return sum
+}`)
+		const diffResponse = `\
+--- a/sequential.js
++++ b/sequential.js
+@@ -1,12 +1,15 @@
+ function calculate() {
+   let a = 1
+   let b = 2
++  let c = 3; // kilocode_change start: Add a new variable
+ 
+   let sum = a + b
+   let product = a * b
++  let difference = a - b; // kilocode_change end: Add a new variable
+ 
+   console.log(sum)
+   console.log(product)
++  console.log(difference); // kilocode_change start: Log the new variable
+ 
+-  return sum
++  return sum + difference; // kilocode_change end: Return sum and difference
+ }`
+
+		const expected = `\
+function calculate() {
+  let a = 1
+  let b = 2
+  let c = 3; // kilocode_change start: Add a new variable
+
+  let sum = a + b
+  let product = a * b
+  let difference = a - b; // kilocode_change end: Add a new variable
+
+  console.log(sum)
+  console.log(product)
+  console.log(difference); // kilocode_change start: Log the new variable
+
+  return sum + difference; // kilocode_change end: Return sum and difference
+}`
+		const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
+		const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+		const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+
+		const suggestionsFile = suggestions.getFile(testUri)
+		suggestionsFile!.sortGroups()
+
+		// Loop through each suggestion group and apply them one by one
+		const groups = suggestionsFile!.getGroupsOperations()
+		const groupsLength = groups.length
+		for (let i = 0; i < groupsLength; i++) {
+			const random = Math.floor(Math.random() * 4) + 1
+			for (let j = 0; j < random; j++) {
+				suggestionsFile!.selectNextGroup()
+			}
+			// Apply the currently selected suggestion group
+			await workspaceEdit.applySelectedSuggestions(suggestions)
+			suggestionsFile!.deleteSelectedGroup()
+		}
+
+		// Verify the final document content is correct
+		const finalContent = mockWorkspace.getDocumentContent(testUri)
+		const expectedContent = normalizeWhitespace(expected)
+		expect(finalContent).toBe(expectedContent)
 	})
 
 	describe("Error Handling", () => {
