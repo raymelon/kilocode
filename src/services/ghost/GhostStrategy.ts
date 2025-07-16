@@ -178,7 +178,7 @@ ${sections.filter(Boolean).join("\n\n")}
 
 			const fileUri = filePath.startsWith("file://")
 				? vscode.Uri.parse(filePath)
-				: vscode.Uri.parse(`file:///${filePath}`)
+				: vscode.Uri.parse(`file://${filePath}`)
 
 			const suggestionFile = suggestions.addFile(fileUri)
 
