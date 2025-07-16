@@ -302,23 +302,56 @@ function third() {
 
 		it("should handle sequential individual application of mixed operations", async () => {
 			const initialContent = normalizeWhitespace(`\
-	function calculate() {
-		let a = 1
-		let b = 2
+function calculate() {
+  let a = 1
+  let b = 2
 
-		let sum = a + b
-		let product = a * b
+  let sum = a + b
+  let product = a * b
 
-		console.log(sum)
-		console.log(product)
+  console.log(sum)
+  console.log(product)
 
-		return sum
-	}`)
+  return sum
+}`)
+			const diffResponse = `\
+--- a/sequential.js
++++ b/sequential.js
+@@ -1,12 +1,15 @@
+ function calculate() {
+   let a = 1
+   let b = 2
++  let c = 3; // kilocode_change start: Add a new variable
+ 
+   let sum = a + b
+   let product = a * b
++  let difference = a - b; // kilocode_change end: Add a new variable
+ 
+   console.log(sum)
+   console.log(product)
++  console.log(difference); // kilocode_change start: Log the new variable
+ 
+-  return sum
++  return sum + difference; // kilocode_change end: Return sum and difference
+ }`
+
+			const expected = `\
+function calculate() {
+  let a = 1
+  let b = 2
+  let c = 3; // kilocode_change start: Add a new variable
+
+  let sum = a + b
+  let product = a * b
+  let difference = a - b; // kilocode_change end: Add a new variable
+
+  console.log(sum)
+  console.log(product)
+  console.log(difference); // kilocode_change start: Log the new variable
+
+  return sum + difference; // kilocode_change end: Return sum and difference
+}`
 			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
-
-			const diffResponse =
-				"--- a/sequential.js\n+++ b/sequential.js\n@@ -1,10 +1,12 @@\n function calculate() {\n \tlet a = 1\n \tlet b = 2\n+\tlet c = 3; // kilocode_change start: Add a new variable\n \n \tlet sum = a + b\n \tlet product = a * b\n+\tlet difference = a - b; // kilocode_change end: Add a new variable\n \n \tconsole.log(sum)\n \tconsole.log(product)\n+\tconsole.log(difference); // kilocode_change start: Log the new variable\n \n-\treturn sum\n+\treturn sum + difference; // kilocode_change end: Return sum and difference\n }"
-
 			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
 			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
 
@@ -326,51 +359,17 @@ function third() {
 			suggestionsFile!.sortGroups()
 
 			// Loop through each suggestion group and apply them one by one
-			const allGroups = suggestionsFile!.getGroupsOperations()
-			for (let i = 0; i < allGroups.length; i++) {
+			const groups = suggestionsFile!.getGroupsOperations()
+			const groupsLength = groups.length
+			for (let i = 0; i < groupsLength; i++) {
 				// Apply the currently selected suggestion group
 				await workspaceEdit.applySelectedSuggestions(suggestions)
-
-				// Verify the document content after this iteration
-				const currentContent = mockWorkspace.getDocumentContent(testUri)
-				console.log(`=== Iteration ${i + 1} ===`)
-				console.log(`Selected group: ${suggestionsFile!.getSelectedGroup()}, Operations: [`)
-				const selectedOps = suggestionsFile!.getSelectedGroupOperations()
-				selectedOps.forEach((op) => {
-					console.log(
-						`  { type: '${op.type}', line: ${op.line}, content: '${op.content.substring(0, 50)}...' }`,
-					)
-				})
-				console.log(`]`)
-				console.log(`Content after iteration ${i + 1}:`)
-				console.log(currentContent)
-				console.log(`Remaining groups: ${allGroups.length - i - 1}`)
-				console.log()
-
-				// Move to next group for next iteration (if not the last iteration)
-				if (i < allGroups.length - 1) {
-					suggestionsFile!.selectNextGroup()
-				}
+				suggestionsFile!.deleteSelectedGroup()
 			}
 
 			// Verify the final document content is correct
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			const expectedContent = normalizeWhitespace(`function calculate() {
-		let a = 1
-		let b = 2
-		let c = 3; // kilocode_change start: Add a new variable
-
-		let sum = a + b
-		let product = a * b
-		let difference = a - b; // kilocode_change end: Add a new variable
-
-		console.log(sum)
-		console.log(product)
-		console.log(difference); // kilocode_change start: Log the new variable
-
-		return sum + difference; // kilocode_change end: Return sum and difference
-	}`)
-
+			const expectedContent = normalizeWhitespace(expected)
 			expect(finalContent).toBe(expectedContent)
 		})
 	})

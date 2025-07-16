@@ -5,6 +5,26 @@ import { GhostSuggestionsState } from "./GhostSuggestions"
 export class GhostWorkspaceEdit {
 	private locked: boolean = false
 
+	private groupOperationsIntoBlocks = <T>(ops: T[], lineKey: keyof T): T[][] => {
+		if (ops.length === 0) {
+			return []
+		}
+		const blocks: T[][] = [[ops[0]]]
+		for (let i = 1; i < ops.length; i++) {
+			const op = ops[i]
+			const lastBlock = blocks[blocks.length - 1]
+			const lastOp = lastBlock[lastBlock.length - 1]
+			if (Number(op[lineKey]) === Number(lastOp[lineKey]) + 1) {
+				lastBlock.push(op)
+			} else if (Number(op[lineKey]) === Number(lastOp[lineKey])) {
+				lastBlock.push(op)
+			} else {
+				blocks.push([op])
+			}
+		}
+		return blocks
+	}
+
 	private async applyOperations(
 		documentUri: vscode.Uri,
 		operations: GhostSuggestionEditOperation[],
@@ -20,43 +40,62 @@ export class GhostWorkspaceEdit {
 			console.log(`Could not open document: ${documentUri.toString()}`)
 			return
 		}
-		const sortedOps = operations.sort((a, b) => a.line - b.line)
-		const deleteOps = sortedOps.filter((op) => op.type === "-")
-		const insertOps = sortedOps.filter((op) => op.type === "+")
+		// Helper to group contiguous operations.
+		const sortedDeletes = operations.filter((op) => op.type === "-").sort((a, b) => a.line - b.line)
+		const sortedInserts = operations.filter((op) => op.type === "+").sort((a, b) => a.line - b.line)
 
-		const anchorLine = sortedOps[0].line
+		// --- 1. Translate Insertion Coordinates ---
+		const translatedInsertOps: { originalLine: number; content: string }[] = []
+		let delPtr = 0
+		let insPtr = 0
+		let originalLineCursor = 0
+		let finalLineCursor = 0
 
-		if (deleteOps.length > 0) {
-			const firstDeleteLine = deleteOps[0].line
-			const lastDeleteLine = deleteOps[deleteOps.length - 1].line
+		while (delPtr < sortedDeletes.length || insPtr < sortedInserts.length) {
+			const nextDelLine = sortedDeletes[delPtr]?.line ?? Infinity
+			const nextInsLine = sortedInserts[insPtr]?.line ?? Infinity
+
+			if (nextDelLine <= originalLineCursor && nextDelLine !== Infinity) {
+				// Process a deletion at the current cursor
+				originalLineCursor++
+				delPtr++
+			} else if (nextInsLine <= finalLineCursor && nextInsLine !== Infinity) {
+				// Process an insertion at the current cursor
+				translatedInsertOps.push({
+					originalLine: originalLineCursor,
+					content: sortedInserts[insPtr].content || "",
+				})
+				finalLineCursor++
+				insPtr++
+			} else {
+				// Advance cursors until the next operation is found
+				originalLineCursor++
+				finalLineCursor++
+			}
+		}
+
+		// --- 2. Group and Apply Deletions ---
+		const deleteBlocks = this.groupOperationsIntoBlocks(sortedDeletes, "line")
+		for (const block of deleteBlocks) {
+			const firstDeleteLine = block[0].line
+			const lastDeleteLine = block[block.length - 1].line
 			const startPosition = new vscode.Position(firstDeleteLine, 0)
 			let endPosition
+
 			if (lastDeleteLine >= document.lineCount - 1) {
 				endPosition = document.lineAt(lastDeleteLine).rangeIncludingLineBreak.end
 			} else {
 				endPosition = new vscode.Position(lastDeleteLine + 1, 0)
 			}
-			const deleteRange = new vscode.Range(startPosition, endPosition)
-			workspaceEdit.delete(documentUri, deleteRange)
+			workspaceEdit.delete(documentUri, new vscode.Range(startPosition, endPosition))
 		}
 
-		if (insertOps.length > 0) {
-			const insertionBlocks: GhostSuggestionEditOperation[][] = []
-			for (const op of insertOps) {
-				const lastBlock = insertionBlocks[insertionBlocks.length - 1]
-				if (lastBlock && op.line === lastBlock[lastBlock.length - 1].line + 1) {
-					lastBlock.push(op)
-				} else {
-					insertionBlocks.push([op])
-				}
-			}
-			for (const block of insertionBlocks) {
-				const anchorLine = block[0].line
-				const textToInsert = block.map((op) => op.content || "").join("\n") + "\n"
-
-				const insertPosition = new vscode.Position(anchorLine, 0)
-				workspaceEdit.insert(documentUri, insertPosition, textToInsert)
-			}
+		// --- 3. Group and Apply Translated Insertions ---
+		const insertionBlocks = this.groupOperationsIntoBlocks(translatedInsertOps, "originalLine")
+		for (const block of insertionBlocks) {
+			const anchorLine = block[0].originalLine
+			const textToInsert = block.map((op) => op.content).join("\n") + "\n"
+			workspaceEdit.insert(documentUri, new vscode.Position(anchorLine, 0), textToInsert)
 		}
 
 		await vscode.workspace.applyEdit(workspaceEdit)
