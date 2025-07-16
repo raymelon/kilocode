@@ -1,11 +1,15 @@
 import * as vscode from "vscode"
-import { GhostSuggestionEditOperation } from "./types"
+import { GhostSuggestionEditOperation, GhostSuggestionEditOperationsOffset } from "./types"
 import { GhostSuggestionsState } from "./GhostSuggestions"
 
 export class GhostWorkspaceEdit {
 	private locked: boolean = false
 
-	private async applyOperations(documentUri: vscode.Uri, operations: GhostSuggestionEditOperation[]) {
+	private async applyOperations(
+		documentUri: vscode.Uri,
+		operations: GhostSuggestionEditOperation[],
+		previousOperations: GhostSuggestionEditOperationsOffset | undefined = { added: 0, removed: 0, offset: 0 },
+	) {
 		const workspaceEdit = new vscode.WorkspaceEdit()
 		if (operations.length === 0) {
 			return // No operations to apply
@@ -16,34 +20,42 @@ export class GhostWorkspaceEdit {
 			console.log(`Could not open document: ${documentUri.toString()}`)
 			return
 		}
-		const deleteOps = operations.filter((op) => op.type === "-")
-		const insertOps = operations.filter((op) => op.type === "+")
+		const sortedOps = operations.sort((a, b) => a.line - b.line)
+		const deleteOps = sortedOps.filter((op) => op.type === "-")
+		const insertOps = sortedOps.filter((op) => op.type === "+")
 
-		let delPtr = 0
-		let insPtr = 0
-		let lineOffset = 0
+		const anchorLine = sortedOps[0].line
 
-		while (delPtr < deleteOps.length || insPtr < insertOps.length) {
-			const nextDeleteOriginalLine = deleteOps[delPtr]?.line ?? Infinity
-			const nextInsertOriginalLine = (insertOps[insPtr]?.line ?? Infinity) - lineOffset
-
-			if (nextDeleteOriginalLine <= nextInsertOriginalLine) {
-				// Process the deletion next
-				const op = deleteOps[delPtr]
-				const range = document.lineAt(op.line).rangeIncludingLineBreak
-				workspaceEdit.delete(documentUri, range)
-
-				lineOffset--
-				delPtr++
+		if (deleteOps.length > 0) {
+			const firstDeleteLine = deleteOps[0].line
+			const lastDeleteLine = deleteOps[deleteOps.length - 1].line
+			const startPosition = new vscode.Position(firstDeleteLine, 0)
+			let endPosition
+			if (lastDeleteLine >= document.lineCount - 1) {
+				endPosition = document.lineAt(lastDeleteLine).rangeIncludingLineBreak.end
 			} else {
-				// Process the insertion next
-				const op = insertOps[insPtr]
-				const position = new vscode.Position(nextInsertOriginalLine, 0)
-				const textToInsert = (op.content || "") + "\n"
-				workspaceEdit.insert(documentUri, position, textToInsert)
+				endPosition = new vscode.Position(lastDeleteLine + 1, 0)
+			}
+			const deleteRange = new vscode.Range(startPosition, endPosition)
+			workspaceEdit.delete(documentUri, deleteRange)
+		}
 
-				lineOffset++
-				insPtr++
+		if (insertOps.length > 0) {
+			const insertionBlocks: GhostSuggestionEditOperation[][] = []
+			for (const op of insertOps) {
+				const lastBlock = insertionBlocks[insertionBlocks.length - 1]
+				if (lastBlock && op.line === lastBlock[lastBlock.length - 1].line + 1) {
+					lastBlock.push(op)
+				} else {
+					insertionBlocks.push([op])
+				}
+			}
+			for (const block of insertionBlocks) {
+				const anchorLine = block[0].line
+				const textToInsert = block.map((op) => op.content || "").join("\n") + "\n"
+
+				const insertPosition = new vscode.Position(anchorLine, 0)
+				workspaceEdit.insert(documentUri, insertPosition, textToInsert)
 			}
 		}
 
@@ -141,6 +153,22 @@ export class GhostWorkspaceEdit {
 			documentUri,
 			operations,
 		}
+	}
+
+	private async getActiveFileSelectedPreviousOperations(
+		suggestions: GhostSuggestionsState,
+	): Promise<GhostSuggestionEditOperationsOffset> {
+		const defaultOffset: GhostSuggestionEditOperationsOffset = { added: 0, removed: 0, offset: 0 }
+		const editor = vscode.window.activeTextEditor
+		if (!editor) {
+			return defaultOffset
+		}
+		const documentUri = editor.document.uri
+		const suggestionsFile = suggestions.getFile(documentUri)
+		if (!suggestionsFile) {
+			return defaultOffset
+		}
+		return suggestionsFile.getPlaceholderOffsetSelectedGroupOperations()
 	}
 
 	public isLocked(): boolean {

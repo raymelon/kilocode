@@ -140,7 +140,7 @@ ${sections.filter(Boolean).join("\n\n")}
 			const documentContent = document.getText()
 
 			const newContent = applyPatch(documentContent, diff, {
-				fuzzFactor: 0.75, // Adjust fuzz factor as needed
+				fuzzFactor: 0.2,
 			})
 
 			console.log("New content after applying patch:", newContent)

@@ -121,150 +121,199 @@ describe("GhostProvider", () => {
 function hello() {
   console.log('Hello');
 }`
+			const expected = `\
+function hello() {
+  // Added helpful comment
+  console.log('Hello');
+}`
+			const diffResponse = `\
+--- a/test.js
++++ b/test.js
+@@ -1,3 +1,4 @@
+ function hello() {
++  // Added helpful comment
+   console.log('Hello');
+ }`
 			const { testUri, context } = await setupTestDocument("test.js", initialContent)
-			const diffResponse = `--- a/test.js\n+++ b/test.js\n@@ -1,3 +1,4 @@\n function hello() {\n+  // Added helpful comment\n   console.log('Hello');\n }`
-
 			await parseAndApplySuggestions(diffResponse, context)
-
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			expect(finalContent).toBe(
-				normalizeWhitespace(`function hello() {
-	// Added helpful comment
-	console.log('Hello');
-}`),
-			)
+			expect(finalContent).toBe(normalizeWhitespace(expected))
 		})
 
 		it("should parse and apply multiple line additions", async () => {
-			const initialContent = `function calculate(a, b) {		return a + b;}`
+			const initialContent = `\
+function calculate(a, b) {
+  return a + b;
+}`
+			const diffResponse = `\
+--- a/calculator.js
++++ b/calculator.js
+@@ -1,3 +1,7 @@
+ function calculate(a, b) {
++  // Validate inputs
++  if (typeof a !== 'number' || typeof b !== 'number') {
++    throw new Error('Invalid input');
++  }
+   return a + b;
+ }`
+			const expected = `\
+function calculate(a, b) {
+  // Validate inputs
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error('Invalid input');
+  }
+  return a + b;
+}`
 			const { testUri, context } = await setupTestDocument("calculator.js", initialContent)
-
-			const diffResponse =
-				"--- a/calculator.js\n+++ b/calculator.js\n@@ -1,3 +1,6 @@\n function calculate(a, b) {\n+  // Validate inputs\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Invalid input');\n+  }\n		return a + b;\n }"
-
 			await parseAndApplySuggestions(diffResponse, context)
-
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
 			// The diff should add validation lines after the function declaration
-			const expectedContent = normalizeWhitespace(`function calculate(a, b) {
-	// Validate inputs
-	if (typeof a !== 'number' || typeof b !== 'number') {
-		throw new Error('Invalid input');
-	}
-	return a + b;
-}`)
+			const expectedContent = normalizeWhitespace(expected)
 			expect(finalContent).toBe(expectedContent)
 		})
 	})
 
 	describe("Line Deletion Suggestions", () => {
 		it("should parse and apply line deletions", async () => {
-			const initialContent = `function process() {
-		console.log('Starting');
-		// TODO: Remove this debug line
-		console.log('Debug info');
-		console.log('Processing');
-		console.log('Done');
+			const initialContent = `\
+function process() {
+  console.log('Starting');
+  // TODO: Remove this debug line
+  console.log('Debug info');
+  console.log('Processing');
+  console.log('Done');
 }`
+			const diffResponse = `\
+--- a/cleanup.js
++++ b/cleanup.js
+@@ -1,7 +1,5 @@
+ function process() {
+   console.log('Starting');
+-  // TODO: Remove this debug line
+-  console.log('Debug info');
+   console.log('Processing');
+   console.log('Done');
+ }`
+
+			const expected = `\
+function process() {
+	console.log('Starting');
+	console.log('Processing');
+  console.log('Done');
+}`
+
 			const { testUri, context } = await setupTestDocument("cleanup.js", initialContent)
-
-			const diffResponse =
-				"--- a/cleanup.js\n+++ b/cleanup.js\n@@ -1,7 +1,5 @@\n function process() {\n   console.log('Starting');\n-  // TODO: Remove this debug line\n-  console.log('Debug info');\n   console.log('Processing');\n   console.log('Done');\n }"
-
 			await parseAndApplySuggestions(diffResponse, context)
 
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
 			// The diff should remove the TODO comment and debug log lines
-			expect(finalContent).toBe(
-				normalizeWhitespace(`function process() {
-	console.log('Starting');
-	console.log('Processing');
-	console.log('Done');
-}`),
-			)
+			expect(finalContent).toBe(normalizeWhitespace(expected))
 		})
 	})
 
 	describe("Mixed Addition and Deletion Suggestions", () => {
 		it("should parse and apply mixed operations", async () => {
-			const initialContent = `function oldFunction() {
-		var x = 1;
-		var y = 2;
-		return x + y;
+			const initialContent = `\
+function oldFunction() {
+  var x = 1;
+  var y = 2;
+  return x + y;
 }`
+			const diffResponse = `\
+--- a/refactor.js
++++ b/refactor.js
+@@ -1,5 +1,6 @@
+-function oldFunction() {
+-  var x = 1;
+-  var y = 2;
++function newFunction() {
++  // Use const instead of var
++  const x = 1;
++  const y = 2;
+   return x + y;
+ }`
+			const expected = `\
+function newFunction() {
+  // Use const instead of var
+  const x = 1;
+  const y = 2;
+  return x + y;
+}`
+
 			const { testUri, context } = await setupTestDocument("refactor.js", initialContent)
-
-			const diffResponse =
-				"--- a/refactor.js\n+++ b/refactor.js\n@@ -1,5 +1,6 @@\n-function oldFunction() {\n-  var x = 1;\n-  var y = 2;\n+function newFunction() {\n+  // Use const instead of var\n+  const x = 1;\n+  const y = 2;\n   return x + y;\n }"
-
 			await parseAndApplySuggestions(diffResponse, context)
-
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
 			// The diff should replace old function with new function using const
-			expect(finalContent).toBe(
-				normalizeWhitespace(`function newFunction() {
-	// Use const instead of var
-	const x = 1;
-	const y = 2;
-	return x + y;
-}`),
-			)
+			expect(finalContent).toBe(normalizeWhitespace(expected))
 		})
 	})
 
 	describe("Complex Multi-Group Suggestions", () => {
 		it("should handle suggestions with multiple separate groups", async () => {
-			const initialContent = `function first() {
-		console.log('first');
+			const initialContent = `\
+function first() {
+  console.log('first');
 }
 
 function second() {
-		console.log('second');
+  console.log('second');
 }
 
 function third() {
-		console.log('third');
+  console.log('third');
+}`
+
+			const diffResponse = `\
+--- a/multi.js
++++ b/multi.js
+@@ -1,9 +1,11 @@
+ function first() {
++  // Comment for first
+   console.log('first');
+ }
+ 
+ function second() {
+   console.log('second');
++  // Comment for second
+ }
+ 
+ function third() {`
+
+			const expected = `\
+function first() {
+  // Comment for first
+  console.log('first');
+}
+
+function second() {
+  console.log('second');
+  // Comment for second
+}
+
+function third() {
+  console.log('third');
 }`
 			const { testUri, context } = await setupTestDocument("multi.js", initialContent)
-
-			const diffResponse =
-				"--- a/multi.js\n+++ b/multi.js\n@@ -1,11 +1,13 @@\n function first() {\n+  // Comment for first\n   console.log('first');\n }\n \n function second() {\n   console.log('second');\n+  // Comment for second\n }\n \n function third() {\n   console.log('third');\n }"
-
 			await parseAndApplySuggestions(diffResponse, context)
-
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
 			// The diff should add comments after function declarations
-			expect(finalContent).toBe(
-				normalizeWhitespace(`function first() {
-	// Comment for first
-	console.log('first');
-}
-
-function second() {
-	console.log('second');
-	// Comment for second
-}
-
-function third() {
-	console.log('third');
-}`),
-			)
+			expect(finalContent).toBe(normalizeWhitespace(expected))
 		})
 
 		it("should handle sequential individual application of mixed operations", async () => {
 			const initialContent = normalizeWhitespace(`\
-function calculate() {
-	let a = 1
-	let b = 2
+	function calculate() {
+		let a = 1
+		let b = 2
 
-	let sum = a + b
-	let product = a * b
+		let sum = a + b
+		let product = a * b
 
-	console.log(sum)
-	console.log(product)
+		console.log(sum)
+		console.log(product)
 
-	return sum
-}`)
+		return sum
+	}`)
 			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
 
 			const diffResponse =
@@ -307,20 +356,20 @@ function calculate() {
 			// Verify the final document content is correct
 			const finalContent = mockWorkspace.getDocumentContent(testUri)
 			const expectedContent = normalizeWhitespace(`function calculate() {
-	let a = 1
-	let b = 2
-	let c = 3; // kilocode_change start: Add a new variable
+		let a = 1
+		let b = 2
+		let c = 3; // kilocode_change start: Add a new variable
 
-	let sum = a + b
-	let product = a * b
-	let difference = a - b; // kilocode_change end: Add a new variable
+		let sum = a + b
+		let product = a * b
+		let difference = a - b; // kilocode_change end: Add a new variable
 
-	console.log(sum)
-	console.log(product)
-	console.log(difference); // kilocode_change start: Log the new variable
+		console.log(sum)
+		console.log(product)
+		console.log(difference); // kilocode_change start: Log the new variable
 
-	return sum + difference; // kilocode_change end: Return sum and difference
-}`)
+		return sum + difference; // kilocode_change end: Return sum and difference
+	}`)
 
 			expect(finalContent).toBe(expectedContent)
 		})
