@@ -449,10 +449,8 @@ function calculate() {
 			const expectedContent = normalizeWhitespace(expected)
 			expect(finalContent).toBe(expectedContent)
 		})
-	})
-
-	it("should handle random individual application of mixed operations", async () => {
-		const initialContent = normalizeWhitespace(`\
+		it("should handle random individual application of mixed operations", async () => {
+			const initialContent = normalizeWhitespace(`\
 function calculate() {
   let a = 1
   let b = 2
@@ -465,7 +463,7 @@ function calculate() {
 
   return sum
 }`)
-		const diffResponse = `\
+			const diffResponse = `\
 --- a/sequential.js
 +++ b/sequential.js
 @@ -1,12 +1,15 @@
@@ -486,7 +484,7 @@ function calculate() {
 +  return sum + difference; // kilocode_change end: Return sum and difference
  }`
 
-		const expected = `\
+			const expected = `\
 function calculate() {
   let a = 1
   let b = 2
@@ -502,30 +500,110 @@ function calculate() {
 
   return sum + difference; // kilocode_change end: Return sum and difference
 }`
-		const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
-		const normalizedDiffResponse = normalizeWhitespace(diffResponse)
-		const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
+			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
 
-		const suggestionsFile = suggestions.getFile(testUri)
-		suggestionsFile!.sortGroups()
+			const suggestionsFile = suggestions.getFile(testUri)
+			suggestionsFile!.sortGroups()
 
-		// Loop through each suggestion group and apply them one by one
-		const groups = suggestionsFile!.getGroupsOperations()
-		const groupsLength = groups.length
-		for (let i = 0; i < groupsLength; i++) {
-			const random = Math.floor(Math.random() * 4) + 1
-			for (let j = 0; j < random; j++) {
-				suggestionsFile!.selectNextGroup()
+			// Loop through each suggestion group and apply them one by one
+			const groups = suggestionsFile!.getGroupsOperations()
+			const groupsLength = groups.length
+			for (let i = 0; i < groupsLength; i++) {
+				const random = Math.floor(Math.random() * 4) + 1
+				for (let j = 0; j < random; j++) {
+					suggestionsFile!.selectNextGroup()
+				}
+				// Apply the currently selected suggestion group
+				await workspaceEdit.applySelectedSuggestions(suggestions)
+				suggestionsFile!.deleteSelectedGroup()
 			}
-			// Apply the currently selected suggestion group
-			await workspaceEdit.applySelectedSuggestions(suggestions)
-			suggestionsFile!.deleteSelectedGroup()
-		}
 
-		// Verify the final document content is correct
-		const finalContent = mockWorkspace.getDocumentContent(testUri)
-		const expectedContent = normalizeWhitespace(expected)
-		expect(finalContent).toBe(expectedContent)
+			// Verify the final document content is correct
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			const expectedContent = normalizeWhitespace(expected)
+			expect(finalContent).toBe(expectedContent)
+		})
+
+		it("should handle an inverse individual application of mixed operations", async () => {
+			const initialContent = normalizeWhitespace(`\
+// Header
+// This function adds two numbers.
+function add(a, b) {
+  return a + b;
+}
+
+// This function divides two numbers.
+// It throws an error if the divisor is zero.
+function divide(a, b) {
+  if (b === 0) throw new Error("Cannot divide by zero");
+  return a / b;
+}`)
+			const diffResponse = `\
+--- a/sequential.js
++++ b/sequential.js
+@@ -1,12 +1,16 @@
+-// Header
+-// This function adds two numbers.
+ function add(a, b) {
+   return a + b;
+ }
+ 
+-// This function divides two numbers.
+-// It throws an error if the divisor is zero.
+ function divide(a, b) {
+   if (b === 0) throw new Error("Cannot divide by zero");
+   return a / b;
+ }
++
++function multiply(a, b) {
++  return a * b;
++}
++
++function subtract(a, b) {
++  return a - b;
++}`
+
+			const expected = `\
+function add(a, b) {
+  return a + b;
+}
+
+function divide(a, b) {
+  if (b === 0) throw new Error("Cannot divide by zero");
+  return a / b;
+}
+
+function multiply(a, b) {
+  return a * b;
+}
+
+function subtract(a, b) {
+  return a - b;
+}`
+			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
+			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+
+			const suggestionsFile = suggestions.getFile(testUri)
+			suggestionsFile!.sortGroups()
+
+			// Loop through each suggestion group and apply them one by one
+			const groups = suggestionsFile!.getGroupsOperations()
+			const groupsLength = groups.length
+			suggestionsFile!.selectNextGroup()
+			for (let i = 0; i < groupsLength; i++) {
+				// Apply the currently selected suggestion group
+				await workspaceEdit.applySelectedSuggestions(suggestions)
+				suggestionsFile!.deleteSelectedGroup()
+			}
+
+			// Verify the final document content is correct
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			const expectedContent = normalizeWhitespace(expected)
+			expect(finalContent).toBe(expectedContent)
+		})
 	})
 
 	describe("Error Handling", () => {

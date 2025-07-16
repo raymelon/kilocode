@@ -267,20 +267,6 @@ export class GhostWorkspaceEdit {
 		this.locked = false
 	}
 
-	public async revertSelectedSuggestionsPlaceholder(suggestions: GhostSuggestionsState): Promise<void> {
-		if (this.locked) {
-			return
-		}
-		this.locked = true
-		const { documentUri, operations } = await this.getActiveFileSelectedOperations(suggestions)
-		if (!documentUri || operations.length === 0) {
-			console.log("No active document or no selected operations to apply.")
-			return
-		}
-		await this.revertOperationsPlaceholder(documentUri, operations)
-		this.locked = false
-	}
-
 	public async applySuggestionsPlaceholders(suggestions: GhostSuggestionsState) {
 		if (this.locked) {
 			return

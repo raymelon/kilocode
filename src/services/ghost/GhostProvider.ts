@@ -265,10 +265,11 @@ export class GhostProvider {
 			return
 		}
 		this.decorations.clearAll()
-		await this.workspaceEdit.revertSelectedSuggestionsPlaceholder(this.suggestions)
+		await this.workspaceEdit.revertSuggestionsPlaceholder(this.suggestions)
 		await this.workspaceEdit.applySelectedSuggestions(this.suggestions)
 		suggestionsFile.deleteSelectedGroup()
 		this.suggestions.validateFiles()
+		await this.workspaceEdit.applySuggestionsPlaceholders(this.suggestions)
 		await this.render()
 	}
 
