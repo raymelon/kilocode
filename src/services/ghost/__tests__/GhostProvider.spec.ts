@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
+import * as fs from "node:fs"
+import * as path from "node:path"
 import { MockWorkspace } from "./MockWorkspace"
 import * as vscode from "vscode"
 import { GhostStrategy } from "../GhostStrategy"
@@ -93,9 +95,10 @@ describe("GhostProvider", () => {
 	// Helper function to set up test document and context
 	async function setupTestDocument(filename: string, content: string) {
 		const testUri = vscode.Uri.parse(`file:///${filename}`)
-		const normalizedContent = normalizeWhitespace(content)
-		mockWorkspace.addDocument(testUri, normalizedContent)
-		;(vscode.window as any).activeTextEditor = { document: { uri: testUri } }
+		mockWorkspace.addDocument(testUri, content)
+		;(vscode.window as any).activeTextEditor = {
+			document: { uri: testUri },
+		}
 
 		const mockDocument = await mockWorkspace.openTextDocument(testUri)
 		;(mockDocument as any).uri = testUri
@@ -108,248 +111,131 @@ describe("GhostProvider", () => {
 		return { testUri, context, mockDocument }
 	}
 
-	// Helper function to parse and apply suggestions with whitespace normalization
 	async function parseAndApplySuggestions(diffResponse: string, context: GhostSuggestionContext) {
-		const normalizedDiffResponse = normalizeWhitespace(diffResponse)
-		const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+		const suggestions = await strategy.parseResponse(diffResponse, context)
 		await workspaceEdit.applySuggestions(suggestions)
 	}
 
-	describe("Simple Addition Suggestions", () => {
-		it("should parse and apply a simple line addition", async () => {
-			const initialContent = `\
-function hello() {
-  console.log('Hello');
-}`
-			const expected = `\
-function hello() {
-  // Added helpful comment
-  console.log('Hello');
-}`
-			const diffResponse = `\
---- a/test.js
-+++ b/test.js
-@@ -1,3 +1,4 @@
- function hello() {
-+  // Added helpful comment
-   console.log('Hello');
- }`
-			const { testUri, context } = await setupTestDocument("test.js", initialContent)
-			await parseAndApplySuggestions(diffResponse, context)
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			expect(finalContent).toBe(normalizeWhitespace(expected))
+	// Test cases directory for file-based tests
+	const TEST_CASES_DIR = path.join(__dirname, "__test_cases__")
+
+	// Helper function to run file-based tests
+	async function runFileBasedTest(testCaseName: string) {
+		const testCasePath = path.join(TEST_CASES_DIR, testCaseName)
+		const inputFilePath = path.join(testCasePath, "input.js")
+		const diffFilePath = path.join(testCasePath, "diff.patch")
+		const expectedFilePath = path.join(testCasePath, "expected.js")
+
+		const initialContent = fs.readFileSync(inputFilePath, "utf8")
+		const diffResponse = fs.readFileSync(diffFilePath, "utf8")
+		const expectedContent = fs.readFileSync(expectedFilePath, "utf8")
+
+		const { testUri, context } = await setupTestDocument(`${testCaseName}/input.js`, initialContent)
+		await parseAndApplySuggestions(diffResponse, context)
+
+		const finalContent = mockWorkspace.getDocumentContent(testUri)
+		expect(finalContent).toBe(expectedContent)
+	}
+
+	async function runFileBasedTestSequential(testCaseName: string) {
+		const testCasePath = path.join(TEST_CASES_DIR, testCaseName)
+		const inputFilePath = path.join(testCasePath, "input.js")
+		const diffFilePath = path.join(testCasePath, "diff.patch")
+		const expectedFilePath = path.join(testCasePath, "expected.js")
+
+		const initialContent = fs.readFileSync(inputFilePath, "utf8")
+		const diffResponse = fs.readFileSync(diffFilePath, "utf8")
+		const expectedContent = fs.readFileSync(expectedFilePath, "utf8")
+
+		const { testUri, context } = await setupTestDocument(`${testCaseName}/input.js`, initialContent)
+		await parseAndApplySuggestions(diffResponse, context)
+
+		const finalContent = mockWorkspace.getDocumentContent(testUri)
+		expect(finalContent).toBe(expectedContent)
+	}
+
+	describe("File-based Suggestions", () => {
+		it("should apply a simple addition from files", async () => {
+			await runFileBasedTest("simple-addition")
 		})
 
-		it("should parse and apply multiple line additions", async () => {
-			const initialContent = `\
-function calculate(a, b) {
-  return a + b;
-}`
-			const diffResponse = `\
---- a/calculator.js
-+++ b/calculator.js
-@@ -1,3 +1,7 @@
- function calculate(a, b) {
-+  // Validate inputs
-+  if (typeof a !== 'number' || typeof b !== 'number') {
-+    throw new Error('Invalid input');
-+  }
-   return a + b;
- }`
-			const expected = `\
-function calculate(a, b) {
-  // Validate inputs
-  if (typeof a !== 'number' || typeof b !== 'number') {
-    throw new Error('Invalid input');
-  }
-  return a + b;
-}`
-			const { testUri, context } = await setupTestDocument("calculator.js", initialContent)
-			await parseAndApplySuggestions(diffResponse, context)
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			// The diff should add validation lines after the function declaration
-			const expectedContent = normalizeWhitespace(expected)
-			expect(finalContent).toBe(expectedContent)
+		it("should apply multiple line additions from files", async () => {
+			await runFileBasedTest("multiple-line-additions")
 		})
-	})
 
-	describe("Line Deletion Suggestions", () => {
-		it("should parse and apply line deletions", async () => {
-			const initialContent = `\
-function process() {
-  console.log('Starting');
-  // TODO: Remove this debug line
-  console.log('Debug info');
-  console.log('Processing');
-  console.log('Done');
-}`
-			const diffResponse = `\
---- a/cleanup.js
-+++ b/cleanup.js
-@@ -1,7 +1,5 @@
- function process() {
-   console.log('Starting');
--  // TODO: Remove this debug line
--  console.log('Debug info');
-   console.log('Processing');
-   console.log('Done');
- }`
+		it("should apply line deletions from files", async () => {
+			await runFileBasedTest("line-deletions")
+		})
 
-			const expected = `\
-function process() {
-	console.log('Starting');
-	console.log('Processing');
-  console.log('Done');
-}`
+		it("should apply mixed addition and deletion from files", async () => {
+			await runFileBasedTest("mixed-addition-deletion")
+		})
 
-			const { testUri, context } = await setupTestDocument("cleanup.js", initialContent)
-			await parseAndApplySuggestions(diffResponse, context)
+		it("should handle empty diff response from files", async () => {
+			await runFileBasedTest("empty-diff-response")
+		})
 
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			// The diff should remove the TODO comment and debug log lines
-			expect(finalContent).toBe(normalizeWhitespace(expected))
+		it("should apply function rename and var to const changes from files", async () => {
+			await runFileBasedTest("function-rename-var-to-const")
 		})
 	})
 
-	describe("Mixed Addition and Deletion Suggestions", () => {
-		it("should parse and apply mixed operations", async () => {
-			const initialContent = `\
-function oldFunction() {
-  var x = 1;
-  var y = 2;
-  return x + y;
-}`
-			const diffResponse = `\
---- a/refactor.js
-+++ b/refactor.js
-@@ -1,5 +1,6 @@
--function oldFunction() {
--  var x = 1;
--  var y = 2;
-+function newFunction() {
-+  // Use const instead of var
-+  const x = 1;
-+  const y = 2;
-   return x + y;
- }`
-			const expected = `\
-function newFunction() {
-  // Use const instead of var
-  const x = 1;
-  const y = 2;
-  return x + y;
-}`
-
-			const { testUri, context } = await setupTestDocument("refactor.js", initialContent)
-			await parseAndApplySuggestions(diffResponse, context)
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			// The diff should replace old function with new function using const
-			expect(finalContent).toBe(normalizeWhitespace(expected))
-		})
-	})
-
-	describe("Complex Multi-Group Suggestions", () => {
-		it("should handle suggestions with multiple separate groups", async () => {
-			const initialContent = `\
-function first() {
-  console.log('first');
-}
-
-function second() {
-  console.log('second');
-}
-
-function third() {
-  console.log('third');
-}`
-
-			const diffResponse = `\
---- a/multi.js
-+++ b/multi.js
-@@ -1,9 +1,11 @@
- function first() {
-+  // Comment for first
-   console.log('first');
- }
- 
- function second() {
-   console.log('second');
-+  // Comment for second
- }
- 
- function third() {`
-
-			const expected = `\
-function first() {
-  // Comment for first
-  console.log('first');
-}
-
-function second() {
-  console.log('second');
-  // Comment for second
-}
-
-function third() {
-  console.log('third');
-}`
-			const { testUri, context } = await setupTestDocument("multi.js", initialContent)
-			await parseAndApplySuggestions(diffResponse, context)
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			// The diff should add comments after function declarations
-			expect(finalContent).toBe(normalizeWhitespace(expected))
-		})
-
-		it("should handle sequential individual application of mixed operations", async () => {
+	describe("Sequential application", () => {
+		it("should handle an inverse individual application of mixed operations", async () => {
 			const initialContent = normalizeWhitespace(`\
-function calculate() {
-  let a = 1
-  let b = 2
+// Header
+// This function adds two numbers.
+function add(a, b) {
+  return a + b;
+}
 
-  let sum = a + b
-  let product = a * b
-
-  console.log(sum)
-  console.log(product)
-
-  return sum
+// This function divides two numbers.
+// It throws an error if the divisor is zero.
+function divide(a, b) {
+  if (b === 0) throw new Error("Cannot divide by zero");
+  return a / b;
 }`)
 			const diffResponse = `\
 --- a/sequential.js
 +++ b/sequential.js
-@@ -1,12 +1,15 @@
- function calculate() {
-   let a = 1
-   let b = 2
-+  let c = 3; // kilocode_change start: Add a new variable
+@@ -1,12 +1,16 @@
+-// Header
+-// This function adds two numbers.
+ function add(a, b) {
+   return a + b;
+ }
  
-   let sum = a + b
-   let product = a * b
-+  let difference = a - b; // kilocode_change end: Add a new variable
- 
-   console.log(sum)
-   console.log(product)
-+  console.log(difference); // kilocode_change start: Log the new variable
- 
--  return sum
-+  return sum + difference; // kilocode_change end: Return sum and difference
- }`
+-// This function divides two numbers.
+-// It throws an error if the divisor is zero.
+ function divide(a, b) {
+   if (b === 0) throw new Error("Cannot divide by zero");
+   return a / b;
+ }
++
++function multiply(a, b) {
++  return a * b;
++}
++
++function subtract(a, b) {
++  return a - b;
++}`
 
 			const expected = `\
-function calculate() {
-  let a = 1
-  let b = 2
-  let c = 3; // kilocode_change start: Add a new variable
+function add(a, b) {
+  return a + b;
+}
 
-  let sum = a + b
-  let product = a * b
-  let difference = a - b; // kilocode_change end: Add a new variable
+function divide(a, b) {
+  if (b === 0) throw new Error("Cannot divide by zero");
+  return a / b;
+}
 
-  console.log(sum)
-  console.log(product)
-  console.log(difference); // kilocode_change start: Log the new variable
+function multiply(a, b) {
+  return a * b;
+}
 
-  return sum + difference; // kilocode_change end: Return sum and difference
+function subtract(a, b) {
+  return a - b;
 }`
 			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
 			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
@@ -361,6 +247,7 @@ function calculate() {
 			// Loop through each suggestion group and apply them one by one
 			const groups = suggestionsFile!.getGroupsOperations()
 			const groupsLength = groups.length
+			suggestionsFile!.selectNextGroup()
 			for (let i = 0; i < groupsLength; i++) {
 				// Apply the currently selected suggestion group
 				await workspaceEdit.applySelectedSuggestions(suggestions)
@@ -372,7 +259,6 @@ function calculate() {
 			const expectedContent = normalizeWhitespace(expected)
 			expect(finalContent).toBe(expectedContent)
 		})
-
 		it("should handle sequential partial application of mixed operations", async () => {
 			const initialContent = normalizeWhitespace(`\
 function calculate() {
@@ -515,85 +401,6 @@ function calculate() {
 				for (let j = 0; j < random; j++) {
 					suggestionsFile!.selectNextGroup()
 				}
-				// Apply the currently selected suggestion group
-				await workspaceEdit.applySelectedSuggestions(suggestions)
-				suggestionsFile!.deleteSelectedGroup()
-			}
-
-			// Verify the final document content is correct
-			const finalContent = mockWorkspace.getDocumentContent(testUri)
-			const expectedContent = normalizeWhitespace(expected)
-			expect(finalContent).toBe(expectedContent)
-		})
-
-		it("should handle an inverse individual application of mixed operations", async () => {
-			const initialContent = normalizeWhitespace(`\
-// Header
-// This function adds two numbers.
-function add(a, b) {
-  return a + b;
-}
-
-// This function divides two numbers.
-// It throws an error if the divisor is zero.
-function divide(a, b) {
-  if (b === 0) throw new Error("Cannot divide by zero");
-  return a / b;
-}`)
-			const diffResponse = `\
---- a/sequential.js
-+++ b/sequential.js
-@@ -1,12 +1,16 @@
--// Header
--// This function adds two numbers.
- function add(a, b) {
-   return a + b;
- }
- 
--// This function divides two numbers.
--// It throws an error if the divisor is zero.
- function divide(a, b) {
-   if (b === 0) throw new Error("Cannot divide by zero");
-   return a / b;
- }
-+
-+function multiply(a, b) {
-+  return a * b;
-+}
-+
-+function subtract(a, b) {
-+  return a - b;
-+}`
-
-			const expected = `\
-function add(a, b) {
-  return a + b;
-}
-
-function divide(a, b) {
-  if (b === 0) throw new Error("Cannot divide by zero");
-  return a / b;
-}
-
-function multiply(a, b) {
-  return a * b;
-}
-
-function subtract(a, b) {
-  return a - b;
-}`
-			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
-			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
-			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
-
-			const suggestionsFile = suggestions.getFile(testUri)
-			suggestionsFile!.sortGroups()
-
-			// Loop through each suggestion group and apply them one by one
-			const groups = suggestionsFile!.getGroupsOperations()
-			const groupsLength = groups.length
-			suggestionsFile!.selectNextGroup()
-			for (let i = 0; i < groupsLength; i++) {
 				// Apply the currently selected suggestion group
 				await workspaceEdit.applySelectedSuggestions(suggestions)
 				suggestionsFile!.deleteSelectedGroup()
