@@ -1,0 +1,366 @@
+import { describe, it, expect, beforeEach, vi } from "vitest"
+import { MockWorkspace } from "./MockWorkspace"
+import * as vscode from "vscode"
+import { GhostStrategy } from "../GhostStrategy"
+import { GhostWorkspaceEdit } from "../GhostWorkspaceEdit"
+import { GhostSuggestionContext } from "../types"
+
+vi.mock("vscode", () => ({
+	Uri: {
+		parse: (uriString: string) => ({
+			toString: () => uriString,
+			fsPath: uriString.replace("file://", ""),
+			scheme: "file",
+			path: uriString.replace("file://", ""),
+		}),
+	},
+	Position: class {
+		constructor(
+			public line: number,
+			public character: number,
+		) {}
+	},
+	Range: class {
+		constructor(
+			public start: any,
+			public end: any,
+		) {}
+	},
+	WorkspaceEdit: class {
+		private _edits = new Map()
+
+		insert(uri: any, position: any, newText: string) {
+			const key = uri.toString()
+			if (!this._edits.has(key)) {
+				this._edits.set(key, [])
+			}
+			this._edits.get(key).push({ range: { start: position, end: position }, newText })
+		}
+
+		delete(uri: any, range: any) {
+			const key = uri.toString()
+			if (!this._edits.has(key)) {
+				this._edits.set(key, [])
+			}
+			this._edits.get(key).push({ range, newText: "" })
+		}
+
+		entries() {
+			return Array.from(this._edits.entries()).map(([uriString, edits]) => [{ toString: () => uriString }, edits])
+		}
+	},
+	workspace: {
+		openTextDocument: vi.fn(),
+		applyEdit: vi.fn(),
+		asRelativePath: vi.fn().mockImplementation((uri) => {
+			if (typeof uri === "string") {
+				return uri.replace("file:///", "")
+			}
+			return uri.toString().replace("file:///", "")
+		}),
+	},
+	window: {
+		activeTextEditor: null,
+	},
+}))
+
+describe("GhostProvider", () => {
+	let mockWorkspace: MockWorkspace
+	let strategy: GhostStrategy
+	let workspaceEdit: GhostWorkspaceEdit
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+		strategy = new GhostStrategy()
+		mockWorkspace = new MockWorkspace()
+		workspaceEdit = new GhostWorkspaceEdit()
+
+		vi.mocked(vscode.workspace.openTextDocument).mockImplementation(async (uri: any) => {
+			const uriObj = typeof uri === "string" ? vscode.Uri.parse(uri) : uri
+			return await mockWorkspace.openTextDocument(uriObj)
+		})
+		vi.mocked(vscode.workspace.applyEdit).mockImplementation(async (edit) => {
+			await mockWorkspace.applyEdit(edit)
+			return true
+		})
+	})
+
+	// Helper function to normalize whitespace for consistent testing
+	function normalizeWhitespace(content: string): string {
+		return content.replace(/\t/g, "  ") // Convert tabs to 2 spaces
+	}
+
+	// Helper function to set up test document and context
+	async function setupTestDocument(filename: string, content: string) {
+		const testUri = vscode.Uri.parse(`file:///${filename}`)
+		const normalizedContent = normalizeWhitespace(content)
+		mockWorkspace.addDocument(testUri, normalizedContent)
+		;(vscode.window as any).activeTextEditor = { document: { uri: testUri } }
+
+		const mockDocument = await mockWorkspace.openTextDocument(testUri)
+		;(mockDocument as any).uri = testUri
+
+		const context: GhostSuggestionContext = {
+			document: mockDocument,
+			openFiles: [mockDocument],
+		}
+
+		return { testUri, context, mockDocument }
+	}
+
+	// Helper function to parse and apply suggestions with whitespace normalization
+	async function parseAndApplySuggestions(diffResponse: string, context: GhostSuggestionContext) {
+		const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+		const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+		await workspaceEdit.applySuggestions(suggestions)
+	}
+
+	describe("Simple Addition Suggestions", () => {
+		it("should parse and apply a simple line addition", async () => {
+			const initialContent = `\
+function hello() {
+  console.log('Hello');
+}`
+			const { testUri, context } = await setupTestDocument("test.js", initialContent)
+			const diffResponse = `--- a/test.js\n+++ b/test.js\n@@ -1,3 +1,4 @@\n function hello() {\n+  // Added helpful comment\n   console.log('Hello');\n }`
+
+			await parseAndApplySuggestions(diffResponse, context)
+
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			expect(finalContent).toBe(
+				normalizeWhitespace(`function hello() {
+	// Added helpful comment
+	console.log('Hello');
+}`),
+			)
+		})
+
+		it("should parse and apply multiple line additions", async () => {
+			const initialContent = `function calculate(a, b) {		return a + b;}`
+			const { testUri, context } = await setupTestDocument("calculator.js", initialContent)
+
+			const diffResponse =
+				"--- a/calculator.js\n+++ b/calculator.js\n@@ -1,3 +1,6 @@\n function calculate(a, b) {\n+  // Validate inputs\n+  if (typeof a !== 'number' || typeof b !== 'number') {\n+    throw new Error('Invalid input');\n+  }\n		return a + b;\n }"
+
+			await parseAndApplySuggestions(diffResponse, context)
+
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			// The diff should add validation lines after the function declaration
+			const expectedContent = normalizeWhitespace(`function calculate(a, b) {
+	// Validate inputs
+	if (typeof a !== 'number' || typeof b !== 'number') {
+		throw new Error('Invalid input');
+	}
+	return a + b;
+}`)
+			expect(finalContent).toBe(expectedContent)
+		})
+	})
+
+	describe("Line Deletion Suggestions", () => {
+		it("should parse and apply line deletions", async () => {
+			const initialContent = `function process() {
+		console.log('Starting');
+		// TODO: Remove this debug line
+		console.log('Debug info');
+		console.log('Processing');
+		console.log('Done');
+}`
+			const { testUri, context } = await setupTestDocument("cleanup.js", initialContent)
+
+			const diffResponse =
+				"--- a/cleanup.js\n+++ b/cleanup.js\n@@ -1,7 +1,5 @@\n function process() {\n   console.log('Starting');\n-  // TODO: Remove this debug line\n-  console.log('Debug info');\n   console.log('Processing');\n   console.log('Done');\n }"
+
+			await parseAndApplySuggestions(diffResponse, context)
+
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			// The diff should remove the TODO comment and debug log lines
+			expect(finalContent).toBe(
+				normalizeWhitespace(`function process() {
+	console.log('Starting');
+	console.log('Processing');
+	console.log('Done');
+}`),
+			)
+		})
+	})
+
+	describe("Mixed Addition and Deletion Suggestions", () => {
+		it("should parse and apply mixed operations", async () => {
+			const initialContent = `function oldFunction() {
+		var x = 1;
+		var y = 2;
+		return x + y;
+}`
+			const { testUri, context } = await setupTestDocument("refactor.js", initialContent)
+
+			const diffResponse =
+				"--- a/refactor.js\n+++ b/refactor.js\n@@ -1,5 +1,6 @@\n-function oldFunction() {\n-  var x = 1;\n-  var y = 2;\n+function newFunction() {\n+  // Use const instead of var\n+  const x = 1;\n+  const y = 2;\n   return x + y;\n }"
+
+			await parseAndApplySuggestions(diffResponse, context)
+
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			// The diff should replace old function with new function using const
+			expect(finalContent).toBe(
+				normalizeWhitespace(`function newFunction() {
+	// Use const instead of var
+	const x = 1;
+	const y = 2;
+	return x + y;
+}`),
+			)
+		})
+	})
+
+	describe("Complex Multi-Group Suggestions", () => {
+		it("should handle suggestions with multiple separate groups", async () => {
+			const initialContent = `function first() {
+		console.log('first');
+}
+
+function second() {
+		console.log('second');
+}
+
+function third() {
+		console.log('third');
+}`
+			const { testUri, context } = await setupTestDocument("multi.js", initialContent)
+
+			const diffResponse =
+				"--- a/multi.js\n+++ b/multi.js\n@@ -1,11 +1,13 @@\n function first() {\n+  // Comment for first\n   console.log('first');\n }\n \n function second() {\n   console.log('second');\n+  // Comment for second\n }\n \n function third() {\n   console.log('third');\n }"
+
+			await parseAndApplySuggestions(diffResponse, context)
+
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			// The diff should add comments after function declarations
+			expect(finalContent).toBe(
+				normalizeWhitespace(`function first() {
+	// Comment for first
+	console.log('first');
+}
+
+function second() {
+	console.log('second');
+	// Comment for second
+}
+
+function third() {
+	console.log('third');
+}`),
+			)
+		})
+
+		it("should handle sequential individual application of mixed operations", async () => {
+			const initialContent = normalizeWhitespace(`\
+function calculate() {
+	let a = 1
+	let b = 2
+
+	let sum = a + b
+	let product = a * b
+
+	console.log(sum)
+	console.log(product)
+
+	return sum
+}`)
+			const { testUri, context } = await setupTestDocument("sequential.js", initialContent)
+
+			const diffResponse =
+				"--- a/sequential.js\n+++ b/sequential.js\n@@ -1,10 +1,12 @@\n function calculate() {\n \tlet a = 1\n \tlet b = 2\n+\tlet c = 3; // kilocode_change start: Add a new variable\n \n \tlet sum = a + b\n \tlet product = a * b\n+\tlet difference = a - b; // kilocode_change end: Add a new variable\n \n \tconsole.log(sum)\n \tconsole.log(product)\n+\tconsole.log(difference); // kilocode_change start: Log the new variable\n \n-\treturn sum\n+\treturn sum + difference; // kilocode_change end: Return sum and difference\n }"
+
+			const normalizedDiffResponse = normalizeWhitespace(diffResponse)
+			const suggestions = await strategy.parseResponse(normalizedDiffResponse, context)
+
+			const suggestionsFile = suggestions.getFile(testUri)
+			suggestionsFile!.sortGroups()
+
+			// Loop through each suggestion group and apply them one by one
+			const allGroups = suggestionsFile!.getGroupsOperations()
+			for (let i = 0; i < allGroups.length; i++) {
+				// Apply the currently selected suggestion group
+				await workspaceEdit.applySelectedSuggestions(suggestions)
+
+				// Verify the document content after this iteration
+				const currentContent = mockWorkspace.getDocumentContent(testUri)
+				console.log(`=== Iteration ${i + 1} ===`)
+				console.log(`Selected group: ${suggestionsFile!.getSelectedGroup()}, Operations: [`)
+				const selectedOps = suggestionsFile!.getSelectedGroupOperations()
+				selectedOps.forEach((op) => {
+					console.log(
+						`  { type: '${op.type}', line: ${op.line}, content: '${op.content.substring(0, 50)}...' }`,
+					)
+				})
+				console.log(`]`)
+				console.log(`Content after iteration ${i + 1}:`)
+				console.log(currentContent)
+				console.log(`Remaining groups: ${allGroups.length - i - 1}`)
+				console.log()
+
+				// Move to next group for next iteration (if not the last iteration)
+				if (i < allGroups.length - 1) {
+					suggestionsFile!.selectNextGroup()
+				}
+			}
+
+			// Verify the final document content is correct
+			const finalContent = mockWorkspace.getDocumentContent(testUri)
+			const expectedContent = normalizeWhitespace(`function calculate() {
+	let a = 1
+	let b = 2
+	let c = 3; // kilocode_change start: Add a new variable
+
+	let sum = a + b
+	let product = a * b
+	let difference = a - b; // kilocode_change end: Add a new variable
+
+	console.log(sum)
+	console.log(product)
+	console.log(difference); // kilocode_change start: Log the new variable
+
+	return sum + difference; // kilocode_change end: Return sum and difference
+}`)
+
+			expect(finalContent).toBe(expectedContent)
+		})
+	})
+
+	describe("Error Handling", () => {
+		it("should handle empty diff responses", async () => {
+			const initialContent = `console.log('test');`
+			const { context } = await setupTestDocument("empty.js", initialContent)
+
+			// Test empty response
+			const suggestions = await strategy.parseResponse("", context)
+			expect(suggestions.hasSuggestions()).toBe(false)
+		})
+
+		it("should handle invalid diff format", async () => {
+			const initialContent = `console.log('test');`
+			const { context } = await setupTestDocument("invalid.js", initialContent)
+
+			// Test invalid diff format
+			const invalidDiff = "This is not a valid diff format"
+			const suggestions = await strategy.parseResponse(invalidDiff, context)
+			expect(suggestions.hasSuggestions()).toBe(false)
+		})
+
+		it("should handle file not found in context", async () => {
+			const initialContent = `console.log('test');`
+			await setupTestDocument("missing.js", initialContent)
+
+			// Create context without the file in openFiles
+			const context: GhostSuggestionContext = {
+				openFiles: [], // Empty - file not in context
+			}
+
+			const diffResponse =
+				"--- a/missing.js\n+++ b/missing.js\n@@ -1,1 +1,2 @@\n+// Added comment\n console.log('test');"
+
+			const suggestions = await strategy.parseResponse(diffResponse, context)
+			// Should still work even if file not in openFiles - it can still parse the diff
+			expect(suggestions.hasSuggestions()).toBe(true)
+		})
+	})
+})
