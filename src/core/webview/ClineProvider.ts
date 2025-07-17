@@ -703,7 +703,7 @@ export class ClineProvider
 						window.IMAGES_BASE_URI = "${imagesUri}"
 						window.AUDIO_BASE_URI = "${audioUri}"
 						window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
-						${process.env.KILOCODE_BASE_URL ? `window.KILOCODE_BASE_URL = "${process.env.KILOCODE_BASE_URL}"` : "// KILOCODE_BASE_URL not set, will use default"}
+						window.KILOCODE_BASE_URL = ${process.env.KILOCODE_BASE_URL ? `"${process.env.KILOCODE_BASE_URL}"` : "undefined"}
 					</script>
 					<title>Kilo Code</title>
 				</head>
@@ -778,7 +778,7 @@ export class ClineProvider
 				window.IMAGES_BASE_URI = "${imagesUri}"
 				window.AUDIO_BASE_URI = "${audioUri}"
 				window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
-				${process.env.KILOCODE_BASE_URL ? `window.KILOCODE_BASE_URL = "${process.env.KILOCODE_BASE_URL}"` : "// KILOCODE_BASE_URL not set, will use default"}
+				${process.env.KILOCODE_BASE_URL ? `${process.env.KILOCODE_BASE_URL}"` : "window.KILOCODE_BASE_URL = undefined"}
 			</script>
             <title>Kilo Code</title>
           </head>
