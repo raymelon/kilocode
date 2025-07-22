@@ -30,6 +30,7 @@ import {
 	LiteLLMHandler,
 	CerebrasHandler, // kilocode_change
 	ClaudeCodeHandler,
+	VirtualHandler,
 } from "./providers"
 // kilocode_change start
 import { FireworksHandler } from "./providers/fireworks"
@@ -111,6 +112,8 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new RequestyHandler(options)
 		case "human-relay":
 			return new HumanRelayHandler()
+		case "virtual":
+			return new VirtualHandler(options)
 		// kilocode_change start
 		case "fireworks":
 			return new FireworksHandler(options)

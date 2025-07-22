@@ -19,4 +19,5 @@ export { Vertex } from "./Vertex"
 export { VSCodeLM } from "./VSCodeLM"
 export { XAI } from "./XAI"
 export { LiteLLM } from "./LiteLLM"
+export { Virtual } from "./Virtual"
 export { Cerebras } from "./Cerebras" // kilocode_change
