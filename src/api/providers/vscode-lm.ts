@@ -115,6 +115,49 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 
 			// Use first available model or create a minimal model object
 			if (models && Array.isArray(models) && models.length > 0) {
+				// If selector is empty (no specific model requested), prefer GPT-4 models
+				if (Object.keys(selector).length === 0) {
+					// Look for GPT-4 models first (prioritize newer versions)
+					const gpt4Models = models
+						.filter(
+							(model) =>
+								model.family?.toLowerCase().includes("gpt-4") ||
+								model.id?.toLowerCase().includes("gpt-4"),
+						)
+						.sort((a, b) => {
+							// Sort by version/name to prefer newer models
+							const aName = a.id || a.name || ""
+							const bName = b.id || b.name || ""
+							return bName.localeCompare(aName)
+						})
+
+					if (gpt4Models.length > 0) {
+						console.debug(
+							`Kilo Code <Language Model API>: Auto-selected default model: ${gpt4Models[0].id || gpt4Models[0].name}`,
+						)
+						return gpt4Models[0]
+					}
+
+					// Fallback to GPT-3.5 models if no GPT-4 available
+					const gpt35Models = models.filter(
+						(model) =>
+							model.family?.toLowerCase().includes("gpt-3.5") ||
+							model.id?.toLowerCase().includes("gpt-3.5"),
+					)
+
+					if (gpt35Models.length > 0) {
+						console.debug(
+							`Kilo Code <Language Model API>: Auto-selected default model: ${gpt35Models[0].id || gpt35Models[0].name}`,
+						)
+						return gpt35Models[0]
+					}
+
+					// If no GPT models, use the first available model
+					console.debug(
+						`Kilo Code <Language Model API>: Auto-selected default model: ${models[0].id || models[0].name}`,
+					)
+				}
+
 				return models[0]
 			}
 
