@@ -118,6 +118,11 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 				return models[0]
 			}
 
+			// Log helpful message when no models are available
+			console.warn(
+				"Kilo Code <Language Model API>: No language models found. This typically means GitHub Copilot is not installed or enabled in VS Code.",
+			)
+
 			// Create a minimal model if no models are available
 			return {
 				id: "default-lm",
@@ -127,15 +132,15 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 				version: "1.0",
 				maxInputTokens: 8192,
 				sendRequest: async (_messages, _options, _token) => {
-					// Provide a minimal implementation
+					// Provide a minimal implementation with helpful error message
 					return {
 						stream: (async function* () {
 							yield new vscode.LanguageModelTextPart(
-								"Language model functionality is limited. Please check VS Code configuration.",
+								"GitHub Copilot is required to use VS Code Language Model functionality. Please install and enable GitHub Copilot in VS Code to access language models.",
 							)
 						})(),
 						text: (async function* () {
-							yield "Language model functionality is limited. Please check VS Code configuration."
+							yield "GitHub Copilot is required to use VS Code Language Model functionality. Please install and enable GitHub Copilot in VS Code to access language models."
 						})(),
 					}
 				},
@@ -143,6 +148,15 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 			}
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : "Unknown error"
+			// Check if the error suggests Copilot is not available
+			if (
+				errorMessage.toLowerCase().includes("language model") ||
+				errorMessage.toLowerCase().includes("copilot")
+			) {
+				throw new Error(
+					`Kilo Code <Language Model API>: GitHub Copilot is required but not available. Please install and enable GitHub Copilot in VS Code. Original error: ${errorMessage}`,
+				)
+			}
 			throw new Error(`Kilo Code <Language Model API>: Failed to select model: ${errorMessage}`)
 		}
 	}
@@ -570,10 +584,23 @@ const VSCODE_LM_STATIC_BLACKLIST: string[] = ["claude-3.7-sonnet", "claude-3.7-s
 export async function getVsCodeLmModels() {
 	try {
 		const models = (await vscode.lm.selectChatModels({})) || []
-		return models.filter((model) => !VSCODE_LM_STATIC_BLACKLIST.includes(model.id))
+		const filteredModels = models.filter((model) => !VSCODE_LM_STATIC_BLACKLIST.includes(model.id))
+
+		// If no models are available, it likely means Copilot isn't installed
+		if (filteredModels.length === 0) {
+			console.warn(
+				"Kilo Code <Language Model API>: No language models available. GitHub Copilot may not be installed or enabled.",
+			)
+		}
+
+		return filteredModels
 	} catch (error) {
 		console.error(
 			`Error fetching VS Code LM models: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+		)
+		// Log a more helpful message about potential Copilot installation issues
+		console.warn(
+			"Kilo Code <Language Model API>: Failed to access VS Code Language Model API. Please ensure GitHub Copilot is installed and enabled in VS Code.",
 		)
 		return []
 	}
