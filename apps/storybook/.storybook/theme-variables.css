@@ -1,8 +1,9 @@
-/* We have to redefine these color variables in order to allow dynamic 
-theme switching in Storybook due to the way tailwind builds its utility 
+/* Theme Variables - Color delegations and semantic mappings */
+/* We have to redefine these color variables in order to allow dynamic
+theme switching in Storybook due to the way tailwind builds its utility
 classes at build time based on the @theme */
 
-/* @layer base :root */
+/* Semantic color mappings to VSCode variables */
 --background: var(--vscode-editor-background);
 --foreground: var(--vscode-editor-foreground);
 --card: var(--vscode-editor-background);
@@ -19,7 +20,7 @@ classes at build time based on the @theme */
 --accent-foreground: var(--vscode-list-hoverForeground);
 --destructive: var(--vscode-errorForeground);
 --destructive-foreground: var(--vscode-button-foreground);
---border: var(--vscode-input-border, transparent); /* --border gets theme value or transparent fallback */
+--border: var(--vscode-input-border, transparent);
 --input: var(--vscode-input-background);
 --ring: var(--vscode-input-border);
 --chart-1: var(--vscode-charts-red);
@@ -27,16 +28,8 @@ classes at build time based on the @theme */
 --chart-3: var(--vscode-charts-yellow);
 --chart-4: var(--vscode-charts-orange);
 --chart-5: var(--vscode-charts-green);
---radius: 0.5rem;
 
-/* @layer base :root */
---font-display: var(--vscode-font-family);
-
---text-xs: calc(var(--vscode-font-size) * 0.85);
---text-sm: calc(var(--vscode-font-size) * 0.9);
---text-base: var(--vscode-font-size);
---text-lg: calc(var(--vscode-font-size) * 1.1);
-
+/* Tailwind color delegations */
 --color-background: var(--background);
 --color-foreground: var(--foreground);
 --color-card: var(--card);
@@ -61,9 +54,61 @@ classes at build time based on the @theme */
 --color-chart-3: var(--chart-3);
 --color-chart-4: var(--chart-4);
 --color-chart-5: var(--chart-5);
---radius-lg: var(--radius);
---radius-md: calc(var(--radius) - 2px);
---radius-sm: calc(var(--radius) - 4px);
+
+/* VSCode variable delegations - map generated theme variables to --vscode-* names */
+--vscode-foreground: var(--foreground);
+--vscode-editor-foreground: var(--editor-foreground);
+--vscode-editor-background: var(--editor-background);
+--vscode-editorGroup-border: var(--editorGroup-border);
+--vscode-editorWarning-foreground: var(--editorWarning-foreground);
+--vscode-editorWarning-background: var(--editorWarning-background);
+--vscode-button-foreground: var(--button-foreground);
+--vscode-button-background: var(--button-background);
+--vscode-button-secondaryForeground: var(--button-secondaryForeground);
+--vscode-button-secondaryBackground: var(--button-secondaryBackground);
+--vscode-button-hoverBackground: var(--button-hoverBackground);
+--vscode-button-secondaryHoverBackground: var(--button-secondaryHoverBackground);
+--vscode-dropdown-foreground: var(--dropdown-foreground);
+--vscode-dropdown-background: var(--dropdown-background);
+--vscode-dropdown-border: var(--dropdown-border);
+--vscode-input-foreground: var(--input-foreground);
+--vscode-input-background: var(--input-background);
+--vscode-input-border: var(--input-border, transparent);
+--vscode-focusBorder: var(--focusBorder);
+--vscode-badge-foreground: var(--badge-foreground);
+--vscode-badge-background: var(--badge-background);
+--vscode-notifications-foreground: var(--notifications-foreground);
+--vscode-notifications-background: var(--notifications-background);
+--vscode-notifications-border: var(--notifications-border);
+--vscode-descriptionForeground: var(--descriptionForeground);
+--vscode-errorForeground: var(--errorForeground);
+--vscode-list-hoverForeground: var(--list-hoverForeground);
+--vscode-list-hoverBackground: var(--list-hoverBackground);
+--vscode-list-focusBackground: var(--list-focusBackground);
+--vscode-list-activeSelectionBackground: var(--list-activeSelectionBackground);
+--vscode-list-activeSelectionForeground: var(--list-activeSelectionForeground);
+--vscode-toolbar-hoverBackground: var(--toolbar-hoverBackground);
+--vscode-panel-border: var(--panel-border);
+--vscode-sideBar-foreground: var(--sideBar-foreground);
+--vscode-sideBar-background: var(--sideBar-background);
+--vscode-sideBar-border: var(--sideBar-border);
+--vscode-sideBarSectionHeader-foreground: var(--sideBarSectionHeader-foreground);
+--vscode-sideBarSectionHeader-background: var(--sideBarSectionHeader-background);
+--vscode-sideBarSectionHeader-border: var(--sideBarSectionHeader-border);
+--vscode-charts-green: var(--charts-green);
+--vscode-charts-yellow: var(--charts-yellow);
+--vscode-charts-red: var(--charts-red);
+--vscode-charts-blue: var(--charts-blue);
+--vscode-charts-orange: var(--charts-orange);
+--vscode-inputValidation-infoForeground: var(--inputValidation-infoForeground);
+--vscode-inputValidation-infoBackground: var(--inputValidation-infoBackground);
+--vscode-inputValidation-infoBorder: var(--inputValidation-infoBorder);
+--vscode-widget-border: var(--widget-border);
+--vscode-textLink-foreground: var(--textLink-foreground);
+--vscode-textCodeBlock-background: var(--textCodeBlock-background);
+--vscode-menu-background: var(--menu-background);
+--vscode-menu-foreground: var(--menu-foreground);
+--vscode-disabledForeground: var(--disabledForeground);
 
 /**
 	 * Allow VSCode colors to be used with Tailwind.

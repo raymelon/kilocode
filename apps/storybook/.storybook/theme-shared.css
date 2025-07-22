@@ -32,3 +32,14 @@
 --checkbox-corner-radius: 3;
 --dropdown-list-max-height: 200px;
 --tag-corner-radius: 2px;
+
+--text-xs: calc(var(--vscode-font-size) * 0.85);
+--text-sm: calc(var(--vscode-font-size) * 0.9);
+--text-base: var(--vscode-font-size);
+--text-lg: calc(var(--vscode-font-size) * 1.1);
+
+/* Border radius variables */
+--radius: 0.5rem;
+--radius-lg: var(--radius);
+--radius-md: calc(var(--radius) - 2px);
+--radius-sm: calc(var(--radius) - 4px);

@@ -16,11 +16,13 @@
 
 	[data-theme="dark"] {
 		@import "../generated-theme-styles/dark-modern.css";
+		@import "./theme-shared.css";
 		@import "./theme-variables.css";
 	}
 
 	[data-theme="light"] {
 		@import "../generated-theme-styles/light-modern.css";
+		@import "./theme-shared.css";
 		@import "./theme-variables.css";
 	}
 }
