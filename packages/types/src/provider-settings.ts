@@ -34,6 +34,7 @@ export const providerNames = [
 	"fireworks", // kilocode_change
 	"kilocode", // kilocode_change
 	"cerebras", // kilocode_change
+	"virtual",
 ] as const
 
 export const providerNamesSchema = z.enum(providerNames)
@@ -211,6 +212,27 @@ const requestySchema = baseProviderSettingsSchema.extend({
 
 const humanRelaySchema = baseProviderSettingsSchema
 
+const providerDataSchema = z.object({
+	//using this prevents mistakes by repeating the defintition.
+	providerId: z.string(),
+	providerName: z.string().optional(),
+	providerLimits: z
+		.object({
+			tokensPerMinute: z.coerce.number().optional(),
+			tokensPerHour: z.coerce.number().optional(),
+			tokensPerDate: z.coerce.number().optional(),
+			requestsPerMinute: z.coerce.number().optional(),
+			requestsPerHour: z.coerce.number().optional(),
+			requestsPerDate: z.coerce.number().optional(),
+		})
+		.optional(),
+})
+const virtualSchema = baseProviderSettingsSchema.extend({
+	primaryProvider: providerDataSchema.optional(),
+	secondaryProvider: providerDataSchema.optional(),
+	backupProvider: providerDataSchema.optional(),
+})
+
 const fakeAiSchema = baseProviderSettingsSchema.extend({
 	fakeAi: z.unknown().optional(),
 })
@@ -282,6 +304,7 @@ export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProv
 	kilocodeSchema.merge(z.object({ apiProvider: z.literal("kilocode") })), // kilocode_change
 	fireworksSchema.merge(z.object({ apiProvider: z.literal("fireworks") })), // kilocode_change
 	cerebrasSchema.merge(z.object({ apiProvider: z.literal("cerebras") })), // kilocode_change
+	virtualSchema.merge(z.object({ apiProvider: z.literal("virtual") })),
 	defaultSchema,
 ])
 
@@ -314,6 +337,7 @@ export const providerSettingsSchema = z.object({
 	...kilocodeSchema.shape, // kilocode_change
 	...fireworksSchema.shape, // kilocode_change
 	...cerebrasSchema.shape, // kilocode_change
+	...virtualSchema.shape,
 })
 
 export type ProviderSettings = z.infer<typeof providerSettingsSchema>
