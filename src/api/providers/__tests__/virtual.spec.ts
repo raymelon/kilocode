@@ -21,7 +21,8 @@ import type { ExtensionContext } from "vscode"
 import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { buildApiHandler } from "../../index"
-import { UsageTracker, VirtualHandler, type UsageEvent } from "../virtual"
+import { VirtualHandler } from "../virtual"
+import { UsageTracker, type UsageEvent } from "../usage-tracker"
 
 // Mock dependencies
 vitest.mock("../../../core/config/ProviderSettingsManager")
@@ -185,10 +186,15 @@ describe("Virtual Provider Suite", () => {
 			expect(mockSettingsManager.getProfile).toHaveBeenCalledTimes(3)
 			expect(buildApiHandler).toHaveBeenCalledTimes(3)
 
-			// Internal properties are used to verify handlers are set
-			expect((handler as any).primaryHandler).toBe(mockPrimaryHandler)
-			expect((handler as any).secondaryHandler).toBe(mockSecondaryHandler)
-			expect((handler as any).backupHandler).toBe(mockBackupHandler)
+			// Internal properties are used to verify handlers are set in the new array structure
+			const handlers = (handler as any).handlers
+			expect(handlers).toHaveLength(3)
+			expect(handlers[0].handler).toBe(mockPrimaryHandler)
+			expect(handlers[0].providerId).toBe("p1")
+			expect(handlers[1].handler).toBe(mockSecondaryHandler)
+			expect(handlers[1].providerId).toBe("p2")
+			expect(handlers[2].handler).toBe(mockBackupHandler)
+			expect(handlers[2].providerId).toBe("p3")
 		})
 
 		it("should handle errors when a provider fails to load", async () => {
@@ -213,11 +219,15 @@ describe("Virtual Provider Suite", () => {
 
 			await new Promise(process.nextTick)
 
-			expect((handler as any).primaryHandler).toBe(mockPrimaryHandler)
-			expect((handler as any).secondaryHandler).toBeUndefined() // Failed to load
-			expect((handler as any).backupHandler).toBe(mockBackupHandler)
+			// Check the new array structure - only successful handlers should be loaded
+			const handlers = (handler as any).handlers
+			expect(handlers).toHaveLength(2) // Only primary and backup loaded
+			expect(handlers[0].handler).toBe(mockPrimaryHandler)
+			expect(handlers[0].providerId).toBe("p1")
+			expect(handlers[1].handler).toBe(mockBackupHandler)
+			expect(handlers[1].providerId).toBe("p3")
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"  ❌ Failed to load secondary provider secondary: Error: Failed to load profile",
+				"  ❌ Failed to load provider 2 (secondary): Error: Failed to load profile",
 			)
 
 			consoleErrorSpy.mockRestore()
@@ -254,55 +264,71 @@ describe("Virtual Provider Suite", () => {
 		})
 
 		describe("adjustActiveHandler", () => {
-			it("should set primary handler as active if it is under limit", async () => {
+			it("should set first handler as active if it is under limit", async () => {
 				const handler = new VirtualHandler({
 					primaryProvider: mockPrimaryProvider,
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+				]
 				vitest.spyOn(handler, "underLimit").mockReturnValue(true)
 
 				await handler.adjustActiveHandler()
 
 				expect((handler as any).activeHandler).toBe(mockPrimaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p1")
 			})
 
-			it("should switch to secondary handler if primary is over limit", async () => {
+			it("should switch to second handler if first is over limit", async () => {
 				const handler = new VirtualHandler({
 					primaryProvider: mockPrimaryProvider,
 					secondaryProvider: mockSecondaryProvider,
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
-				;(handler as any).secondaryHandler = mockSecondaryHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+					{ handler: mockSecondaryHandler, providerId: "p2", config: mockSecondaryProvider },
+				]
 				vitest
 					.spyOn(handler, "underLimit")
-					.mockImplementationOnce(() => false) // Primary over limit
-					.mockImplementationOnce(() => true) // Secondary under limit
+					.mockImplementationOnce(() => false) // First over limit
+					.mockImplementationOnce(() => true) // Second under limit
 
 				await handler.adjustActiveHandler()
 
 				expect((handler as any).activeHandler).toBe(mockSecondaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p2")
 			})
 
-			it("should switch to backup handler if primary and secondary are over limit", async () => {
+			it("should use first handler as fallback if all are over limit", async () => {
 				const handler = new VirtualHandler({
 					primaryProvider: mockPrimaryProvider,
 					secondaryProvider: mockSecondaryProvider,
 					backupProvider: mockBackupProvider,
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
-				;(handler as any).secondaryHandler = mockSecondaryHandler
-				;(handler as any).backupHandler = mockBackupHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+					{ handler: mockSecondaryHandler, providerId: "p2", config: mockSecondaryProvider },
+					{ handler: mockBackupHandler, providerId: "p3", config: mockBackupProvider },
+				]
 				vitest.spyOn(handler, "underLimit").mockReturnValue(false) // All over limit
 
 				await handler.adjustActiveHandler()
 
-				expect((handler as any).activeHandler).toBe(mockBackupHandler)
+				// Should fallback to first handler when all are over limit
+				expect((handler as any).activeHandler).toBe(mockPrimaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p1")
 			})
 
 			it("should set active handler to undefined if no providers are available", async () => {
 				const handler = new VirtualHandler({} as any)
+				// Ensure handlers array is empty
+				;(handler as any).handlers = []
 				await handler.adjustActiveHandler()
 				expect((handler as any).activeHandler).toBeUndefined()
+				expect((handler as any).activeHandlerId).toBeUndefined()
 			})
 		})
 

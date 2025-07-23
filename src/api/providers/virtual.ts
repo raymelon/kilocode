@@ -4,12 +4,13 @@ import type { ModelInfo, ProviderSettings } from "@roo-code/types"
 import { ProviderSettingsManager } from "../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../core/config/ContextProxy"
 import { ApiStream } from "../transform/stream"
-import type { ExtensionContext, Memento } from "vscode"
 
 import type { ApiHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { buildApiHandler } from "../index"
 import { virtualProviderDataSchema } from "../../../packages/types/src/provider-settings"
 import { EXPERIMENT_IDS, experiments as Experiments } from "../../shared/experiments"
+import { UsageTracker } from "./usage-tracker"
+
 type VirtualProvider = z.infer<typeof virtualProviderDataSchema>
 
 /**
@@ -20,9 +21,7 @@ export class VirtualHandler implements ApiHandler {
 	private settingsManager: ProviderSettingsManager
 	private settings: ProviderSettings
 
-	private primaryHandler: ApiHandler | undefined
-	private secondaryHandler: ApiHandler | undefined
-	private backupHandler: ApiHandler | undefined
+	private handlers: Array<{ handler: ApiHandler; providerId: string; config: VirtualProvider }> = []
 	private activeHandler: ApiHandler | undefined
 	private activeHandlerId: string | undefined
 	private usage: UsageTracker
@@ -97,15 +96,14 @@ export class VirtualHandler implements ApiHandler {
 	 * Loads and validates the configured provider profiles from settings
 	 */
 	private async loadConfiguredProviders() {
-		// Extract configured providers from settings
-		const providers = {
-			primary: this.settings.primaryProvider,
-			secondary: this.settings.secondaryProvider,
-			backup: this.settings.backupProvider,
-		}
+		this.handlers = []
+
+		// Get providers array - support both new format and legacy format
+		const providers = this.getProvidersArray()
 
 		// Validate and load each configured provider
-		for (const [role, provider] of Object.entries(providers)) {
+		for (let i = 0; i < providers.length; i++) {
+			const provider = providers[i]
 			if (provider && provider.providerId && provider.providerName) {
 				try {
 					const profile = await this.settingsManager.getProfile({ id: provider.providerId })
@@ -113,32 +111,15 @@ export class VirtualHandler implements ApiHandler {
 					// Build the actual API handler using the profile
 					const apiHandler = buildApiHandler(profile)
 
-					// Assign to the appropriate handler property with ID tracking
-					switch (role) {
-						case "primary":
-							this.primaryHandler = apiHandler
-							// Store profile ID for primary handler reference
-							if (apiHandler) {
-								;(apiHandler as any)._profileId = profile.id
-							}
-							break
-						case "secondary":
-							this.secondaryHandler = apiHandler
-							// Store profile ID for secondary handler reference
-							if (apiHandler) {
-								;(apiHandler as any)._profileId = profile.id
-							}
-							break
-						case "backup":
-							this.backupHandler = apiHandler
-							// Store profile ID for backup handler reference
-							if (apiHandler) {
-								;(apiHandler as any)._profileId = profile.id
-							}
-							break
+					if (apiHandler) {
+						this.handlers.push({
+							handler: apiHandler,
+							providerId: provider.providerId,
+							config: provider,
+						})
 					}
 				} catch (error) {
-					console.error(`  ❌ Failed to load ${role} provider ${provider.providerName}: ${error}`)
+					console.error(`  ❌ Failed to load provider ${i + 1} (${provider.providerName}): ${error}`)
 				}
 			}
 		}
@@ -146,37 +127,46 @@ export class VirtualHandler implements ApiHandler {
 	}
 
 	/**
+	 * Gets the providers array, supporting both new array format and legacy format
+	 */
+	private getProvidersArray(): VirtualProvider[] {
+		// Use new format if available
+		if (this.settings.providers && this.settings.providers.length > 0) {
+			return this.settings.providers
+		}
+
+		// Convert legacy format to array
+		const legacyProviders: VirtualProvider[] = []
+		if (this.settings.primaryProvider) legacyProviders.push(this.settings.primaryProvider)
+		if (this.settings.secondaryProvider) legacyProviders.push(this.settings.secondaryProvider)
+		if (this.settings.backupProvider) legacyProviders.push(this.settings.backupProvider)
+
+		return legacyProviders
+	}
+
+	/**
 	 * Adjusts which handler is currently the active handler by selecting the first one under limits.
 	 */
 	async adjustActiveHandler(): Promise<void> {
-		const availableHandlers = [this.primaryHandler, this.secondaryHandler, this.backupHandler].filter(
-			(handler): handler is ApiHandler => handler !== undefined,
-		)
-
-		if (availableHandlers.length === 0) {
+		if (this.handlers.length === 0) {
 			this.activeHandler = undefined
 			this.activeHandlerId = undefined
 			return
 		}
 
-		// Check the primary first, always.
-		if (this.settings.primaryProvider) {
-			if (this.underLimit(this.settings.primaryProvider)) {
-				this.activeHandler = this.primaryHandler
-				this.activeHandlerId = (this.primaryHandler as any)?._profileId
+		// Check handlers in order, selecting the first one under limits
+		for (const { handler, providerId, config } of this.handlers) {
+			if (this.underLimit(config)) {
+				this.activeHandler = handler
+				this.activeHandlerId = providerId
 				return
 			}
 		}
-		//then the secondary
-		if (this.settings.secondaryProvider) {
-			if (this.underLimit(this.settings.secondaryProvider)) {
-				this.activeHandler = this.secondaryHandler
-				this.activeHandlerId = (this.secondaryHandler as any)?._profileId
-				return
-			}
-		}
-		this.activeHandler = this.backupHandler
-		this.activeHandlerId = (this.backupHandler as any)?._profileId
+
+		// If all handlers are over limits, use the first one as fallback
+		const firstHandler = this.handlers[0]
+		this.activeHandler = firstHandler.handler
+		this.activeHandlerId = firstHandler.providerId
 	}
 
 	underLimit(providerData: VirtualProvider): boolean {
@@ -216,136 +206,5 @@ export class VirtualHandler implements ApiHandler {
 			}
 		}
 		return true
-	}
-}
-
-export type UsageType = "tokens" | "requests"
-export type UsageWindow = "minute" | "hour" | "day"
-export interface UsageEvent {
-	/** The timestamp of the event in milliseconds since epoch. */
-	timestamp: number
-	/** The identifier for the AI provider (e.g., 'ds8f93js'). */
-	providerId: string
-	/** The type of usage. */
-	type: UsageType
-	/** The amount consumed (e.g., number of tokens or 1 for a single request). */
-	count: number
-}
-interface UsageResult {
-	tokens: number
-	requests: number
-}
-const USAGE_STORAGE_KEY = "kilocode.virtualprovider.usage.v1"
-const ONE_MINUTE_MS = 60 * 1000
-const ONE_HOUR_MS = 60 * ONE_MINUTE_MS
-const ONE_DAY_MS = 24 * ONE_HOUR_MS
-
-export class UsageTracker {
-	private static _instance: UsageTracker
-	private memento: Memento
-
-	// Private constructor to enforce singleton pattern
-	private constructor(context: ExtensionContext) {
-		this.memento = context.globalState
-	}
-
-	/**
-	 * Initializes the singleton instance of the UsageTracker.
-	 * @param context The extension context provided by VS Code.
-	 */
-	public static initialize(context: ExtensionContext): UsageTracker {
-		if (!UsageTracker._instance) {
-			UsageTracker._instance = new UsageTracker(context)
-		}
-		return UsageTracker._instance
-	}
-	public static getInstance(): UsageTracker {
-		if (!UsageTracker._instance) {
-			UsageTracker.initialize(ContextProxy.instance.rawContext)
-		}
-		return UsageTracker._instance
-	}
-	/**
-	 * Records a usage event.
-	 * This data is added to a list in the global state. Old data is automatically pruned.
-	 *
-	 * @param providerId The unique identifier of the AI provider.
-	 * @param type The type of usage, either "tokens" or "requests".
-	 * @param count The number of tokens or requests to record.
-	 */
-	public async consume(providerId: string, type: UsageType, count: number): Promise<void> {
-		const newEvent: UsageEvent = {
-			timestamp: Date.now(),
-			providerId,
-			type,
-			count,
-		}
-
-		const allEvents = this.getPrunedEvents()
-		allEvents.push(newEvent)
-
-		await this.memento.update(USAGE_STORAGE_KEY, allEvents)
-	}
-	/**
-	 * Calculates the total usage for a given provider over a specified sliding window.
-	 *
-	 * @param providerId The provider to retrieve usage for.
-	 * @param window The time window to calculate usage within ('minute', 'hour', 'day').
-	 * @returns An object containing the total number of tokens and requests.
-	 */
-	public getUsage(providerId: string, window: UsageWindow): UsageResult {
-		const now = Date.now()
-		let startTime: number
-
-		switch (window) {
-			case "minute":
-				startTime = now - ONE_MINUTE_MS
-				break
-			case "hour":
-				startTime = now - ONE_HOUR_MS
-				break
-			case "day":
-				startTime = now - ONE_DAY_MS
-				break
-		}
-
-		const allEvents = this.memento.get<UsageEvent[]>(USAGE_STORAGE_KEY, [])
-
-		const relevantEvents = allEvents.filter(
-			(event) => event.providerId === providerId && event.timestamp >= startTime,
-		)
-
-		const result = relevantEvents.reduce<UsageResult>(
-			(acc, event) => {
-				if (event.type === "tokens") {
-					acc.tokens += event.count
-				} else if (event.type === "requests") {
-					acc.requests += event.count
-				}
-				return acc
-			},
-			{ tokens: 0, requests: 0 },
-		)
-
-		return result
-	}
-
-	/**
-	 * Retrieves all events from storage and filters out any that are older
-	 * than the longest tracking window (1 day). This prevents the storage
-	 * from growing indefinitely.
-	 */
-	private getPrunedEvents(): UsageEvent[] {
-		const allEvents = this.memento.get<UsageEvent[]>(USAGE_STORAGE_KEY, [])
-		const cutoff = Date.now() - ONE_DAY_MS
-		const prunedEvents = allEvents.filter((event) => event.timestamp >= cutoff)
-		return prunedEvents
-	}
-
-	/**
-	 * A utility method to completely clear all tracked usage data.
-	 */
-	public async clearAllUsageData(): Promise<void> {
-		await this.memento.update(USAGE_STORAGE_KEY, undefined)
 	}
 }

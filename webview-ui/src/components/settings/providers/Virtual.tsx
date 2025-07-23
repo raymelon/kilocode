@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { Trans } from "react-i18next"
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { PlusIcon, TrashIcon } from "@radix-ui/react-icons"
 
 import { type ProviderSettings, type ProviderSettingsEntry } from "@roo-code/types"
 import { vscode } from "@src/utils/vscode"
@@ -16,28 +17,49 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@src/components/ui/alert-dialog"
+import { inputEventTransform } from "../transforms"
 
 type VirtualProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
 }
 
-type LimitInputsProps = {
-	providerKey: "primaryProvider" | "secondaryProvider"
-	apiConfiguration: ProviderSettings
-	handleInputChange: <K extends keyof ProviderSettings, E>(
-		field: K,
-		transform: (event: E) => ProviderSettings[K],
-	) => (event: E | Event) => void
-	limitTransformFactory: (
-		providerKey: "primaryProvider" | "secondaryProvider",
-		limitKey: keyof NonNullable<NonNullable<ProviderSettings["primaryProvider"]>["providerLimits"]>,
-	) => (e: any) => ProviderSettings["primaryProvider"]
+type VirtualProviderData = {
+	providerName?: string
+	providerId?: string
+	providerLimits?: {
+		tokensPerMinute?: number
+		tokensPerHour?: number
+		tokensPerDay?: number
+		requestsPerMinute?: number
+		requestsPerHour?: number
+		requestsPerDay?: number
+	}
 }
 
-const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTransformFactory }: LimitInputsProps) => {
-	const provider = apiConfiguration[providerKey]
-	if (!provider?.providerId) {
+type LimitInputsProps = {
+	provider: VirtualProviderData
+	index: number
+	onProviderChange: (index: number, provider: VirtualProviderData) => void
+}
+
+const LimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) => {
+	const handleLimitChange = useCallback(
+		(limitKey: keyof NonNullable<VirtualProviderData["providerLimits"]>) => (event: any) => {
+			const value = inputEventTransform(event)
+			const updatedProvider = {
+				...provider,
+				providerLimits: {
+					...provider.providerLimits,
+					[limitKey]: value === "" ? undefined : Number(value),
+				},
+			}
+			onProviderChange(index, updatedProvider)
+		},
+		[provider, index, onProviderChange],
+	)
+
+	if (!provider.providerId) {
 		return null
 	}
 
@@ -51,7 +73,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerMinute?.toString() ?? ""}
-						onInput={handleInputChange(providerKey, limitTransformFactory(providerKey, "tokensPerMinute"))}
+						onInput={handleLimitChange("tokensPerMinute")}
 						className="w-full"
 					/>
 				</div>
@@ -61,7 +83,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerHour?.toString() ?? ""}
-						onInput={handleInputChange(providerKey, limitTransformFactory(providerKey, "tokensPerHour"))}
+						onInput={handleLimitChange("tokensPerHour")}
 						className="w-full"
 					/>
 				</div>
@@ -71,7 +93,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerDay?.toString() ?? ""}
-						onInput={handleInputChange(providerKey, limitTransformFactory(providerKey, "tokensPerDay"))}
+						onInput={handleLimitChange("tokensPerDay")}
 						className="w-full"
 					/>
 				</div>
@@ -85,10 +107,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerMinute?.toString() ?? ""}
-						onInput={handleInputChange(
-							providerKey,
-							limitTransformFactory(providerKey, "requestsPerMinute"),
-						)}
+						onInput={handleLimitChange("requestsPerMinute")}
 						className="w-full"
 					/>
 				</div>
@@ -98,7 +117,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerHour?.toString() ?? ""}
-						onInput={handleInputChange(providerKey, limitTransformFactory(providerKey, "requestsPerHour"))}
+						onInput={handleLimitChange("requestsPerHour")}
 						className="w-full"
 					/>
 				</div>
@@ -108,7 +127,7 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerDay?.toString() ?? ""}
-						onInput={handleInputChange(providerKey, limitTransformFactory(providerKey, "requestsPerDay"))}
+						onInput={handleLimitChange("requestsPerDay")}
 						className="w-full"
 					/>
 				</div>
@@ -118,80 +137,98 @@ const LimitInputs = ({ providerKey, apiConfiguration, handleInputChange, limitTr
 }
 
 export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
-	const { listApiConfigMeta } = useExtensionState()
+	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
 	const [isAlertOpen, setIsAlertOpen] = useState(false)
+
+	// Get current profile ID to exclude from available providers
+	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
+	const currentProfileId = currentProfile?.id
+
+	// Filter out virtual provider profiles and current profile
+	const availableProfiles = useMemo(() => {
+		return (
+			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
+				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
+			}) || []
+		)
+	}, [listApiConfigMeta, currentProfileId])
+
+	// Get providers array - use new format if available, otherwise convert from legacy format
+	const providers = useMemo(() => {
+		if (apiConfiguration.providers && apiConfiguration.providers.length > 0) {
+			return apiConfiguration.providers
+		}
+		// Convert legacy format to new format
+		const legacyProviders = []
+		if (apiConfiguration.primaryProvider) legacyProviders.push(apiConfiguration.primaryProvider)
+		if (apiConfiguration.secondaryProvider) legacyProviders.push(apiConfiguration.secondaryProvider)
+		if (apiConfiguration.backupProvider) legacyProviders.push(apiConfiguration.backupProvider)
+		return legacyProviders.length > 0 ? legacyProviders : [{}]
+	}, [apiConfiguration])
+
+	const updateProviders = useCallback(
+		(newProviders: VirtualProviderData[]) => {
+			// Update the new array format
+			setApiConfigurationField("providers", newProviders)
+			// Clear legacy format to avoid confusion
+			setApiConfigurationField("primaryProvider", undefined)
+			setApiConfigurationField("secondaryProvider", undefined)
+			setApiConfigurationField("backupProvider", undefined)
+		},
+		[setApiConfigurationField],
+	)
+
+	const handleProviderChange = useCallback(
+		(index: number, provider: VirtualProviderData) => {
+			const newProviders = [...providers]
+			newProviders[index] = provider
+			updateProviders(newProviders)
+		},
+		[providers, updateProviders],
+	)
+
+	const handleProviderSelect = useCallback(
+		(index: number, selectedId: string) => {
+			const selectedProfile = availableProfiles.find((profile) => profile.id === selectedId)
+			if (selectedProfile) {
+				const updatedProvider = {
+					...providers[index],
+					providerId: selectedProfile.id,
+					providerName: selectedProfile.name,
+				}
+				handleProviderChange(index, updatedProvider)
+			}
+		},
+		[availableProfiles, providers, handleProviderChange],
+	)
+
+	const addProvider = useCallback(() => {
+		const newProviders = [...providers, {}]
+		updateProviders(newProviders)
+	}, [providers, updateProviders])
+
+	const removeProvider = useCallback(
+		(index: number) => {
+			if (providers.length > 1) {
+				const newProviders = providers.filter((_, i) => i !== index)
+				updateProviders(newProviders)
+			}
+		},
+		[providers, updateProviders],
+	)
 
 	const handleClearUsageData = useCallback(() => {
 		vscode.postMessage({ type: "clearUsageData" })
 		setIsAlertOpen(false)
 	}, [])
-	const handleInputChange = useCallback(
-		<K extends keyof ProviderSettings, E>(
-			field: K,
-			transform: (event: E) => ProviderSettings[K] = (event: any) => event.target.value,
-		) =>
-			(event: E | Event) => {
-				setApiConfigurationField(field, transform(event as E))
-			},
-		[setApiConfigurationField],
-	)
-	const { currentApiConfigName } = useExtensionState()
 
-	// Find the current profile's ID
-	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
-	const currentProfileId = currentProfile?.id
-	// Filter out virtual provider profiles
-	const availableProfiles = useMemo(() => {
-		const filtered =
-			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
-				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
-				// There's a goofy behavior where a newly created profile inherits the apiProvider
-				// of the previously viewed profile.  This means we can't filter out ourselves when
-				// a new virtual provider profile is created.  So we exclude anything with apiProvider == "virtual"
-				// or rofile.id == currentProfileId. (ourselves).
-			}) || []
-		return filtered
-	}, [listApiConfigMeta, currentProfileId])
-
-	// Get current selections
-	const primarySelection = apiConfiguration.primaryProvider?.providerId || ""
-	const secondarySelection = apiConfiguration.secondaryProvider?.providerId || ""
-	const backupSelection = apiConfiguration.backupProvider?.providerId || ""
-
-	// Transform function for provider selection
-	const providerTransform = useCallback(
-		(selectedId: string) => {
-			const selectedProfile = availableProfiles.find((profile) => profile.id === selectedId)
-			if (selectedProfile) {
-				return {
-					providerId: selectedProfile.id,
-					providerName: selectedProfile.name,
-				}
-			}
-			return undefined
+	const getUsedProviderIds = useCallback(
+		(excludeIndex: number) => {
+			return providers
+				.map((p, i) => (i !== excludeIndex ? p.providerId : null))
+				.filter((id): id is string => Boolean(id))
 		},
-		[availableProfiles],
-	)
-
-	const limitTransformFactory = useCallback(
-		(
-			providerKey: "primaryProvider" | "secondaryProvider",
-			limitKey: keyof NonNullable<NonNullable<ProviderSettings["primaryProvider"]>["providerLimits"]>,
-		) =>
-			(event: Event) => {
-				const value = (event.target as HTMLInputElement).value
-				const currentProvider = apiConfiguration[providerKey]
-
-				const newProviderData = {
-					...currentProvider,
-					providerLimits: {
-						...currentProvider?.providerLimits,
-						[limitKey]: value === "" ? undefined : Number(value),
-					},
-				}
-				return newProviderData as ProviderSettings[typeof providerKey]
-			},
-		[apiConfiguration],
+		[providers],
 	)
 
 	return (
@@ -201,105 +238,76 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 			</h3>
 			<p className="text-sm text-vscode-descriptionForeground mb-4">
 				<Trans i18nKey="settings:providers.virtualDescription">
-					This virtual provider allows you to use multiple AI providers through a single interface.
+					Configure multiple AI providers with automatic fallback when rate limits are reached.
 				</Trans>
 			</p>
 
-			<div className="space-y-3">
-				{/* Primary Provider Dropdown */}
-				<div>
-					<label className="block font-medium mb-1">Primary Provider</label>
-					<Select
-						value={primarySelection}
-						onValueChange={handleInputChange("primaryProvider", providerTransform)}
-						disabled={availableProfiles.length === 0}>
-						<SelectTrigger className="w-full">
-							<SelectValue placeholder="Select primary provider..." />
-						</SelectTrigger>
-						<SelectContent>
-							{availableProfiles
-								.filter(
-									(profile) => profile.id !== secondarySelection && profile.id !== backupSelection,
-								)
-								.map((profile) => (
-									<SelectItem key={profile.id} value={profile.id}>
-										{profile.name}
-									</SelectItem>
-								))}
-						</SelectContent>
-					</Select>
-					<LimitInputs
-						providerKey="primaryProvider"
-						apiConfiguration={apiConfiguration}
-						handleInputChange={handleInputChange}
-						limitTransformFactory={limitTransformFactory}
-					/>
+			<div className="space-y-4">
+				{providers.map((provider, index) => {
+					const usedProviderIds = getUsedProviderIds(index)
+					const availableForThisSlot = availableProfiles.filter(
+						(profile) => !usedProviderIds.includes(profile.id),
+					)
+
+					return (
+						<div key={index} className="border border-vscode-settings-sashBorder rounded-md p-4">
+							<div className="flex items-center justify-between mb-3">
+								<label className="block font-medium">
+									Provider {index + 1} {index === 0 && "(Primary)"}
+								</label>
+								{providers.length > 1 && (
+									<VSCodeButton
+										appearance="icon"
+										onClick={() => removeProvider(index)}
+										title="Remove provider">
+										<TrashIcon />
+									</VSCodeButton>
+								)}
+							</div>
+
+							<Select
+								value={provider.providerId || ""}
+								onValueChange={(value) => handleProviderSelect(index, value)}
+								disabled={availableForThisSlot.length === 0}>
+								<SelectTrigger className="w-full">
+									<SelectValue placeholder="Select provider..." />
+								</SelectTrigger>
+								<SelectContent>
+									{availableForThisSlot.map((profile) => (
+										<SelectItem key={profile.id} value={profile.id}>
+											{profile.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+
+							<LimitInputs provider={provider} index={index} onProviderChange={handleProviderChange} />
+						</div>
+					)
+				})}
+
+				<div className="flex justify-center">
+					<VSCodeButton
+						appearance="secondary"
+						onClick={addProvider}
+						disabled={availableProfiles.length <= providers.length}>
+						<PlusIcon className="mr-2" />
+						Add Provider
+					</VSCodeButton>
 				</div>
 
-				{/* Secondary Provider Dropdown */}
-				<div>
-					<label className="block font-medium mb-1">Secondary Provider</label>
-					<Select
-						value={secondarySelection}
-						onValueChange={handleInputChange("secondaryProvider", providerTransform)}
-						disabled={availableProfiles.length === 0}>
-						<SelectTrigger className="w-full">
-							<SelectValue placeholder="Select secondary provider..." />
-						</SelectTrigger>
-						<SelectContent>
-							{availableProfiles
-								.filter((profile) => profile.id !== primarySelection && profile.id !== backupSelection)
-								.map((profile) => (
-									<SelectItem key={profile.id} value={profile.id}>
-										{profile.name}
-									</SelectItem>
-								))}
-						</SelectContent>
-					</Select>
-					<LimitInputs
-						providerKey="secondaryProvider"
-						apiConfiguration={apiConfiguration}
-						handleInputChange={handleInputChange}
-						limitTransformFactory={limitTransformFactory}
-					/>
-				</div>
-
-				{/* Backup Provider Dropdown */}
-				<div>
-					<label className="block font-medium mb-1">Backup Provider</label>
-					<Select
-						value={backupSelection}
-						onValueChange={handleInputChange("backupProvider", providerTransform)}
-						disabled={availableProfiles.length === 0}>
-						<SelectTrigger className="w-full">
-							<SelectValue placeholder="Select backup provider..." />
-						</SelectTrigger>
-						<SelectContent>
-							{availableProfiles
-								.filter(
-									(profile) => profile.id !== primarySelection && profile.id !== secondarySelection,
-								)
-								.map((profile) => (
-									<SelectItem key={profile.id} value={profile.id}>
-										{profile.name}
-									</SelectItem>
-								))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				{/* Status message */}
 				{availableProfiles.length === 0 ? (
-					<div className="text-sm text-vscode-descriptionForeground">
+					<div className="text-sm text-vscode-descriptionForeground text-center p-4 border border-vscode-settings-sashBorder rounded-md">
 						No provider profiles available. Please configure at least one non-virtual provider profile
 						first.
 					</div>
 				) : (
-					<div className="text-sm text-vscode-descriptionForeground">
-						Configure your primary, secondary, and backup providers to enable fallback behavior.
+					<div className="text-sm text-vscode-descriptionForeground text-center">
+						Providers are tried in order. Configure rate limits to enable automatic fallback.
 					</div>
 				)}
 			</div>
+
 			<div className="mt-6 p-4 border border-vscode-editorWarning-foreground rounded-md">
 				<h4 className="text-md font-semibold text-vscode-editorWarning-foreground">
 					<Trans i18nKey="settings:providers.virtual.dangerZoneTitle">Danger Zone</Trans>
