@@ -207,6 +207,7 @@ export interface WebviewMessage {
 		| "clearIndexData"
 		| "indexingStatusUpdate"
 		| "indexCleared"
+		| "clearUsageData"
 		| "focusPanelRequest"
 		| "profileThresholds"
 		| "setHistoryPreviewCollapsed"

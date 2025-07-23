@@ -55,6 +55,7 @@ import { getCommand } from "../../utils/commands"
 import { toggleWorkflow, toggleRule, createRuleFile, deleteRuleFile } from "./kilorules"
 import { mermaidFixPrompt } from "../prompts/utilities/mermaid" // kilocode_change
 import { editMessageHandler } from "../kilocode/webview/webviewMessageHandlerUtils" // kilocode_change
+import { UsageTracker } from "../../api/providers/virtual"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
@@ -2372,6 +2373,18 @@ export const webviewMessageHandler = async (
 						error: error instanceof Error ? error.message : String(error),
 					},
 				})
+			}
+			break
+		}
+		case "clearUsageData": {
+			try {
+				const usageTracker = UsageTracker.getInstance()
+				await usageTracker.clearAllUsageData()
+				vscode.window.showInformationMessage("Usage data has been successfully cleared.")
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				provider.log(`Error clearing usage data: ${errorMessage}`)
+				vscode.window.showErrorMessage(`Failed to clear usage data: ${errorMessage}`)
 			}
 			break
 		}

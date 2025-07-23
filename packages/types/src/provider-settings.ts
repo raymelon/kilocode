@@ -212,7 +212,7 @@ const requestySchema = baseProviderSettingsSchema.extend({
 
 const humanRelaySchema = baseProviderSettingsSchema
 
-const providerDataSchema = z.object({
+export const virtualProviderDataSchema = z.object({
 	//using this prevents mistakes by repeating the defintition.
 	providerName: z.string().optional(),
 	providerId: z.string().optional(),
@@ -220,17 +220,17 @@ const providerDataSchema = z.object({
 		.object({
 			tokensPerMinute: z.coerce.number().optional(),
 			tokensPerHour: z.coerce.number().optional(),
-			tokensPerDate: z.coerce.number().optional(),
+			tokensPerDay: z.coerce.number().optional(),
 			requestsPerMinute: z.coerce.number().optional(),
 			requestsPerHour: z.coerce.number().optional(),
-			requestsPerDate: z.coerce.number().optional(),
+			requestsPerDay: z.coerce.number().optional(),
 		})
 		.optional(),
 })
 const virtualSchema = baseProviderSettingsSchema.extend({
-	primaryProvider: providerDataSchema.optional(),
-	secondaryProvider: providerDataSchema.optional(),
-	backupProvider: providerDataSchema.optional(),
+	primaryProvider: virtualProviderDataSchema.optional(),
+	secondaryProvider: virtualProviderDataSchema.optional(),
+	backupProvider: virtualProviderDataSchema.optional(),
 })
 
 const fakeAiSchema = baseProviderSettingsSchema.extend({
