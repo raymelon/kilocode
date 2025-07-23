@@ -34,10 +34,10 @@ describe("experiments", () => {
 		})
 	})
 
-	describe("VIRTUAL_PROVIDER", () => {
+	describe("VIRTUAL_QUOTA_FALLBACK_PROVIDER", () => {
 		it("is configured correctly", () => {
-			expect(EXPERIMENT_IDS.VIRTUAL_PROVIDER).toBe("virtualProvider")
-			expect(experimentConfigsMap.VIRTUAL_PROVIDER).toMatchObject({
+			expect(EXPERIMENT_IDS.VIRTUAL_QUOTA_FALLBACK_PROVIDER).toBe("virtualQuotaFallbackProvider")
+			expect(experimentConfigsMap.VIRTUAL_QUOTA_FALLBACK_PROVIDER).toMatchObject({
 				enabled: false,
 			})
 		})
@@ -49,7 +49,7 @@ describe("experiments", () => {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
-				virtualProvider: false,
+				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})
@@ -59,7 +59,7 @@ describe("experiments", () => {
 				autocomplete: true,
 				powerSteering: true,
 				multiFileApplyDiff: false,
-				virtualProvider: false,
+				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(true)
 		})
@@ -69,7 +69,7 @@ describe("experiments", () => {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
-				virtualProvider: false,
+				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})

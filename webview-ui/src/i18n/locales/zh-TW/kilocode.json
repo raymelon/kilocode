@@ -155,5 +155,27 @@
 			"triggers": "触发器",
 			"keybindingDescription": "Inline Assist 功能通过命令触发。您可以在<DocsLink>此处配置键盘快捷键</DocsLink>。"
 		}
+	},
+	"virtualProvider": {
+		"title": "虚拟配额回退提供方设置",
+		"description": "配置一个提供商列表，每个提供商都有自己的配额限制。当一个提供商的配额限制达到上限时，将使用列表中的下一个提供商，直到所有提供商都用完为止。",
+		"providerLabel": "提供者 {{number}}",
+		"primaryProviderLabel": "提供者 {{number}} (主要)",
+		"moveProviderUp": "向上移動提供者",
+		"moveProviderDown": "向下移動提供者",
+		"removeProvider": "移除提供者",
+		"selectProviderPlaceholder": "選擇提供者...",
+		"addProvider": "新增提供者",
+		"noProvidersAvailable": "沒有可用的提供者設定檔。請先設定至少一個非虛擬提供者設定檔。",
+		"dangerZoneTitle": "危險區域",
+		"dangerZoneDescription": "這些操作具有破壞性且無法復原。",
+		"clearUsageData": "清除使用資料",
+		"confirmClearTitle": "確定嗎？",
+		"confirmClearDescription": "這將永久刪除虛擬提供者的所有儲存使用資料。此操作無法復原。",
+		"perMinute": "每分钟",
+		"tokensLabel": "代币",
+		"perDay": "每天",
+		"perHour": "每小时",
+		"requestsLabel": "请求"
 	}
 }

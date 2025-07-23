@@ -155,5 +155,27 @@
 			"triggers": "المشغلات",
 			"keybindingDescription": "يتم تشغيل ميزات المساعدة الفورية بواسطة الأوامر. يمكنك تكوين <DocsLink>اختصارات لوحة المفاتيح هنا</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "إعدادات مزود الاحتياطي للحصة الافتراضية",
+		"description": "قم بتكوين قائمة من المزودين حيث لكل منهم حدود حصة خاصة به. عندما يتم الوصول إلى حدود حصة أحد المزودين، سيتم استخدام المزود التالي في القائمة حتى لا يتبقى أي منهم.",
+		"providerLabel": "المزود {{number}}",
+		"primaryProviderLabel": "المزود {{number}} (الأساسي)",
+		"moveProviderUp": "نقل المزود لأعلى",
+		"moveProviderDown": "نقل المزود لأسفل",
+		"removeProvider": "إزالة المزود",
+		"selectProviderPlaceholder": "اختر مزود...",
+		"addProvider": "إضافة مزود",
+		"noProvidersAvailable": "لا توجد ملفات تعريف مزود متاحة. يرجى تكوين ملف تعريف مزود واحد على الأقل غير افتراضي أولاً.",
+		"dangerZoneTitle": "منطقة الخطر",
+		"dangerZoneDescription": "هذه الإجراءات مدمرة ولا يمكن التراجع عنها.",
+		"clearUsageData": "مسح بيانات الاستخدام",
+		"confirmClearTitle": "هل أنت متأكد؟",
+		"confirmClearDescription": "سيؤدي هذا إلى حذف جميع بيانات الاستخدام المخزنة للمزودين الافتراضيين نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+		"requestsLabel": "طلبات",
+		"perMinute": "في الدقيقة",
+		"perDay": "في اليوم",
+		"tokensLabel": "الرموز",
+		"perHour": "في الساعة"
 	}
 }

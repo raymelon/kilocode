@@ -155,5 +155,27 @@
 			"triggers": "トリガー",
 			"keybindingDescription": "インラインアシスト機能はコマンドによって起動されます。<DocsLink>キーボードショートカットはこちら</DocsLink>で設定できます。"
 		}
+	},
+	"virtualProvider": {
+		"title": "仮想クォータフォールバックプロバイダー設定",
+		"description": "それぞれに独自の制限枠を持つプロバイダーのリストを設定します。あるプロバイダーの制限枠に達すると、リスト内の次のプロバイダーが使用され、すべてのプロバイダーがなくなるまでこれが続きます。",
+		"providerLabel": "プロバイダー {{number}}",
+		"primaryProviderLabel": "プロバイダー {{number}} (プライマリ)",
+		"moveProviderUp": "プロバイダーを上に移動",
+		"moveProviderDown": "プロバイダーを下に移動",
+		"removeProvider": "プロバイダーを削除",
+		"selectProviderPlaceholder": "プロバイダーを選択...",
+		"addProvider": "プロバイダーを追加",
+		"noProvidersAvailable": "利用可能なプロバイダープロファイルがありません。まず少なくとも1つの非仮想プロバイダープロファイルを設定してください。",
+		"dangerZoneTitle": "危険ゾーン",
+		"dangerZoneDescription": "これらのアクションは破壊的で、元に戻すことはできません。",
+		"clearUsageData": "使用データをクリア",
+		"confirmClearTitle": "本当によろしいですか？",
+		"confirmClearDescription": "これにより、仮想プロバイダーの保存された使用データがすべて永続的に削除されます。この操作は元に戻すことができません。",
+		"tokensLabel": "トークン",
+		"perMinute": "毎分",
+		"requestsLabel": "リクエスト",
+		"perDay": "1日あたり",
+		"perHour": "1時間あたり"
 	}
 }

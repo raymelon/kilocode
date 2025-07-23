@@ -155,5 +155,27 @@
 			"triggers": "Gatilhos",
 			"keybindingDescription": "Os recursos de Assistência em Linha são acionados por comandos. Você pode configurar os <DocsLink>atalhos de teclado aqui</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Configurações de Provedor de Reserva para Cota Virtual",
+		"description": "Configure uma lista de provedores, cada um com seus próprios limites de cota. Quando os limites de cota de um provedor forem atingidos, o próximo provedor na lista será usado até que nenhum reste.",
+		"providerLabel": "Provedor {{number}}",
+		"primaryProviderLabel": "Provedor {{number}} (Principal)",
+		"moveProviderUp": "Mover provedor para cima",
+		"moveProviderDown": "Mover provedor para baixo",
+		"removeProvider": "Remover provedor",
+		"selectProviderPlaceholder": "Selecionar provedor...",
+		"addProvider": "Adicionar Provedor",
+		"noProvidersAvailable": "Nenhum perfil de provedor disponível. Configure pelo menos um perfil de provedor não virtual primeiro.",
+		"dangerZoneTitle": "Zona de Perigo",
+		"dangerZoneDescription": "Essas ações são destrutivas e não podem ser desfeitas.",
+		"clearUsageData": "Limpar Dados de Uso",
+		"confirmClearTitle": "Tem certeza?",
+		"confirmClearDescription": "Isso excluirá permanentemente todos os dados de uso armazenados para provedores virtuais. Esta ação não pode ser desfeita.",
+		"perDay": "Por Dia",
+		"tokensLabel": "Tokens",
+		"requestsLabel": "Solicitações",
+		"perMinute": "Por Minuto",
+		"perHour": "Por Hora"
 	}
 }

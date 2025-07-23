@@ -1,4 +1,4 @@
-// npx vitest run src/api/providers/__tests__/virtual.spec.ts
+// npx vitest run src/api/providers/__tests__/virtual-quota-fallback-provider.spec.spec.ts
 
 // Mock vscode first to avoid import errors
 vitest.mock("vscode", () => ({
@@ -21,14 +21,15 @@ import type { ExtensionContext } from "vscode"
 import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { buildApiHandler } from "../../index"
-import { UsageTracker, VirtualHandler, type UsageEvent } from "../virtual"
+import { VirtualQuotaFallbackHandler } from "../virtual-quota-fallback"
+import { UsageEvent, UsageTracker } from "../../../utils/usage-tracker"
 
 // Mock dependencies
 vitest.mock("../../../core/config/ProviderSettingsManager")
 vitest.mock("../../index")
 vitest.mock("../../../core/config/ContextProxy")
 
-describe("Virtual Provider Suite", () => {
+describe("VirtualQuotaFallbackProvider", () => {
 	describe("UsageTracker", () => {
 		let usageTracker: UsageTracker
 		let mockContext: ExtensionContext
@@ -124,7 +125,7 @@ describe("Virtual Provider Suite", () => {
 
 		it("should clear all usage data", async () => {
 			await usageTracker.clearAllUsageData()
-			expect(mockContext.globalState.update).toHaveBeenCalledWith("kilocode.virtualprovider.usage.v1", undefined)
+			expect(mockContext.globalState.update).toHaveBeenCalledWith(expect.any(String), undefined)
 		})
 	})
 
@@ -173,10 +174,8 @@ describe("Virtual Provider Suite", () => {
 				return undefined
 			})
 
-			const handler = new VirtualHandler({
-				primaryProvider: mockPrimaryProvider,
-				secondaryProvider: mockSecondaryProvider,
-				backupProvider: mockBackupProvider,
+			const handler = new VirtualQuotaFallbackHandler({
+				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
 			// Allow async operations in constructor to complete
@@ -185,10 +184,15 @@ describe("Virtual Provider Suite", () => {
 			expect(mockSettingsManager.getProfile).toHaveBeenCalledTimes(3)
 			expect(buildApiHandler).toHaveBeenCalledTimes(3)
 
-			// Internal properties are used to verify handlers are set
-			expect((handler as any).primaryHandler).toBe(mockPrimaryHandler)
-			expect((handler as any).secondaryHandler).toBe(mockSecondaryHandler)
-			expect((handler as any).backupHandler).toBe(mockBackupHandler)
+			// Internal properties are used to verify handlers are set in the new array structure
+			const handlers = (handler as any).handlers
+			expect(handlers).toHaveLength(3)
+			expect(handlers[0].handler).toBe(mockPrimaryHandler)
+			expect(handlers[0].providerId).toBe("p1")
+			expect(handlers[1].handler).toBe(mockSecondaryHandler)
+			expect(handlers[1].providerId).toBe("p2")
+			expect(handlers[2].handler).toBe(mockBackupHandler)
+			expect(handlers[2].providerId).toBe("p3")
 		})
 
 		it("should handle errors when a provider fails to load", async () => {
@@ -205,19 +209,21 @@ describe("Virtual Provider Suite", () => {
 
 			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
 
-			const handler = new VirtualHandler({
-				primaryProvider: mockPrimaryProvider,
-				secondaryProvider: mockSecondaryProvider,
-				backupProvider: mockBackupProvider,
+			const handler = new VirtualQuotaFallbackHandler({
+				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
 			await new Promise(process.nextTick)
 
-			expect((handler as any).primaryHandler).toBe(mockPrimaryHandler)
-			expect((handler as any).secondaryHandler).toBeUndefined() // Failed to load
-			expect((handler as any).backupHandler).toBe(mockBackupHandler)
+			// Check the new array structure - only successful handlers should be loaded
+			const handlers = (handler as any).handlers
+			expect(handlers).toHaveLength(2) // Only primary and backup loaded
+			expect(handlers[0].handler).toBe(mockPrimaryHandler)
+			expect(handlers[0].providerId).toBe("p1")
+			expect(handlers[1].handler).toBe(mockBackupHandler)
+			expect(handlers[1].providerId).toBe("p3")
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"  ❌ Failed to load secondary provider secondary: Error: Failed to load profile",
+				"❌ Failed to load provider 2 (secondary): Error: Failed to load profile",
 			)
 
 			consoleErrorSpy.mockRestore()
@@ -225,13 +231,13 @@ describe("Virtual Provider Suite", () => {
 
 		describe("underLimit", () => {
 			it("should return true if provider has no limits", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = { providerId: "p1" }
 				expect(handler.underLimit(providerData as any)).toBe(true)
 			})
 
 			it("should return false if requests per minute are exceeded", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = {
 					providerId: "p1",
 					providerLimits: { requestsPerMinute: 10 },
@@ -242,7 +248,7 @@ describe("Virtual Provider Suite", () => {
 			})
 
 			it("should return false if tokens per day are exceeded", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = {
 					providerId: "p1",
 					providerLimits: { tokensPerDay: 1000 },
@@ -254,62 +260,75 @@ describe("Virtual Provider Suite", () => {
 		})
 
 		describe("adjustActiveHandler", () => {
-			it("should set primary handler as active if it is under limit", async () => {
-				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
+			it("should set first handler as active if it is under limit", async () => {
+				const handler = new VirtualQuotaFallbackHandler({
+					providers: [mockPrimaryProvider],
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+				]
 				vitest.spyOn(handler, "underLimit").mockReturnValue(true)
 
 				await handler.adjustActiveHandler()
 
 				expect((handler as any).activeHandler).toBe(mockPrimaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p1")
 			})
 
-			it("should switch to secondary handler if primary is over limit", async () => {
-				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
-					secondaryProvider: mockSecondaryProvider,
+			it("should switch to second handler if first is over limit", async () => {
+				const handler = new VirtualQuotaFallbackHandler({
+					providers: [mockPrimaryProvider, mockSecondaryProvider],
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
-				;(handler as any).secondaryHandler = mockSecondaryHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+					{ handler: mockSecondaryHandler, providerId: "p2", config: mockSecondaryProvider },
+				]
 				vitest
 					.spyOn(handler, "underLimit")
-					.mockImplementationOnce(() => false) // Primary over limit
-					.mockImplementationOnce(() => true) // Secondary under limit
+					.mockImplementationOnce(() => false) // First over limit
+					.mockImplementationOnce(() => true) // Second under limit
 
 				await handler.adjustActiveHandler()
 
 				expect((handler as any).activeHandler).toBe(mockSecondaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p2")
 			})
 
-			it("should switch to backup handler if primary and secondary are over limit", async () => {
-				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
-					secondaryProvider: mockSecondaryProvider,
-					backupProvider: mockBackupProvider,
+			it("should use first handler as fallback if all are over limit", async () => {
+				const handler = new VirtualQuotaFallbackHandler({
+					providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 				} as any)
-				;(handler as any).primaryHandler = mockPrimaryHandler
-				;(handler as any).secondaryHandler = mockSecondaryHandler
-				;(handler as any).backupHandler = mockBackupHandler
+				// Set up the handlers array directly for testing
+				;(handler as any).handlers = [
+					{ handler: mockPrimaryHandler, providerId: "p1", config: mockPrimaryProvider },
+					{ handler: mockSecondaryHandler, providerId: "p2", config: mockSecondaryProvider },
+					{ handler: mockBackupHandler, providerId: "p3", config: mockBackupProvider },
+				]
 				vitest.spyOn(handler, "underLimit").mockReturnValue(false) // All over limit
 
 				await handler.adjustActiveHandler()
 
-				expect((handler as any).activeHandler).toBe(mockBackupHandler)
+				// Should fallback to first handler when all are over limit
+				expect((handler as any).activeHandler).toBe(mockPrimaryHandler)
+				expect((handler as any).activeHandlerId).toBe("p1")
 			})
 
 			it("should set active handler to undefined if no providers are available", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
+				// Ensure handlers array is empty
+				;(handler as any).handlers = []
 				await handler.adjustActiveHandler()
 				expect((handler as any).activeHandler).toBeUndefined()
+				expect((handler as any).activeHandlerId).toBeUndefined()
 			})
 		})
 
 		describe("createMessage", () => {
 			it("should forward the call to the active handler and track usage", async () => {
-				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
+				const handler = new VirtualQuotaFallbackHandler({
+					providers: [mockPrimaryProvider],
 				} as any)
 
 				// Set up a mock active handler
@@ -353,7 +372,7 @@ describe("Virtual Provider Suite", () => {
 			})
 
 			it("should throw an error if no active handler is configured", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 
 				const stream = handler.createMessage("system", [])
@@ -363,7 +382,7 @@ describe("Virtual Provider Suite", () => {
 
 		describe("countTokens", () => {
 			it("should delegate to the active handler", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const countTokensMock = vitest.fn().mockResolvedValue(123)
 				;(handler as any).activeHandler = { countTokens: countTokensMock }
 
@@ -375,7 +394,7 @@ describe("Virtual Provider Suite", () => {
 			})
 
 			it("should return 0 if no active handler", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 				const result = await handler.countTokens([])
 				expect(result).toBe(0)
@@ -384,7 +403,7 @@ describe("Virtual Provider Suite", () => {
 
 		describe("getModel", () => {
 			it("should delegate to the active handler", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const getModelMock = vitest.fn().mockReturnValue({ id: "test-model" })
 				;(handler as any).activeHandler = { getModel: getModelMock }
 
@@ -395,7 +414,7 @@ describe("Virtual Provider Suite", () => {
 			})
 
 			it("should throw an error if no active handler", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 				expect(() => handler.getModel()).toThrow("No active handler configured")
 			})

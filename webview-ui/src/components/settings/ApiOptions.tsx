@@ -76,7 +76,7 @@ import {
 	VSCodeLM,
 	XAI,
 	Cerebras, // kilocode_change
-	Virtual,
+	VirtualQuotaFallbackProvider,
 } from "./providers"
 
 import { MODELS_BY_PROVIDER, PROVIDERS } from "./constants"
@@ -365,13 +365,18 @@ const ApiOptions = ({
 		}
 	}, [selectedProvider])
 
+	// kilocode_change start - filter out virtual-quota-fallback based on experiment
 	const filteredProviders = useMemo(() => {
-		const isVirtualEnabled = experimentsHelper.isEnabled(experiments, EXPERIMENT_IDS.VIRTUAL_PROVIDER)
+		const isVirtualEnabled = experimentsHelper.isEnabled(
+			experiments,
+			EXPERIMENT_IDS.VIRTUAL_QUOTA_FALLBACK_PROVIDER,
+		)
 		if (isVirtualEnabled) {
 			return PROVIDERS
 		}
-		return PROVIDERS.filter((p) => p.value !== "virtual")
+		return PROVIDERS.filter((p) => p.value !== "virtual-quota-fallback")
 	}, [experiments])
+	// kilocode_change end - filter out virtual-quota-fallback based on experiment
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -571,6 +576,12 @@ const ApiOptions = ({
 			{selectedProvider === "cerebras" && (
 				<Cerebras apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
+			{selectedProvider === "virtual-quota-fallback" && (
+				<VirtualQuotaFallbackProvider
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+				/>
+			)}
 			{/* kilocode_change end */}
 
 			{selectedProvider === "litellm" && (
@@ -580,10 +591,6 @@ const ApiOptions = ({
 					organizationAllowList={organizationAllowList}
 					modelValidationError={modelValidationError}
 				/>
-			)}
-
-			{selectedProvider === "virtual" && (
-				<Virtual apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 
 			{selectedProvider === "human-relay" && (

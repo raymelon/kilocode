@@ -155,5 +155,27 @@
 			"keybindingDescription": "Las funciones de Asistencia Integrada se activan mediante comandos. Puedes configurar los <DocsLink>atajos de teclado aquí</DocsLink>.",
 			"triggers": "Disparadores"
 		}
+	},
+	"virtualProvider": {
+		"title": "Configuración del proveedor alternativo de cuota virtual",
+		"description": "Configura una lista de proveedores, cada uno con sus propios límites de cuota. Cuando se alcancen los límites de cuota de un proveedor, se utilizará el siguiente proveedor de la lista hasta que no quede ninguno.",
+		"providerLabel": "Proveedor {{number}}",
+		"primaryProviderLabel": "Proveedor {{number}} (Principal)",
+		"moveProviderUp": "Mover proveedor hacia arriba",
+		"moveProviderDown": "Mover proveedor hacia abajo",
+		"removeProvider": "Eliminar proveedor",
+		"selectProviderPlaceholder": "Seleccionar proveedor...",
+		"addProvider": "Agregar Proveedor",
+		"noProvidersAvailable": "No hay perfiles de proveedor disponibles. Por favor, configura al menos un perfil de proveedor no virtual primero.",
+		"dangerZoneTitle": "Zona de Peligro",
+		"dangerZoneDescription": "Estas acciones son destructivas y no se pueden deshacer.",
+		"clearUsageData": "Limpiar Datos de Uso",
+		"confirmClearTitle": "¿Estás seguro?",
+		"confirmClearDescription": "Esto eliminará permanentemente todos los datos de uso almacenados para proveedores virtuales. Esta acción no se puede deshacer.",
+		"perMinute": "Por Minuto",
+		"tokensLabel": "Tokens",
+		"perDay": "Por día",
+		"perHour": "Por hora",
+		"requestsLabel": "Solicitudes"
 	}
 }

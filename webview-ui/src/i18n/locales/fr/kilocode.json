@@ -155,5 +155,27 @@
 			"triggers": "Déclencheurs",
 			"keybindingDescription": "Les fonctionnalités d'Inline Assist sont déclenchées par des commandes. Vous pouvez configurer les <DocsLink>raccourcis clavier ici</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Paramètres du fournisseur de secours pour quota virtuel",
+		"description": "Configurez une liste de fournisseurs, chacun avec ses propres limites de quota. Lorsque les limites de quota d'un fournisseur sont atteintes, le fournisseur suivant dans la liste sera utilisé jusqu'à ce qu'il n'en reste plus.",
+		"providerLabel": "Fournisseur {{number}}",
+		"primaryProviderLabel": "Fournisseur {{number}} (Principal)",
+		"moveProviderUp": "Déplacer le fournisseur vers le haut",
+		"moveProviderDown": "Déplacer le fournisseur vers le bas",
+		"removeProvider": "Supprimer le fournisseur",
+		"selectProviderPlaceholder": "Sélectionner un fournisseur...",
+		"addProvider": "Ajouter un Fournisseur",
+		"noProvidersAvailable": "Aucun profil de fournisseur disponible. Veuillez d'abord configurer au moins un profil de fournisseur non virtuel.",
+		"dangerZoneTitle": "Zone de Danger",
+		"dangerZoneDescription": "Ces actions sont destructives et ne peuvent pas être annulées.",
+		"clearUsageData": "Effacer les Données d'Utilisation",
+		"confirmClearTitle": "Êtes-vous sûr ?",
+		"confirmClearDescription": "Cela supprimera définitivement toutes les données d'utilisation stockées pour les fournisseurs virtuels. Cette action ne peut pas être annulée.",
+		"tokensLabel": "Jetons",
+		"perHour": "Par heure",
+		"perMinute": "Par minute",
+		"requestsLabel": "Demandes",
+		"perDay": "Par jour"
 	}
 }

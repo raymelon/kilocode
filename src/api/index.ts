@@ -112,7 +112,7 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new RequestyHandler(options)
 		case "human-relay":
 			return new HumanRelayHandler()
-		case "virtual":
+		case "virtual-quota-fallback":
 			return new VirtualHandler(options)
 		// kilocode_change start
 		case "fireworks":

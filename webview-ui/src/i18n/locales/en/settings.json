@@ -643,8 +643,8 @@
 			"description": "When enabled, Kilo Code can edit multiple files in a single request. When disabled, Kilo Code must edit files one at a time. Disabling this can help when working with less capable models or when you want more control over file modifications."
 		},
 		"VIRTUAL_PROVIDER": {
-			"name": "Enable virtual provider",
-			"description": "When enabled, a new virtual provider will be available for selection. This provider can be used to rotate through other providers to minimize costs."
+			"name": "Enable virtual quota fallback provider",
+			"description": "When enabled, a new virtual quota fallback provider will be available for selection. This provider can be used to rotate through other providers with automatic fallback when quota limits are reached."
 		}
 	},
 	"promptCaching": {

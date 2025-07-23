@@ -155,5 +155,27 @@
 			"triggers": "触发器",
 			"keybindingDescription": "内联助手功能由命令触发。您可以在<DocsLink>这里配置键盘快捷键</DocsLink>。"
 		}
+	},
+	"virtualProvider": {
+		"title": "虚拟配额回退提供商设置",
+		"description": "配置一个提供商列表，每个提供商都有自己的配额限制。当一个提供商的配额限制达到上限时，将使用列表中的下一个提供商，直到所有提供商都用尽为止。",
+		"providerLabel": "提供商 {{number}}",
+		"primaryProviderLabel": "提供商 {{number}} (主要)",
+		"moveProviderUp": "向上移动提供商",
+		"moveProviderDown": "向下移动提供商",
+		"removeProvider": "移除提供商",
+		"selectProviderPlaceholder": "选择提供商...",
+		"addProvider": "添加提供商",
+		"noProvidersAvailable": "没有可用的提供商配置文件。请先配置至少一个非虚拟提供商配置文件。",
+		"dangerZoneTitle": "危险区域",
+		"dangerZoneDescription": "这些操作具有破坏性且无法撤销。",
+		"clearUsageData": "清除使用数据",
+		"confirmClearTitle": "确定吗？",
+		"confirmClearDescription": "这将永久删除虚拟提供商的所有存储使用数据。此操作无法撤销。",
+		"perHour": "每小时",
+		"tokensLabel": "代币",
+		"perDay": "每天",
+		"requestsLabel": "请求",
+		"perMinute": "每分钟"
 	}
 }
