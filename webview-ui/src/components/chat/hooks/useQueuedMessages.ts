@@ -9,8 +9,8 @@ export interface QueuedMessage {
 }
 
 interface UseQueuedMessagesProps {
-	sendingDisabled: boolean
-	onAutoSubmit: (message: string, images: string[]) => void
+	canSendNextMessage: boolean
+	handleSendMessage: (text: string, images: string[]) => void
 }
 
 interface UseQueuedMessagesReturn {
@@ -24,7 +24,10 @@ interface UseQueuedMessagesReturn {
 	isQueuePaused: boolean
 }
 
-export function useQueuedMessages({ sendingDisabled, onAutoSubmit }: UseQueuedMessagesProps): UseQueuedMessagesReturn {
+export function useQueuedMessages({
+	canSendNextMessage,
+	handleSendMessage,
+}: UseQueuedMessagesProps): UseQueuedMessagesReturn {
 	const [queuedMessages, setQueuedMessages] = useState<QueuedMessage[]>([])
 	const [isQueuePaused, setIsQueuePaused] = useState(false)
 
@@ -58,21 +61,22 @@ export function useQueuedMessages({ sendingDisabled, onAutoSubmit }: UseQueuedMe
 		setIsQueuePaused(false)
 	}, [])
 
-	// Auto-submit when agent becomes idle and there are queued messages (only if queue is not paused)
+	// Auto-submit when it's safe to send and there are queued messages (only if queue is not paused)
 	useEffect(() => {
-		if (!sendingDisabled && !isQueuePaused && queuedMessages.length > 0) {
+		console.log("🚀 ~ useQueuedMessages ~ canSendNextMessage:", canSendNextMessage)
+
+		if (canSendNextMessage && !isQueuePaused && queuedMessages.length > 0) {
 			const nextMessage = queuedMessages[0]
 			if (nextMessage && (nextMessage.text || nextMessage.images.length > 0)) {
-				// Use setTimeout to avoid synchronous state updates
 				const timeoutId = setTimeout(() => {
-					onAutoSubmit(nextMessage.text, nextMessage.images)
+					handleSendMessage(nextMessage.text, nextMessage.images)
 					processNextMessage()
 				}, 100)
 
 				return () => clearTimeout(timeoutId)
 			}
 		}
-	}, [sendingDisabled, isQueuePaused, queuedMessages, onAutoSubmit, processNextMessage])
+	}, [canSendNextMessage, isQueuePaused, queuedMessages, handleSendMessage, processNextMessage])
 
 	return {
 		queuedMessages,

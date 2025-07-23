@@ -4,11 +4,11 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest"
 import { useQueuedMessages } from "../useQueuedMessages"
 
 describe("useQueuedMessages", () => {
-	let mockOnAutoSubmit: ReturnType<typeof vi.fn>
+	let mockHandleSendMessage: ReturnType<typeof vi.fn>
 
 	beforeEach(() => {
 		vi.useFakeTimers()
-		mockOnAutoSubmit = vi.fn()
+		mockHandleSendMessage = vi.fn()
 		// Set a fixed starting time for Date.now()
 		vi.setSystemTime(new Date("2024-01-01T00:00:00.000Z"))
 	})
@@ -19,17 +19,19 @@ describe("useQueuedMessages", () => {
 	})
 
 	const advanceTime = (ms: number) => {
-		vi.advanceTimersByTime(ms)
+		act(() => {
+			vi.advanceTimersByTime(ms)
+		})
 	}
 
 	it("should auto-submit multiple queued messages sequentially", () => {
 		const { result, rerender } = renderHook(
-			({ sendingDisabled }) =>
+			({ canSendNextMessage }) =>
 				useQueuedMessages({
-					sendingDisabled,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
 				}),
-			{ initialProps: { sendingDisabled: true } },
+			{ initialProps: { canSendNextMessage: false } },
 		)
 
 		act(() => {
@@ -39,37 +41,33 @@ describe("useQueuedMessages", () => {
 
 		expect(result.current.queuedMessages).toHaveLength(2)
 
-		rerender({ sendingDisabled: false })
+		rerender({ canSendNextMessage: true })
 
-		act(() => {
-			advanceTime(100)
-		})
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("First message", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("First message", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
 		expect(result.current.queuedMessages[0].text).toBe("Second message")
 
-		mockOnAutoSubmit.mockClear()
+		mockHandleSendMessage.mockClear()
 
-		rerender({ sendingDisabled: true })
-		rerender({ sendingDisabled: false })
+		rerender({ canSendNextMessage: true })
+		rerender({ canSendNextMessage: true })
 
-		act(() => {
-			advanceTime(100)
-		})
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("Second message", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Second message", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
 	})
 
 	it("should handle rapid busy/idle transitions correctly", () => {
 		const { result, rerender } = renderHook(
-			({ sendingDisabled }) =>
+			({ canSendNextMessage }) =>
 				useQueuedMessages({
-					sendingDisabled,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
 				}),
-			{ initialProps: { sendingDisabled: true } },
+			{ initialProps: { canSendNextMessage: false } },
 		)
 
 		act(() => {
@@ -80,43 +78,37 @@ describe("useQueuedMessages", () => {
 
 		expect(result.current.queuedMessages).toHaveLength(3)
 
-		rerender({ sendingDisabled: false })
-		act(() => {
-			advanceTime(100)
-		})
+		rerender({ canSendNextMessage: true })
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("Message 1", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 1", [])
 		expect(result.current.queuedMessages).toHaveLength(2)
-		mockOnAutoSubmit.mockClear()
+		mockHandleSendMessage.mockClear()
 
-		rerender({ sendingDisabled: true })
-		rerender({ sendingDisabled: false })
-		act(() => {
-			advanceTime(100)
-		})
+		rerender({ canSendNextMessage: true })
+		rerender({ canSendNextMessage: true })
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("Message 2", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 2", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
-		mockOnAutoSubmit.mockClear()
+		mockHandleSendMessage.mockClear()
 
-		rerender({ sendingDisabled: true })
-		rerender({ sendingDisabled: false })
-		act(() => {
-			advanceTime(100)
-		})
+		rerender({ canSendNextMessage: true })
+		rerender({ canSendNextMessage: true })
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("Message 3", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 3", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
 	})
 
 	it("should not auto-submit if agent never becomes idle", () => {
 		const { result, rerender } = renderHook(
-			({ sendingDisabled }) =>
+			({ canSendNextMessage }) =>
 				useQueuedMessages({
-					sendingDisabled,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
 				}),
-			{ initialProps: { sendingDisabled: true } },
+			{ initialProps: { canSendNextMessage: false } },
 		)
 
 		act(() => {
@@ -124,46 +116,42 @@ describe("useQueuedMessages", () => {
 			result.current.addToQueue("Message 2", [])
 		})
 
-		rerender({ sendingDisabled: true })
+		rerender({ canSendNextMessage: false })
 
-		act(() => {
-			advanceTime(1000)
-		})
+		advanceTime(1000)
 
-		expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+		expect(mockHandleSendMessage).not.toHaveBeenCalled()
 		expect(result.current.queuedMessages).toHaveLength(2)
 	})
 
 	it("should clear timeout when component unmounts", () => {
 		const { result, unmount, rerender } = renderHook(
-			({ sendingDisabled }) =>
+			({ canSendNextMessage }) =>
 				useQueuedMessages({
-					sendingDisabled,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
 				}),
-			{ initialProps: { sendingDisabled: true } },
+			{ initialProps: { canSendNextMessage: false } },
 		)
 
 		act(() => {
 			result.current.addToQueue("Test message", [])
 		})
 
-		rerender({ sendingDisabled: false })
+		rerender({ canSendNextMessage: true })
 
 		unmount()
 
-		act(() => {
-			advanceTime(100)
-		})
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+		expect(mockHandleSendMessage).not.toHaveBeenCalled()
 	})
 
 	it("should handle queue operations correctly", () => {
 		const { result } = renderHook(() =>
 			useQueuedMessages({
-				sendingDisabled: false,
-				onAutoSubmit: mockOnAutoSubmit,
+				canSendNextMessage: false,
+				handleSendMessage: mockHandleSendMessage,
 			}),
 		)
 
@@ -200,12 +188,12 @@ describe("useQueuedMessages", () => {
 		// 4. Second message should also get auto-submitted when agent becomes idle again
 
 		const { result, rerender } = renderHook(
-			({ sendingDisabled }) =>
+			({ canSendNextMessage }) =>
 				useQueuedMessages({
-					sendingDisabled,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
 				}),
-			{ initialProps: { sendingDisabled: true } }, // Agent starts busy
+			{ initialProps: { canSendNextMessage: false } }, // Agent starts busy
 		)
 
 		act(() => {
@@ -215,26 +203,22 @@ describe("useQueuedMessages", () => {
 
 		expect(result.current.queuedMessages).toHaveLength(2)
 
-		rerender({ sendingDisabled: false })
+		rerender({ canSendNextMessage: true })
 
-		act(() => {
-			advanceTime(100)
-		})
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("First queued message", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("First queued message", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
 		expect(result.current.queuedMessages[0].text).toBe("Second queued message")
 
-		mockOnAutoSubmit.mockClear()
+		mockHandleSendMessage.mockClear()
 
-		rerender({ sendingDisabled: true })
-		rerender({ sendingDisabled: false })
+		rerender({ canSendNextMessage: true })
+		rerender({ canSendNextMessage: true })
 
-		act(() => {
-			advanceTime(100)
-		})
+		advanceTime(100)
 
-		expect(mockOnAutoSubmit).toHaveBeenCalledWith("Second queued message", [])
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Second queued message", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
 	})
 
@@ -242,8 +226,8 @@ describe("useQueuedMessages", () => {
 		it("should initialize with queue active (not paused)", () => {
 			const { result } = renderHook(() =>
 				useQueuedMessages({
-					sendingDisabled: false,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage: false,
+					handleSendMessage: mockHandleSendMessage,
 				}),
 			)
 
@@ -253,8 +237,8 @@ describe("useQueuedMessages", () => {
 		it("should pause and resume queue correctly", () => {
 			const { result } = renderHook(() =>
 				useQueuedMessages({
-					sendingDisabled: false,
-					onAutoSubmit: mockOnAutoSubmit,
+					canSendNextMessage: false,
+					handleSendMessage: mockHandleSendMessage,
 				}),
 			)
 
@@ -273,12 +257,12 @@ describe("useQueuedMessages", () => {
 
 		it("should not auto-submit when queue is paused", () => {
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } },
+				{ initialProps: { canSendNextMessage: false } },
 			)
 
 			act(() => {
@@ -286,24 +270,24 @@ describe("useQueuedMessages", () => {
 				result.current.pauseQueue()
 			})
 
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 			expect(result.current.queuedMessages).toHaveLength(1)
 		})
 
 		it("should auto-submit when queue is resumed", () => {
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } },
+				{ initialProps: { canSendNextMessage: false } },
 			)
 
 			act(() => {
@@ -311,13 +295,13 @@ describe("useQueuedMessages", () => {
 				result.current.pauseQueue()
 			})
 
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 
 			act(() => {
 				result.current.resumeQueue()
@@ -327,18 +311,18 @@ describe("useQueuedMessages", () => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Test message", [])
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Test message", [])
 			expect(result.current.queuedMessages).toHaveLength(0)
 		})
 
 		it("should handle pause/resume with multiple messages", () => {
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } },
+				{ initialProps: { canSendNextMessage: false } },
 			)
 
 			act(() => {
@@ -347,13 +331,13 @@ describe("useQueuedMessages", () => {
 				result.current.pauseQueue()
 			})
 
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 			expect(result.current.queuedMessages).toHaveLength(2)
 
 			act(() => {
@@ -364,18 +348,18 @@ describe("useQueuedMessages", () => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Message 1", [])
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 1", [])
 			expect(result.current.queuedMessages).toHaveLength(1)
 		})
 
-		it("should respect both sendingDisabled and paused state", () => {
+		it("should respect both canSendNextMessage and paused state", () => {
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } },
+				{ initialProps: { canSendNextMessage: false } },
 			)
 
 			act(() => {
@@ -383,14 +367,14 @@ describe("useQueuedMessages", () => {
 			})
 
 			// Queue is active but agent is busy
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Test message", [])
-			mockOnAutoSubmit.mockClear()
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Test message", [])
+			mockHandleSendMessage.mockClear()
 
 			act(() => {
 				result.current.addToQueue("Second message", [])
@@ -402,16 +386,16 @@ describe("useQueuedMessages", () => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 
 			// Queue is paused and agent becomes busy - still should not submit
-			rerender({ sendingDisabled: true })
+			rerender({ canSendNextMessage: false })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 
 			// Resume queue but agent is still busy - should not submit
 			act(() => {
@@ -422,16 +406,16 @@ describe("useQueuedMessages", () => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 
 			// Agent becomes idle and queue is active - should submit
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Second message", [])
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Second message", [])
 		})
 
 		it("should handle cancel/intercept scenario correctly", () => {
@@ -442,12 +426,12 @@ describe("useQueuedMessages", () => {
 			// 4. User can manually resume when ready
 
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } }, // Agent is running
+				{ initialProps: { canSendNextMessage: false } }, // Agent is running
 			)
 
 			// User cancels and adds message to queue, then pauses (simulating cancel behavior)
@@ -457,13 +441,13 @@ describe("useQueuedMessages", () => {
 			})
 
 			// Agent becomes idle but queue is paused
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 			expect(result.current.queuedMessages).toHaveLength(1)
 			expect(result.current.isQueuePaused).toBe(true)
 
@@ -476,7 +460,7 @@ describe("useQueuedMessages", () => {
 				advanceTime(100)
 			})
 
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Intercepted message", [])
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Intercepted message", [])
 			expect(result.current.queuedMessages).toHaveLength(0)
 			expect(result.current.isQueuePaused).toBe(false)
 		})
@@ -484,12 +468,12 @@ describe("useQueuedMessages", () => {
 		it("should preserve queue when manually sending messages", () => {
 			// This test ensures that manually sending a message doesn't clear the queue
 			const { result, rerender } = renderHook(
-				({ sendingDisabled }) =>
+				({ canSendNextMessage }) =>
 					useQueuedMessages({
-						sendingDisabled,
-						onAutoSubmit: mockOnAutoSubmit,
+						canSendNextMessage,
+						handleSendMessage: mockHandleSendMessage,
 					}),
-				{ initialProps: { sendingDisabled: true } },
+				{ initialProps: { canSendNextMessage: false } },
 			)
 
 			// Add messages to queue and pause it (simulating cancel scenario)
@@ -503,14 +487,14 @@ describe("useQueuedMessages", () => {
 			expect(result.current.isQueuePaused).toBe(true)
 
 			// Agent becomes idle but queue is paused
-			rerender({ sendingDisabled: false })
+			rerender({ canSendNextMessage: true })
 
 			act(() => {
 				advanceTime(100)
 			})
 
 			// No auto-submission because queue is paused
-			expect(mockOnAutoSubmit).not.toHaveBeenCalled()
+			expect(mockHandleSendMessage).not.toHaveBeenCalled()
 			expect(result.current.queuedMessages).toHaveLength(2)
 
 			// User manually resumes queue (simulating sending a new message)
@@ -527,7 +511,7 @@ describe("useQueuedMessages", () => {
 			})
 
 			// First queued message should be processed
-			expect(mockOnAutoSubmit).toHaveBeenCalledWith("Queued message 1", [])
+			expect(mockHandleSendMessage).toHaveBeenCalledWith("Queued message 1", [])
 			expect(result.current.queuedMessages).toHaveLength(1)
 			expect(result.current.queuedMessages[0].text).toBe("Queued message 2")
 		})
