@@ -26,9 +26,11 @@ import {
 	bedrockDefaultModelId,
 	vertexDefaultModelId,
 	kilocodeDefaultModelId,
+	type Experiments,
 } from "@roo-code/types"
 
 import { vscode } from "@src/utils/vscode"
+import { EXPERIMENT_IDS, experiments as experimentsHelper } from "@roo/experiments"
 import { validateApiConfigurationExcludingModelErrors, getModelValidationError } from "@src/utils/validate"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
@@ -119,7 +121,7 @@ const ApiOptions = ({
 	currentApiConfigName, // kilocode_change
 }: ApiOptionsProps) => {
 	const { t } = useAppTranslation()
-	const { organizationAllowList } = useExtensionState()
+	const { organizationAllowList, experiments } = useExtensionState()
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -364,6 +366,14 @@ const ApiOptions = ({
 		}
 	}, [selectedProvider])
 
+	const filteredProviders = useMemo(() => {
+		const isVirtualEnabled = experimentsHelper.isEnabled(experiments, EXPERIMENT_IDS.VIRTUAL_PROVIDER)
+		if (isVirtualEnabled) {
+			return PROVIDERS
+		}
+		return PROVIDERS.filter((p) => p.value !== "virtual")
+	}, [experiments])
+
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-1 relative">
@@ -383,7 +393,7 @@ const ApiOptions = ({
 					</SelectTrigger>
 					<SelectContent>
 						{/*  kilocode_change start: separator */}
-						{PROVIDERS.map(({ value, label }, i) => (
+						{filteredProviders.map(({ value, label }, i) => (
 							<Fragment key={value}>
 								<SelectItem value={value}>{label}</SelectItem>
 								{i === 0 ? <SelectSeparator /> : null}
