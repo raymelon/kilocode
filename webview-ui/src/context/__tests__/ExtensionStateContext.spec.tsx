@@ -268,6 +268,7 @@ describe("mergeExtensionState", () => {
 				disableCompletionCommand: false,
 				concurrentFileReads: true,
 				multiFileApplyDiff: true,
+				virtualProvider: true,
 			} as Record<ExperimentId, boolean>,
 		}
 
@@ -285,6 +286,7 @@ describe("mergeExtensionState", () => {
 			disableCompletionCommand: false,
 			concurrentFileReads: true,
 			multiFileApplyDiff: true,
+			virtualProvider: true,
 		})
 	})
 })
