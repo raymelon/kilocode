@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useEffect } from "react"
 import { Trans } from "react-i18next"
 
 import { type ProviderSettings, type ProviderSettingsEntry } from "@roo-code/types"
@@ -13,7 +13,6 @@ type VirtualProps = {
 
 export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
 	const { listApiConfigMeta } = useExtensionState()
-
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
 			field: K,
@@ -24,11 +23,23 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 			},
 		[setApiConfigurationField],
 	)
+	const { currentApiConfigName } = useExtensionState()
 
+	// Find the current profile's ID
+	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
+	const currentProfileId = currentProfile?.id
 	// Filter out virtual provider profiles
 	const availableProfiles = useMemo(() => {
-		return listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => profile.apiProvider !== "virtual") || []
-	}, [listApiConfigMeta])
+		const filtered =
+			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
+				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
+				// There's a goofy behavior where a newly created profile inherits the apiProvider
+				// of the previously viewed profile.  This means we can't filter out ourselves when
+				// a new virtual provider profile is created.  So we exclude anything with apiProvider == "virtual"
+				// or rofile.id == currentProfileId. (ourselves).
+			}) || []
+		return filtered
+	}, [listApiConfigMeta, currentProfileId])
 
 	// Get current selections
 	const primarySelection = apiConfiguration.primaryProvider?.providerId || ""
