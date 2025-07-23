@@ -21,22 +21,15 @@ export interface ChunkingResult {
 	originalTokenCount: number
 }
 
-/**
- * Estimates token count for a given text string
- */
 export async function estimateTokenCount(text: string): Promise<number> {
 	if (!text || text.trim().length === 0) {
 		return 0
 	}
 
-	// Convert string to ContentBlockParam format expected by countTokens
 	const contentBlocks = [{ type: "text" as const, text }]
 	return await countTokens(contentBlocks, { useWorker: false })
 }
 
-/**
- * Determines if MapReduce approach should be used based on diff size
- */
 export async function shouldUseMapReduce(
 	diffText: string,
 	contextWindow: number = 200000,
@@ -47,15 +40,11 @@ export async function shouldUseMapReduce(
 	return tokenCount > maxTokens
 }
 
-/**
- * Chunks a diff by files, grouping related files together
- */
 export async function chunkDiffByFiles(diffText: string, options: ChunkingOptions): Promise<ChunkingResult> {
 	const { contextWindow, targetChunkRatio = 0.2, maxChunks = 10 } = options
 	const originalTokenCount = await estimateTokenCount(diffText)
 	const targetChunkSize = Math.floor(contextWindow * targetChunkRatio)
 
-	// Split diff into individual file diffs
 	const fileDiffs = extractFileDiffs(diffText)
 
 	if (fileDiffs.length === 0) {
@@ -67,7 +56,6 @@ export async function chunkDiffByFiles(diffText: string, options: ChunkingOption
 		}
 	}
 
-	// If only one file or total size is small, don't chunk
 	if (fileDiffs.length === 1 || originalTokenCount <= targetChunkSize) {
 		const chunk: DiffChunk = {
 			id: "chunk-1",

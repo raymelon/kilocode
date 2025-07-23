@@ -19,7 +19,6 @@ import {
 	estimateTokenCount,
 } from "../../utils/git-diff-chunker"
 
-// Constants for MapReduce and chunking configuration
 const DEFAULT_CONTEXT_WINDOW = 200000
 const CONTEXT_WINDOW_THRESHOLD = 0.95
 const MAX_CONCURRENT_CHUNKS = 3
@@ -79,7 +78,6 @@ export class CommitMessageProvider {
 
 	/**
 	 * Generates an AI-powered commit message based on staged changes, or unstaged changes if no staged changes exist.
-	 * Automatically detects when MapReduce workflow is needed for large diffs.
 	 */
 	public async generateCommitMessage(commitContext?: GitRepository): Promise<void> {
 		await vscode.window.withProgress(
@@ -109,10 +107,10 @@ export class CommitMessageProvider {
 					// Report initial progress after gathering changes (10% of total)
 					progress.report({ increment: 10, message: t("kilocode:commitMessage.generating") })
 
-					// Track progress for diff collection (70% of total progress for single-pass, 30% for MapReduce)
+					// Track progress for diff collection
 					let lastReportedProgress = 0
 					const onDiffProgress = (percentage: number) => {
-						const progressWeight = PROGRESS_WEIGHTS.DIFF_COLLECTION // Will be adjusted if MapReduce is used
+						const progressWeight = PROGRESS_WEIGHTS.DIFF_COLLECTION
 						const currentProgress = (percentage / 100) * progressWeight
 						const increment = currentProgress - lastReportedProgress
 						if (increment > 0) {
@@ -137,7 +135,6 @@ export class CommitMessageProvider {
 						)
 					}
 
-					// Store the current context and message for future reference
 					this.previousGitContext = gitCommitContext.context
 					this.previousCommitMessage = generatedMessage
 					this.gitService.setCommitMessage(generatedMessage)
@@ -235,7 +232,6 @@ export class CommitMessageProvider {
 
 			return finalMessage
 		} catch (error) {
-			console.error("MapReduce workflow failed:", error)
 			const errorMessage =
 				error instanceof Error ? error.message : "Unknown error occurred during MapReduce processing"
 
@@ -247,7 +243,6 @@ export class CommitMessageProvider {
 				const fallbackMessage = await this.generateFallbackCommitMessage(commitContext)
 				return fallbackMessage
 			} catch (fallbackError) {
-				console.error("Fallback commit message generation also failed:", fallbackError)
 				throw new Error(`MapReduce commit message generation failed: ${errorMessage}. Fallback also failed.`)
 			}
 		}
@@ -269,7 +264,6 @@ export class CommitMessageProvider {
 
 			return `${commitType}: update ${scope}\n\nMapReduce processing failed, generated fallback commit message`
 		} catch (error) {
-			console.error("Fallback commit message generation failed:", error)
 			return "chore: update files\n\nAutomatic commit message generation failed, manual review required"
 		}
 	}
@@ -320,7 +314,7 @@ export class CommitMessageProvider {
 				: ""
 
 			const prompt = supportPrompt.create(
-				"COMMIT_MESSAGE_MAPREDUCE",
+				"COMMIT_MESSAGE",
 				{
 					gitContext: "",
 					customInstructions: customInstructions || "",
@@ -340,9 +334,7 @@ export class CommitMessageProvider {
 			}
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-			console.error(`Failed to analyze chunk ${chunk.id}:`, errorMessage)
 
-			// Provide a more detailed fallback summary based on chunk content
 			const fileTypes = chunk.files.map((f) => f.split(".").pop()).filter(Boolean)
 			const uniqueTypes = [...new Set(fileTypes)]
 			const scope = chunk.files[0] ? chunk.files[0].split("/")[0] : "multiple"
@@ -392,7 +384,7 @@ YOU MUST create a message that is COMPLETELY DIFFERENT by:
 This is the MOST IMPORTANT requirement for this task.
 
 `
-				const baseTemplate = supportPrompt.get(customSupportPrompts, "COMMIT_MESSAGE_MAPREDUCE")
+				const baseTemplate = supportPrompt.get(customSupportPrompts, "COMMIT_MESSAGE")
 				const modifiedTemplate =
 					differentMessagePrefix +
 					baseTemplate +
@@ -401,7 +393,7 @@ This is the MOST IMPORTANT requirement for this task.
 FINAL REMINDER: Your message MUST be COMPLETELY DIFFERENT from the previous message: "${this.previousCommitMessage}". This is a critical requirement.`
 
 				prompt = supportPrompt.create(
-					"COMMIT_MESSAGE_MAPREDUCE",
+					"COMMIT_MESSAGE",
 					{
 						gitContext: "",
 						customInstructions: customInstructions || "",
@@ -411,12 +403,12 @@ FINAL REMINDER: Your message MUST be COMPLETELY DIFFERENT from the previous mess
 					},
 					{
 						...customSupportPrompts,
-						COMMIT_MESSAGE_MAPREDUCE: modifiedTemplate,
+						COMMIT_MESSAGE: modifiedTemplate,
 					},
 				)
 			} else {
 				prompt = supportPrompt.create(
-					"COMMIT_MESSAGE_MAPREDUCE",
+					"COMMIT_MESSAGE",
 					{
 						gitContext: "",
 						customInstructions: customInstructions || "",
@@ -548,6 +540,7 @@ FINAL REMINDER: Your message MUST be COMPLETELY DIFFERENT from the previous mess
 				{
 					gitContext: gitContextString,
 					customInstructions: customInstructions || "",
+					mode: "DIRECT",
 				},
 				{
 					...customSupportPrompts,
@@ -560,6 +553,7 @@ FINAL REMINDER: Your message MUST be COMPLETELY DIFFERENT from the previous mess
 				{
 					gitContext: gitContextString,
 					customInstructions: customInstructions || "",
+					mode: "DIRECT",
 				},
 				customSupportPrompts,
 			)
