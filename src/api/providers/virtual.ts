@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-
+import { z } from "zod"
 import type { ModelInfo, ProviderSettings } from "@roo-code/types"
 import { ProviderSettingsManager } from "../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../core/config/ContextProxy"
@@ -8,6 +8,9 @@ import type { ExtensionContext, Memento } from "vscode"
 
 import type { ApiHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { buildApiHandler } from "../index"
+import { virtualProviderDataSchema } from "../../../packages/types/src/provider-settings"
+import { EXPERIMENT_IDS, experiments as Experiments } from "../../shared/experiments"
+type VirtualProvider = z.infer<typeof virtualProviderDataSchema>
 
 /**
  * Virtual API processor.
@@ -43,7 +46,7 @@ export class VirtualHandler implements ApiHandler {
 		messages: Anthropic.Messages.MessageParam[],
 		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream {
-		this.adjustActiveHandler()
+		await this.adjustActiveHandler()
 		if (!this.activeHandler || !this.activeHandlerId || !this.usage) {
 			throw new Error("No active handler configured")
 		}
@@ -135,32 +138,107 @@ export class VirtualHandler implements ApiHandler {
 							break
 					}
 				} catch (error) {
-					// console.error(`  ❌ Failed to load ${role} provider ${provider.providerName}: ${error}`)
+					console.error(`  ❌ Failed to load ${role} provider ${provider.providerName}: ${error}`)
 				}
-			} else {
-				// console.warn(`  ⚠️  No ${role} provider configured`)
 			}
 		}
 		this.adjustActiveHandler()
 	}
 
 	/**
-	 * Adjusts which handler is currently the active handler by randomly selecting
-	 * from primary, secondary, or backup handlers.
+	 * Adjusts which handler is currently the active handler by selecting the first one under limits.
 	 */
-	adjustActiveHandler(): void {
+	async adjustActiveHandler(): Promise<void> {
 		const availableHandlers = [this.primaryHandler, this.secondaryHandler, this.backupHandler].filter(
 			(handler): handler is ApiHandler => handler !== undefined,
 		)
+		console.log(availableHandlers)
 
 		if (availableHandlers.length === 0) {
 			this.activeHandler = undefined
+			this.activeHandlerId = undefined
 			return
 		}
 
-		const randomIndex = Math.floor(Math.random() * availableHandlers.length)
-		this.activeHandler = availableHandlers[randomIndex]
-		this.activeHandlerId = (this.activeHandler as any)?._profileId
+		// Check the primary first, always.
+		if (this.settings.primaryProvider) {
+			if (this.underLimit(this.settings.primaryProvider)) {
+				this.activeHandler = this.primaryHandler
+				this.activeHandlerId = (this.primaryHandler as any)?._profileId
+				return
+			}
+		}
+		//then the secondary
+		if (this.settings.secondaryProvider) {
+			if (this.underLimit(this.settings.secondaryProvider)) {
+				this.activeHandler = this.secondaryHandler
+				this.activeHandlerId = (this.secondaryHandler as any)?._profileId
+				return
+			}
+		}
+		this.activeHandler = this.backupHandler
+		this.activeHandlerId = (this.backupHandler as any)?._profileId
+	}
+
+	underLimit(providerData: VirtualProvider): boolean {
+		const { providerId, providerLimits: limits } = providerData
+		if (!providerId) {
+			return false
+		} //what does that even?
+		if (!limits) {
+			return true
+		} //The provider exists, but has no limits set, so we should use it always.
+		// Thats a weird config, but send it!
+		if (limits.requestsPerMinute || limits.tokensPerMinute) {
+			const minuteUsage = this.usage.getUsage(providerId, "minute")
+			console.log(`Minute usage for ${providerId}:`, minuteUsage)
+			if (limits.requestsPerMinute && minuteUsage.requests >= limits.requestsPerMinute) {
+				console.log(
+					`RATE LIMIT: Requests per minute exceeded for ${providerId}. Usage: ${minuteUsage.requests}, Limit: ${limits.requestsPerMinute}`,
+				)
+				return false
+			}
+			if (limits.tokensPerMinute && minuteUsage.tokens >= limits.tokensPerMinute) {
+				console.log(
+					`RATE LIMIT: Tokens per minute exceeded for ${providerId}. Usage: ${minuteUsage.tokens}, Limit: ${limits.tokensPerMinute}`,
+				)
+				return false
+			}
+		}
+		if (limits.requestsPerHour || limits.tokensPerHour) {
+			const hourUsage = this.usage.getUsage(providerId, "hour")
+			console.log(`Hour usage for ${providerId}:`, hourUsage)
+			if (limits.requestsPerHour && hourUsage.requests >= limits.requestsPerHour) {
+				console.log(
+					`RATE LIMIT: Requests per hour exceeded for ${providerId}. Usage: ${hourUsage.requests}, Limit: ${limits.requestsPerHour}`,
+				)
+				return false
+			}
+			if (limits.tokensPerHour && hourUsage.tokens >= limits.tokensPerHour) {
+				console.log(
+					`RATE LIMIT: Tokens per hour exceeded for ${providerId}. Usage: ${hourUsage.tokens}, Limit: ${limits.tokensPerHour}`,
+				)
+				return false
+			}
+		}
+		if (limits.requestsPerDay || limits.tokensPerDay) {
+			const dayUsage = this.usage.getUsage(providerId, "day")
+			console.log(`Day usage for ${providerId}:`, dayUsage)
+			if (limits.requestsPerDay && dayUsage.requests >= limits.requestsPerDay) {
+				console.log(
+					`RATE LIMIT: Requests per day exceeded for ${providerId}. Usage: ${dayUsage.requests}, Limit: ${limits.requestsPerDay}`,
+				)
+				return false
+			}
+			if (limits.tokensPerDay && dayUsage.tokens >= limits.tokensPerDay) {
+				console.log(
+					`RATE LIMIT: Tokens per day exceeded for ${providerId}. Usage: ${dayUsage.tokens}, Limit: ${limits.tokensPerDay}`,
+				)
+				return false
+			}
+		}
+		console.log(`Provider ${providerId} is ready for request.`)
+		return true
 	}
 }
 
@@ -201,6 +279,12 @@ export class UsageTracker {
 	public static initialize(context: ExtensionContext): UsageTracker {
 		if (!UsageTracker._instance) {
 			UsageTracker._instance = new UsageTracker(context)
+		}
+		return UsageTracker._instance
+	}
+	public static getInstance(): UsageTracker {
+		if (!UsageTracker._instance) {
+			UsageTracker.initialize(ContextProxy.instance.rawContext)
 		}
 		return UsageTracker._instance
 	}
