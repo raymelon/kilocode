@@ -52,6 +52,8 @@ import {
 	insertSlashCommand,
 	validateSlashCommand,
 } from "@/utils/slash-commands"
+import { QueuedMessageList } from "./QueuedMessageList"
+import { QueuedMessage } from "./hooks/useQueuedMessages"
 // kilocode_change end
 
 interface ChatTextAreaProps {
@@ -72,6 +74,11 @@ interface ChatTextAreaProps {
 	// Edit mode props
 	isEditMode?: boolean
 	onCancel?: () => void
+	onInterjection?: () => void // kilocode_change: Add interjection handler prop
+	queuedMessages?: QueuedMessage[] // kilocode_change: Add message queue prop
+	isQueuePaused?: boolean // kilocode_change: Add queue paused state prop
+	onRemoveQueuedMessage?: (messageId: string) => void // kilocode_change: Add remove callback prop
+	onResumeQueue?: () => void // kilocode_change: Add resume queue function prop
 }
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -93,6 +100,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			modeShortcutText,
 			isEditMode = false,
 			onCancel,
+			onInterjection, // kilocode_change: Add interjection handler prop
+			queuedMessages, // kilocode_change: Add message queue prop
+			onRemoveQueuedMessage, // kilocode_change: Add remove callback prop
+			isQueuePaused, // kilocode_change: Add queue paused state prop
+			onResumeQueue, // kilocode_change: Add resume queue function prop
 		},
 		ref,
 	) => {
@@ -575,14 +587,20 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					return
 				}
 
+				// kilocode_change start: Handle Alt+Enter for interjection
+				if (event.key === "Enter" && event.altKey && !isComposing) {
+					event.preventDefault()
+					onInterjection?.()
+					return
+				}
+				// kilocode_change end: Handle Alt+Enter for interjection
+
 				if (event.key === "Enter" && !event.shiftKey && !isComposing) {
 					event.preventDefault()
 
-					if (!sendingDisabled) {
-						// Reset history navigation state when sending
-						resetHistoryNavigation()
-						onSend()
-					}
+					// Always call onSend - ChatView's handleSendMessage will handle queuing when sendingDisabled
+					resetHistoryNavigation()
+					onSend()
 				}
 
 				if (event.key === "Backspace" && !isComposing) {
@@ -639,7 +657,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				selectedSlashCommandsIndex,
 				slashCommandsQuery,
 				// kilocode_change end
-				sendingDisabled,
 				onSend,
 				showContextMenu,
 				searchQuery,
@@ -655,6 +672,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				fileSearchResults,
 				handleHistoryNavigation,
 				resetHistoryNavigation,
+				onInterjection, // kilocode_change: Add missing dependency
 			],
 		)
 
@@ -1650,6 +1668,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"mr-auto",
 					"box-border",
 				)}>
+				{/* kilocode_change start - QueuedMessageList */}
+				<div className="mb-[-12px]">
+					<QueuedMessageList
+						messages={queuedMessages || []}
+						onRemoveMessage={onRemoveQueuedMessage || (() => {})}
+						isQueuePaused={isQueuePaused}
+						onResumeQueue={onResumeQueue}
+					/>
+				</div>
+				{/* kilocode_change end - QueuedMessageList */}
 				<div className="relative">
 					<div
 						className={cn("chat-text-area", "relative", "flex", "flex-col", "outline-none")}
@@ -1741,7 +1769,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						/>
 					)}
 				</div>
-
 				{selectedImages.length > 0 && (
 					<Thumbnails
 						images={selectedImages}
@@ -1754,7 +1781,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						}}
 					/>
 				)}
-
 				{/* kilocode_change: renderNonEditModeControls moved */}
 			</div>
 		)
