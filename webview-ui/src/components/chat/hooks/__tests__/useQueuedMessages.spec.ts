@@ -180,6 +180,112 @@ describe("useQueuedMessages", () => {
 		expect(result.current.queuedMessages).toHaveLength(0)
 	})
 
+	it("should add messages to front of queue with addToQueueAtFront", () => {
+		const { result } = renderHook(() =>
+			useQueuedMessages({
+				canSendNextMessage: false,
+				handleSendMessage: mockHandleSendMessage,
+			}),
+		)
+
+		act(() => {
+			result.current.addToQueue("First message", [])
+			result.current.addToQueue("Second message", [])
+			result.current.addToQueueAtFront("Priority message", ["image.png"])
+		})
+
+		expect(result.current.queuedMessages).toHaveLength(3)
+		expect(result.current.queuedMessages[0].text).toBe("Priority message")
+		expect(result.current.queuedMessages[0].images).toEqual(["image.png"])
+		expect(result.current.queuedMessages[1].text).toBe("First message")
+		expect(result.current.queuedMessages[2].text).toBe("Second message")
+	})
+
+	it("should process front-queued messages first", () => {
+		const { result, rerender } = renderHook(
+			({ canSendNextMessage }) =>
+				useQueuedMessages({
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
+				}),
+			{ initialProps: { canSendNextMessage: false } },
+		)
+
+		act(() => {
+			result.current.addToQueue("Regular message", [])
+			result.current.addToQueueAtFront("Urgent message", [])
+		})
+
+		expect(result.current.queuedMessages).toHaveLength(2)
+		expect(result.current.queuedMessages[0].text).toBe("Urgent message")
+
+		rerender({ canSendNextMessage: true })
+		advanceTime(100)
+
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Urgent message", [])
+		expect(result.current.queuedMessages).toHaveLength(1)
+		expect(result.current.queuedMessages[0].text).toBe("Regular message")
+	})
+
+	it("should handle interjection scenario correctly (add to front without pausing)", () => {
+		// This test simulates the new interjection behavior:
+		// 1. Agent is running
+		// 2. User adds regular message to queue
+		// 3. User interjects with urgent message (adds to front, doesn't pause)
+		// 4. Queue should continue processing automatically
+
+		const { result, rerender } = renderHook(
+			({ canSendNextMessage }) =>
+				useQueuedMessages({
+					canSendNextMessage,
+					handleSendMessage: mockHandleSendMessage,
+				}),
+			{ initialProps: { canSendNextMessage: false } }, // Agent is running
+		)
+
+		// Add a regular message to queue
+		act(() => {
+			result.current.addToQueue("Regular message", [])
+		})
+
+		expect(result.current.queuedMessages).toHaveLength(1)
+		expect(result.current.isQueuePaused).toBe(false)
+
+		// User interjects with urgent message (simulating interjection behavior)
+		act(() => {
+			result.current.addToQueueAtFront("Interjected message", [])
+		})
+
+		expect(result.current.queuedMessages).toHaveLength(2)
+		expect(result.current.queuedMessages[0].text).toBe("Interjected message")
+		expect(result.current.queuedMessages[1].text).toBe("Regular message")
+		expect(result.current.isQueuePaused).toBe(false) // Queue should NOT be paused
+
+		// Agent becomes idle - interjected message should be processed first
+		rerender({ canSendNextMessage: true })
+
+		act(() => {
+			advanceTime(100)
+		})
+
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Interjected message", [])
+		expect(result.current.queuedMessages).toHaveLength(1)
+		expect(result.current.queuedMessages[0].text).toBe("Regular message")
+		expect(result.current.isQueuePaused).toBe(false) // Queue should still not be paused
+
+		mockHandleSendMessage.mockClear()
+
+		// Continue processing the regular message
+		rerender({ canSendNextMessage: true })
+
+		act(() => {
+			advanceTime(100)
+		})
+
+		expect(mockHandleSendMessage).toHaveBeenCalledWith("Regular message", [])
+		expect(result.current.queuedMessages).toHaveLength(0)
+	})
+
 	it("should handle the specific case where second queued message gets stuck", () => {
 		// This test reproduces the exact issue the user reported:
 		// 1. Agent starts running

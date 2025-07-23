@@ -553,8 +553,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [sendingDisabled, isStreaming, clineAsk])
 
 	// kilocode_change start: Initialize queued messages hook with canSendNextMessage
-	const { queuedMessages, addToQueue, removeFromQueue, clearQueue, pauseQueue, resumeQueue, isQueuePaused } =
-		useQueuedMessages({ canSendNextMessage, handleSendMessage: sendMessageRef.current })
+	const {
+		queuedMessages,
+		addToQueue,
+		addToQueueAtFront,
+		removeFromQueue,
+		clearQueue,
+		pauseQueue,
+		resumeQueue,
+		isQueuePaused,
+	} = useQueuedMessages({ canSendNextMessage, handleSendMessage: sendMessageRef.current })
 	// kilocode_change end: Initialize queued messages hook with canSendNextMessage
 
 	const markFollowUpAsAnswered = useCallback(() => {
@@ -677,19 +685,19 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// kilocode_change start: Add interjection handler for Alt/Option + Enter
 	const handleInterjection = useCallback(() => {
 		if (isStreaming) {
-			// Cancel current operation (same as clicking cancel button)
-			vscode.postMessage({ type: "cancelTask" })
-			setDidClickCancel(true)
-
-			// Send the current message immediately as an interjection
+			// Add message to front of queue for immediate processing after cancel
 			const trimmedInput = inputValue.trim()
 			if (trimmedInput || selectedImages.length > 0) {
-				handleSendMessage(trimmedInput, selectedImages)
+				addToQueueAtFront(trimmedInput, selectedImages)
 				setInputValue("")
 				setSelectedImages([])
 			}
+
+			// Cancel current operation - but don't pause queue (unlike manual cancel)
+			vscode.postMessage({ type: "cancelTask" })
+			setDidClickCancel(true)
 		}
-	}, [isStreaming, inputValue, selectedImages, handleSendMessage])
+	}, [isStreaming, inputValue, selectedImages, addToQueueAtFront])
 	// kilocode_change end: Add interjection handler for Alt/Option + Enter
 
 	// This logic depends on the useEffect[messages] above to set clineAsk,
