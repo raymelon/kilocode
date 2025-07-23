@@ -26,7 +26,6 @@ import {
 	bedrockDefaultModelId,
 	vertexDefaultModelId,
 	kilocodeDefaultModelId,
-	type Experiments,
 } from "@roo-code/types"
 
 import { vscode } from "@src/utils/vscode"
