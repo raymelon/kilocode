@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react"
 import { Trans } from "react-i18next"
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons"
+import { ChevronUp, ChevronDown } from "lucide-react"
 
 import { type ProviderSettings, type ProviderSettingsEntry } from "@roo-code/types"
 import { vscode } from "@src/utils/vscode"
@@ -43,7 +44,252 @@ type LimitInputsProps = {
 	onProviderChange: (index: number, provider: VirtualProviderData) => void
 }
 
-const LimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) => {
+export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
+	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
+	const [isAlertOpen, setIsAlertOpen] = useState(false)
+
+	// Get current profile ID to exclude from available providers
+	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
+	const currentProfileId = currentProfile?.id
+
+	// Filter out virtual provider profiles and current profile
+	const availableProfiles = useMemo(() => {
+		return (
+			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
+				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
+			}) || []
+		)
+	}, [listApiConfigMeta, currentProfileId])
+
+	// Get providers array
+	const providers = useMemo(() => {
+		return apiConfiguration.providers && apiConfiguration.providers.length > 0 ? apiConfiguration.providers : [{}]
+	}, [apiConfiguration.providers])
+
+	const updateProviders = useCallback(
+		(newProviders: VirtualProviderData[]) => {
+			setApiConfigurationField("providers", newProviders)
+		},
+		[setApiConfigurationField],
+	)
+
+	const handleProviderChange = useCallback(
+		(index: number, provider: VirtualProviderData) => {
+			const newProviders = [...providers]
+			newProviders[index] = provider
+			updateProviders(newProviders)
+		},
+		[providers, updateProviders],
+	)
+
+	const handleProviderSelect = useCallback(
+		(index: number, selectedId: string) => {
+			const selectedProfile = availableProfiles.find((profile) => profile.id === selectedId)
+			if (selectedProfile) {
+				const updatedProvider = {
+					...providers[index],
+					providerId: selectedProfile.id,
+					providerName: selectedProfile.name,
+				}
+				handleProviderChange(index, updatedProvider)
+			}
+		},
+		[availableProfiles, providers, handleProviderChange],
+	)
+
+	const addProvider = useCallback(() => {
+		const newProviders = [...providers, {}]
+		updateProviders(newProviders)
+	}, [providers, updateProviders])
+
+	const removeProvider = useCallback(
+		(index: number) => {
+			if (providers.length > 1) {
+				const newProviders = providers.filter((_, i) => i !== index)
+				updateProviders(newProviders)
+			}
+		},
+		[providers, updateProviders],
+	)
+	const moveProviderUp = useCallback(
+		(index: number) => {
+			if (index > 0) {
+				const newProviders = [...providers]
+				const temp = newProviders[index]
+				newProviders[index] = newProviders[index - 1]
+				newProviders[index - 1] = temp
+				updateProviders(newProviders)
+			}
+		},
+		[providers, updateProviders],
+	)
+
+	const moveProviderDown = useCallback(
+		(index: number) => {
+			if (index < providers.length - 1) {
+				const newProviders = [...providers]
+				const temp = newProviders[index]
+				newProviders[index] = newProviders[index + 1]
+				newProviders[index + 1] = temp
+				updateProviders(newProviders)
+			}
+		},
+		[providers, updateProviders],
+	)
+
+	const handleClearUsageData = useCallback(() => {
+		vscode.postMessage({ type: "clearUsageData" })
+		setIsAlertOpen(false)
+	}, [])
+
+	const getUsedProviderIds = useCallback(
+		(excludeIndex: number) => {
+			return providers
+				.map((p, i) => (i !== excludeIndex ? p.providerId : null))
+				.filter((id): id is string => Boolean(id))
+		},
+		[providers],
+	)
+
+	return (
+		<>
+			<h3 className="text-lg font-medium mb-0">
+				<Trans i18nKey="settings:providers.virtualTitle">Virtual Provider Settings</Trans>
+			</h3>
+			<div className="text-sm text-vscode-descriptionForeground">
+				<Trans i18nKey="settings:providers.virtualDescription">
+					Configure a list of providers each with their own limits. When one providers limits are reached, the
+					next provider in the list will be used until none remain.
+				</Trans>
+			</div>
+
+			<div className="space-y-1">
+				{providers.map((provider, index) => {
+					const usedProviderIds = getUsedProviderIds(index)
+					const availableForThisSlot = availableProfiles.filter(
+						(profile) => !usedProviderIds.includes(profile.id),
+					)
+
+					return (
+						<div key={index} className="border border-vscode-settings-sashBorder rounded-md p-2">
+							<div className="flex items-center justify-between mb-3">
+								<label className="block font-medium">
+									Provider {index + 1} {index === 0 && "(Primary)"}
+								</label>
+								<div className="flex items-center gap-1">
+									{/* Move Up Button */}
+									<VSCodeButton
+										appearance="icon"
+										onClick={() => moveProviderUp(index)}
+										disabled={index === 0}
+										title="Move provider up">
+										<ChevronUp size={16} />
+									</VSCodeButton>
+									{/* Move Down Button */}
+									<VSCodeButton
+										appearance="icon"
+										onClick={() => moveProviderDown(index)}
+										disabled={index === providers.length - 1}
+										title="Move provider down">
+										<ChevronDown size={16} />
+									</VSCodeButton>
+									{/* Remove Button */}
+									{providers.length > 1 && (
+										<VSCodeButton
+											appearance="icon"
+											onClick={() => removeProvider(index)}
+											title="Remove provider">
+											<TrashIcon />
+										</VSCodeButton>
+									)}
+								</div>
+							</div>
+
+							<Select
+								value={provider.providerId || ""}
+								onValueChange={(value) => handleProviderSelect(index, value)}
+								disabled={availableForThisSlot.length === 0}>
+								<SelectTrigger className="w-full">
+									<SelectValue placeholder="Select provider..." />
+								</SelectTrigger>
+								<SelectContent>
+									{availableForThisSlot.map((profile) => (
+										<SelectItem key={profile.id} value={profile.id}>
+											{profile.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+
+							<VirtualLimitInputs
+								provider={provider}
+								index={index}
+								onProviderChange={handleProviderChange}
+							/>
+						</div>
+					)
+				})}
+
+				<div className="flex justify-center p-4">
+					<VSCodeButton
+						appearance="secondary"
+						onClick={addProvider}
+						disabled={availableProfiles.length <= providers.length}>
+						<PlusIcon className="mr-2" />
+						Add Provider
+					</VSCodeButton>
+				</div>
+
+				{availableProfiles.length === 0 ? (
+					<div className="text-sm text-vscode-descriptionForeground text-center p-4 border border-vscode-settings-sashBorder rounded-md">
+						No provider profiles available. Please configure at least one non-virtual provider profile
+						first.
+					</div>
+				) : null}
+			</div>
+
+			<div className="p-4 border border-vscode-editorWarning-foreground rounded-md">
+				<div className="text-md font-semibold text-vscode-editorWarning-foreground">
+					<Trans i18nKey="settings:providers.virtual.dangerZoneTitle">Danger Zone</Trans>
+				</div>
+				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
+					<Trans i18nKey="settings:providers.virtual.dangerZoneDescription">
+						These actions are destructive and cannot be undone.
+					</Trans>
+				</p>
+				<VSCodeButton appearance="secondary" onClick={() => setIsAlertOpen(true)}>
+					<Trans i18nKey="settings:providers.virtual.clearUsageData">Clear Usage Data</Trans>
+				</VSCodeButton>
+			</div>
+
+			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							<Trans i18nKey="settings:providers.virtual.confirmClearTitle">Are you sure?</Trans>
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							<Trans i18nKey="settings:providers.virtual.confirmClearDescription">
+								This will permanently delete all stored usage data for virtual providers. This action
+								cannot be undone.
+							</Trans>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<Trans i18nKey="common:cancel">Cancel</Trans>
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleClearUsageData}>
+							<Trans i18nKey="common:confirm">Confirm</Trans>
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	)
+}
+
+const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) => {
 	const handleLimitChange = useCallback(
 		(limitKey: keyof NonNullable<VirtualProviderData["providerLimits"]>) => (event: any) => {
 			const value = inputEventTransform(event)
@@ -133,218 +379,5 @@ const LimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) =>
 				</div>
 			</div>
 		</div>
-	)
-}
-
-export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
-	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
-	const [isAlertOpen, setIsAlertOpen] = useState(false)
-
-	// Get current profile ID to exclude from available providers
-	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
-	const currentProfileId = currentProfile?.id
-
-	// Filter out virtual provider profiles and current profile
-	const availableProfiles = useMemo(() => {
-		return (
-			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
-				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
-			}) || []
-		)
-	}, [listApiConfigMeta, currentProfileId])
-
-	// Get providers array - use new format if available, otherwise convert from legacy format
-	const providers = useMemo(() => {
-		if (apiConfiguration.providers && apiConfiguration.providers.length > 0) {
-			return apiConfiguration.providers
-		}
-		// Convert legacy format to new format
-		const legacyProviders = []
-		if (apiConfiguration.primaryProvider) legacyProviders.push(apiConfiguration.primaryProvider)
-		if (apiConfiguration.secondaryProvider) legacyProviders.push(apiConfiguration.secondaryProvider)
-		if (apiConfiguration.backupProvider) legacyProviders.push(apiConfiguration.backupProvider)
-		return legacyProviders.length > 0 ? legacyProviders : [{}]
-	}, [apiConfiguration])
-
-	const updateProviders = useCallback(
-		(newProviders: VirtualProviderData[]) => {
-			// Update the new array format
-			setApiConfigurationField("providers", newProviders)
-			// Clear legacy format to avoid confusion
-			setApiConfigurationField("primaryProvider", undefined)
-			setApiConfigurationField("secondaryProvider", undefined)
-			setApiConfigurationField("backupProvider", undefined)
-		},
-		[setApiConfigurationField],
-	)
-
-	const handleProviderChange = useCallback(
-		(index: number, provider: VirtualProviderData) => {
-			const newProviders = [...providers]
-			newProviders[index] = provider
-			updateProviders(newProviders)
-		},
-		[providers, updateProviders],
-	)
-
-	const handleProviderSelect = useCallback(
-		(index: number, selectedId: string) => {
-			const selectedProfile = availableProfiles.find((profile) => profile.id === selectedId)
-			if (selectedProfile) {
-				const updatedProvider = {
-					...providers[index],
-					providerId: selectedProfile.id,
-					providerName: selectedProfile.name,
-				}
-				handleProviderChange(index, updatedProvider)
-			}
-		},
-		[availableProfiles, providers, handleProviderChange],
-	)
-
-	const addProvider = useCallback(() => {
-		const newProviders = [...providers, {}]
-		updateProviders(newProviders)
-	}, [providers, updateProviders])
-
-	const removeProvider = useCallback(
-		(index: number) => {
-			if (providers.length > 1) {
-				const newProviders = providers.filter((_, i) => i !== index)
-				updateProviders(newProviders)
-			}
-		},
-		[providers, updateProviders],
-	)
-
-	const handleClearUsageData = useCallback(() => {
-		vscode.postMessage({ type: "clearUsageData" })
-		setIsAlertOpen(false)
-	}, [])
-
-	const getUsedProviderIds = useCallback(
-		(excludeIndex: number) => {
-			return providers
-				.map((p, i) => (i !== excludeIndex ? p.providerId : null))
-				.filter((id): id is string => Boolean(id))
-		},
-		[providers],
-	)
-
-	return (
-		<>
-			<h3 className="text-lg font-medium mb-4">
-				<Trans i18nKey="settings:providers.virtualTitle">Virtual Provider</Trans>
-			</h3>
-			<p className="text-sm text-vscode-descriptionForeground mb-4">
-				<Trans i18nKey="settings:providers.virtualDescription">
-					Configure multiple AI providers with automatic fallback when rate limits are reached.
-				</Trans>
-			</p>
-
-			<div className="space-y-4">
-				{providers.map((provider, index) => {
-					const usedProviderIds = getUsedProviderIds(index)
-					const availableForThisSlot = availableProfiles.filter(
-						(profile) => !usedProviderIds.includes(profile.id),
-					)
-
-					return (
-						<div key={index} className="border border-vscode-settings-sashBorder rounded-md p-4">
-							<div className="flex items-center justify-between mb-3">
-								<label className="block font-medium">
-									Provider {index + 1} {index === 0 && "(Primary)"}
-								</label>
-								{providers.length > 1 && (
-									<VSCodeButton
-										appearance="icon"
-										onClick={() => removeProvider(index)}
-										title="Remove provider">
-										<TrashIcon />
-									</VSCodeButton>
-								)}
-							</div>
-
-							<Select
-								value={provider.providerId || ""}
-								onValueChange={(value) => handleProviderSelect(index, value)}
-								disabled={availableForThisSlot.length === 0}>
-								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Select provider..." />
-								</SelectTrigger>
-								<SelectContent>
-									{availableForThisSlot.map((profile) => (
-										<SelectItem key={profile.id} value={profile.id}>
-											{profile.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-
-							<LimitInputs provider={provider} index={index} onProviderChange={handleProviderChange} />
-						</div>
-					)
-				})}
-
-				<div className="flex justify-center">
-					<VSCodeButton
-						appearance="secondary"
-						onClick={addProvider}
-						disabled={availableProfiles.length <= providers.length}>
-						<PlusIcon className="mr-2" />
-						Add Provider
-					</VSCodeButton>
-				</div>
-
-				{availableProfiles.length === 0 ? (
-					<div className="text-sm text-vscode-descriptionForeground text-center p-4 border border-vscode-settings-sashBorder rounded-md">
-						No provider profiles available. Please configure at least one non-virtual provider profile
-						first.
-					</div>
-				) : (
-					<div className="text-sm text-vscode-descriptionForeground text-center">
-						Providers are tried in order. Configure rate limits to enable automatic fallback.
-					</div>
-				)}
-			</div>
-
-			<div className="mt-6 p-4 border border-vscode-editorWarning-foreground rounded-md">
-				<h4 className="text-md font-semibold text-vscode-editorWarning-foreground">
-					<Trans i18nKey="settings:providers.virtual.dangerZoneTitle">Danger Zone</Trans>
-				</h4>
-				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
-					<Trans i18nKey="settings:providers.virtual.dangerZoneDescription">
-						These actions are destructive and cannot be undone.
-					</Trans>
-				</p>
-				<VSCodeButton appearance="secondary" onClick={() => setIsAlertOpen(true)}>
-					<Trans i18nKey="settings:providers.virtual.clearUsageData">Clear Usage Data</Trans>
-				</VSCodeButton>
-			</div>
-
-			<AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>
-							<Trans i18nKey="settings:providers.virtual.confirmClearTitle">Are you sure?</Trans>
-						</AlertDialogTitle>
-						<AlertDialogDescription>
-							<Trans i18nKey="settings:providers.virtual.confirmClearDescription">
-								This will permanently delete all stored usage data for virtual providers. This action
-								cannot be undone.
-							</Trans>
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>
-							<Trans i18nKey="common:cancel">Cancel</Trans>
-						</AlertDialogCancel>
-						<AlertDialogAction onClick={handleClearUsageData}>
-							<Trans i18nKey="common:confirm">Confirm</Trans>
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-		</>
 	)
 }

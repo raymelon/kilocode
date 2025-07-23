@@ -30,7 +30,6 @@ export class VirtualHandler implements ApiHandler {
 		this.settings = options
 		this.settingsManager = new ProviderSettingsManager(ContextProxy.instance.rawContext)
 		this.loadConfiguredProviders()
-		// Get the singleton
 		this.usage = UsageTracker.initialize(ContextProxy.instance.rawContext)
 	}
 	countTokens(content: Array<Anthropic.Messages.ContentBlockParam>): Promise<number> {
@@ -127,21 +126,10 @@ export class VirtualHandler implements ApiHandler {
 	}
 
 	/**
-	 * Gets the providers array, supporting both new array format and legacy format
+	 * Gets the providers array
 	 */
 	private getProvidersArray(): VirtualProvider[] {
-		// Use new format if available
-		if (this.settings.providers && this.settings.providers.length > 0) {
-			return this.settings.providers
-		}
-
-		// Convert legacy format to array
-		const legacyProviders: VirtualProvider[] = []
-		if (this.settings.primaryProvider) legacyProviders.push(this.settings.primaryProvider)
-		if (this.settings.secondaryProvider) legacyProviders.push(this.settings.secondaryProvider)
-		if (this.settings.backupProvider) legacyProviders.push(this.settings.backupProvider)
-
-		return legacyProviders
+		return this.settings.providers || []
 	}
 
 	/**

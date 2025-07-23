@@ -175,9 +175,7 @@ describe("Virtual Provider Suite", () => {
 			})
 
 			const handler = new VirtualHandler({
-				primaryProvider: mockPrimaryProvider,
-				secondaryProvider: mockSecondaryProvider,
-				backupProvider: mockBackupProvider,
+				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
 			// Allow async operations in constructor to complete
@@ -212,9 +210,7 @@ describe("Virtual Provider Suite", () => {
 			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
 
 			const handler = new VirtualHandler({
-				primaryProvider: mockPrimaryProvider,
-				secondaryProvider: mockSecondaryProvider,
-				backupProvider: mockBackupProvider,
+				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
 			await new Promise(process.nextTick)
@@ -266,7 +262,7 @@ describe("Virtual Provider Suite", () => {
 		describe("adjustActiveHandler", () => {
 			it("should set first handler as active if it is under limit", async () => {
 				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
+					providers: [mockPrimaryProvider],
 				} as any)
 				// Set up the handlers array directly for testing
 				;(handler as any).handlers = [
@@ -282,8 +278,7 @@ describe("Virtual Provider Suite", () => {
 
 			it("should switch to second handler if first is over limit", async () => {
 				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
-					secondaryProvider: mockSecondaryProvider,
+					providers: [mockPrimaryProvider, mockSecondaryProvider],
 				} as any)
 				// Set up the handlers array directly for testing
 				;(handler as any).handlers = [
@@ -303,9 +298,7 @@ describe("Virtual Provider Suite", () => {
 
 			it("should use first handler as fallback if all are over limit", async () => {
 				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
-					secondaryProvider: mockSecondaryProvider,
-					backupProvider: mockBackupProvider,
+					providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 				} as any)
 				// Set up the handlers array directly for testing
 				;(handler as any).handlers = [
@@ -335,7 +328,7 @@ describe("Virtual Provider Suite", () => {
 		describe("createMessage", () => {
 			it("should forward the call to the active handler and track usage", async () => {
 				const handler = new VirtualHandler({
-					primaryProvider: mockPrimaryProvider,
+					providers: [mockPrimaryProvider],
 				} as any)
 
 				// Set up a mock active handler

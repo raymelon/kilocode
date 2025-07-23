@@ -571,6 +571,9 @@ const ApiOptions = ({
 			{selectedProvider === "cerebras" && (
 				<Cerebras apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
+			{selectedProvider === "virtual" && (
+				<Virtual apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
+			)}
 			{/* kilocode_change end */}
 
 			{selectedProvider === "litellm" && (
@@ -580,10 +583,6 @@ const ApiOptions = ({
 					organizationAllowList={organizationAllowList}
 					modelValidationError={modelValidationError}
 				/>
-			)}
-
-			{selectedProvider === "virtual" && (
-				<Virtual apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 
 			{selectedProvider === "human-relay" && (

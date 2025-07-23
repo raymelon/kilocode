@@ -228,11 +228,7 @@ export const virtualProviderDataSchema = z.object({
 		.optional(),
 })
 const virtualSchema = baseProviderSettingsSchema.extend({
-	// Legacy format for backward compatibility
-	primaryProvider: virtualProviderDataSchema.optional(),
-	secondaryProvider: virtualProviderDataSchema.optional(),
-	backupProvider: virtualProviderDataSchema.optional(),
-	// New array-based format for n providers
+	// Array-based format for n providers
 	providers: z.array(virtualProviderDataSchema).optional(),
 })
 
