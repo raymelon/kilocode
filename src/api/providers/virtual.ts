@@ -70,8 +70,39 @@ export class VirtualHandler implements ApiHandler {
 			}
 		}
 
+		// Track request consumption - one request per createMessage call
+		if (this.usage && this.activeHandlerId) {
+			try {
+				await this.usage.consume(this.activeHandlerId, "requests", 1)
+				console.log("Request consumption tracked for provider:", this.activeHandlerId)
+			} catch (error) {
+				console.warn("Failed to track request consumption:", error)
+			}
+		}
+
 		console.log("VirtualHandler.createMessage delegating to activeHandler with provider:", providerName)
-		yield* this.activeHandler.createMessage(systemPrompt, messages, metadata)
+
+		// Intercept the stream to track token usage
+		for await (const chunk of this.activeHandler.createMessage(systemPrompt, messages, metadata)) {
+			// Track token consumption when we receive usage information
+			if (chunk.type === "usage" && this.usage && this.activeHandlerId) {
+				try {
+					const totalTokens = (chunk.inputTokens || 0) + (chunk.outputTokens || 0)
+					if (totalTokens > 0) {
+						await this.usage.consume(this.activeHandlerId, "tokens", totalTokens)
+						console.log(
+							"Token consumption tracked:",
+							totalTokens,
+							"tokens for provider:",
+							this.activeHandlerId,
+						)
+					}
+				} catch (error) {
+					console.warn("Failed to track token consumption:", error)
+				}
+			}
+			yield chunk
+		}
 	}
 
 	getModel(): { id: string; info: ModelInfo } {
