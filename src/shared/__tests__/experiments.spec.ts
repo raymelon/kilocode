@@ -34,12 +34,22 @@ describe("experiments", () => {
 		})
 	})
 
+	describe("VIRTUAL_PROVIDER", () => {
+		it("is configured correctly", () => {
+			expect(EXPERIMENT_IDS.VIRTUAL_PROVIDER).toBe("virtualProvider")
+			expect(experimentConfigsMap.VIRTUAL_PROVIDER).toMatchObject({
+				enabled: false,
+			})
+		})
+	})
+
 	describe("isEnabled", () => {
 		it("returns false when POWER_STEERING experiment is not enabled", () => {
 			const experiments: Record<ExperimentId, boolean> = {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
+				virtualProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})
@@ -49,6 +59,7 @@ describe("experiments", () => {
 				autocomplete: true,
 				powerSteering: true,
 				multiFileApplyDiff: false,
+				virtualProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(true)
 		})
@@ -58,6 +69,7 @@ describe("experiments", () => {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
+				virtualProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})
