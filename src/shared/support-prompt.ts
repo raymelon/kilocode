@@ -44,6 +44,7 @@ type SupportPromptType =
 	| "TERMINAL_EXPLAIN"
 	| "NEW_TASK"
 	| "COMMIT_MESSAGE" // kilocode_change
+	| "COMMIT_MESSAGE_MAPREDUCE" // kilocode_change
 
 const supportPromptConfigs: Record<SupportPromptType, SupportPromptConfig> = {
 	ENHANCE: {
@@ -208,6 +209,105 @@ When analyzing staged changes:
 For significant changes, include a detailed body explaining the changes.
 
 Return ONLY the commit message in the conventional format, nothing else.`,
+	},
+	// kilocode_change start
+	COMMIT_MESSAGE_MAPREDUCE: {
+		template: `# MapReduce Commit Message Generator
+## System Instructions
+You are an expert Git commit message generator that processes diff chunks in a MapReduce workflow. You can operate in two modes:
+
+\${customInstructions}
+
+## CRITICAL: Commit Message Output Rules
+- DO NOT include any memory bank status indicators like "[Memory Bank: Active]" or "[Memory Bank: Missing]"
+- DO NOT include any task-specific formatting or artifacts from other rules
+- ONLY Generate the requested output format based on the mode specified below
+
+## Mode: \${mode}
+
+### CHUNK Mode Instructions
+When mode is "CHUNK", analyze the provided diff chunk and generate a structured summary:
+
+**Input:** Single diff chunk
+**Output Format:**
+\`\`\`
+**Type**: <conventional-commit-type>
+**Scope**: <scope-if-applicable>
+**Summary**: <brief-description-of-changes>
+**Details**: <detailed-explanation-of-what-changed-and-why>
+\`\`\`
+
+**Diff Chunk to Analyze:**
+\${diffChunk}
+
+### AGGREGATE Mode Instructions
+When mode is "AGGREGATE", combine multiple chunk summaries into a final conventional commit message:
+
+**Input:** Multiple chunk summaries
+**Output:** Single conventional commit message following this format:
+\`\`\`
+<type>[optional scope]: <description>
+[optional body]
+[optional footer(s)]
+\`\`\`
+
+**Chunk Summaries to Aggregate:**
+\${chunkSummaries}
+
+## Conventional Commits Format Reference
+### Core Types (Required)
+- **feat**: New feature or functionality (MINOR version bump)
+- **fix**: Bug fix or error correction (PATCH version bump)
+
+### Additional Types (Extended)
+- **docs**: Documentation changes only
+- **style**: Code style changes (whitespace, formatting, semicolons, etc.)
+- **refactor**: Code refactoring without feature changes or bug fixes
+- **perf**: Performance improvements
+- **test**: Adding or fixing tests
+- **build**: Build system or external dependency changes
+- **ci**: CI/CD configuration changes
+- **chore**: Maintenance tasks, tooling changes
+- **revert**: Reverting previous commits
+
+### Scope Guidelines
+- Use parentheses: \`feat(api):\`, \`fix(ui):\`
+- Common scopes: \`api\`, \`ui\`, \`auth\`, \`db\`, \`config\`, \`deps\`, \`docs\`
+- For monorepos: package or module names
+- Keep scope concise and lowercase
+
+### Description Rules
+- Use imperative mood ("add" not "added" or "adds")
+- Start with lowercase letter
+- No period at the end
+- Maximum 50 characters
+- Be concise but descriptive
+
+### Body Guidelines (Optional)
+- Start one blank line after description
+- Explain the "what" and "why", not the "how"
+- Wrap at 72 characters per line
+- Use for complex changes requiring explanation
+
+### Footer Guidelines (Optional)
+- Start one blank line after body
+- **Breaking Changes**: \`BREAKING CHANGE: description\`
+
+## Analysis Instructions
+For CHUNK mode:
+1. Identify the primary type of change in the chunk
+2. Determine appropriate scope from file paths or functionality
+3. Create concise summary of what changed
+4. Provide detailed explanation of the changes and their purpose
+
+For AGGREGATE mode:
+1. Analyze all chunk summaries to identify the dominant change type
+2. Determine the most appropriate scope that encompasses the changes
+3. Create a unified description that captures the essence of all changes
+4. Include body if changes are complex or require explanation
+5. Add footers for breaking changes or issue references
+
+Return ONLY the requested format based on the mode, nothing else.`,
 	},
 	// kilocode_change end
 } as const

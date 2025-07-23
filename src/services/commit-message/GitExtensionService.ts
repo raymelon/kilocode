@@ -145,7 +145,7 @@ export class GitExtensionService {
 		}
 	}
 
-	private async getDiffForChanges(options: GitProgressOptions): Promise<string> {
+	public async getDiff(options: GitProgressOptions): Promise<string> {
 		const { staged, onProgress } = options
 		try {
 			const diffs: string[] = []
@@ -206,7 +206,7 @@ export class GitExtensionService {
 	/**
 	 * Gets all context needed for commit message generation
 	 */
-	public async getCommitContext(changes: GitChange[], options: GitProgressOptions): Promise<string> {
+	public async buildGitContext(changes: GitChange[], options: GitProgressOptions): Promise<string> {
 		const { staged } = options
 		try {
 			// Start building the context with the required sections
@@ -214,7 +214,7 @@ export class GitExtensionService {
 
 			// Add full diff - essential for understanding what changed
 			try {
-				const diff = await this.getDiffForChanges(options)
+				const diff = await this.getDiff(options)
 				const changeType = staged ? "Staged" : "Unstaged"
 				context += `### Full Diff of ${changeType} Changes\n\`\`\`diff\n` + diff + "\n```\n\n"
 			} catch (error) {

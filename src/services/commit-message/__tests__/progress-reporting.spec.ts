@@ -62,8 +62,8 @@ describe("Progress Reporting", () => {
 			.mockReturnValueOnce({ status: 0, stdout: "diff2", stderr: "", error: null })
 			.mockReturnValueOnce({ status: 0, stdout: "diff3", stderr: "", error: null })
 
-		const getDiffForChanges = (service as any).getDiffForChanges
-		await getDiffForChanges.call(service, { staged: true, onProgress: progressCallback })
+		const getDiff = (service as any).getDiff
+		await getDiff.call(service, { staged: true, onProgress: progressCallback })
 
 		// Verify progress was reported for each file
 		expect(progressCallback).toHaveBeenCalledTimes(3)
@@ -76,8 +76,8 @@ describe("Progress Reporting", () => {
 		const progressCallback = vi.fn()
 		mockSpawnSync.mockReturnValue({ status: 0, stdout: "", stderr: "", error: null })
 
-		const getDiffForChanges = (service as any).getDiffForChanges
-		await getDiffForChanges.call(service, { staged: true, onProgress: progressCallback })
+		const getDiff = (service as any).getDiff
+		await getDiff.call(service, { staged: true, onProgress: progressCallback })
 
 		// No progress should be reported when there are no files
 		expect(progressCallback).not.toHaveBeenCalled()
@@ -91,8 +91,8 @@ describe("Progress Reporting", () => {
 			.mockReturnValueOnce({ status: 0, stdout: mockFileListOutput, stderr: "", error: null })
 			.mockReturnValueOnce({ status: 0, stdout: "diff1", stderr: "", error: null })
 
-		const getDiffForChanges = (service as any).getDiffForChanges
-		const result = await getDiffForChanges.call(service, { staged: true })
+		const getDiff = (service as any).getDiff
+		const result = await getDiff.call(service, { staged: true })
 
 		expect(result).toBe("diff1")
 		expect(mockSpawnSync).toHaveBeenCalledTimes(2)

@@ -52,7 +52,7 @@ describe("GitExtensionService", () => {
 		mockSpawnSync.mockClear()
 	})
 
-	describe("getDiffForChanges", () => {
+	describe("getDiff", () => {
 		it("should generate diffs per file and exclude files properly for staged changes", async () => {
 			const stagedFiles = ["src/test.ts", "package-lock.json", "src/utils.ts"]
 			const mockFileListOutput = stagedFiles.join("\n")
@@ -65,8 +65,8 @@ describe("GitExtensionService", () => {
 				.mockReturnValueOnce({ status: 0, stdout: testTsDiff, stderr: "", error: null })
 				.mockReturnValueOnce({ status: 0, stdout: utilsTsDiff, stderr: "", error: null })
 
-			const getDiffForChanges = (service as any).getDiffForChanges
-			const result = await getDiffForChanges.call(service, { staged: true })
+			const getDiff = (service as any).getDiff
+			const result = await getDiff.call(service, { staged: true })
 
 			expect(mockSpawnSync).toHaveBeenNthCalledWith(
 				1,
@@ -103,8 +103,8 @@ describe("GitExtensionService", () => {
 		it("should return empty string when no staged files", async () => {
 			mockSpawnSync.mockReturnValue({ status: 0, stdout: "", stderr: "", error: null })
 
-			const getDiffForChanges = (service as any).getDiffForChanges
-			const result = await getDiffForChanges.call(service, { staged: true })
+			const getDiff = (service as any).getDiff
+			const result = await getDiff.call(service, { staged: true })
 
 			expect(result).toBe("")
 			expect(mockSpawnSync).toHaveBeenCalledTimes(1)
@@ -121,8 +121,8 @@ describe("GitExtensionService", () => {
 				.mockReturnValueOnce({ status: 0, stdout: spaceDiff, stderr: "", error: null })
 				.mockReturnValueOnce({ status: 0, stdout: quoteDiff, stderr: "", error: null })
 
-			const getDiffForChanges = (service as any).getDiffForChanges
-			const result = await getDiffForChanges.call(service, { staged: true })
+			const getDiff = (service as any).getDiff
+			const result = await getDiff.call(service, { staged: true })
 
 			// Should handle file paths with special characters without manual escaping
 			expect(mockSpawnSync).toHaveBeenNthCalledWith(
@@ -202,8 +202,8 @@ describe("GitExtensionService", () => {
 			.mockReturnValueOnce({ status: 0, stdout: testTsDiff, stderr: "", error: null })
 			.mockReturnValueOnce({ status: 0, stdout: utilsTsDiff, stderr: "", error: null })
 
-		const getDiffForChanges = (service as any).getDiffForChanges
-		const result = await getDiffForChanges.call(service, { staged: false })
+		const getDiff = (service as any).getDiff
+		const result = await getDiff.call(service, { staged: false })
 
 		expect(mockSpawnSync).toHaveBeenNthCalledWith(1, "git", ["diff", "--name-only"], expect.any(Object))
 
@@ -218,14 +218,14 @@ describe("GitExtensionService", () => {
 	it("should return empty string when no unstaged files", async () => {
 		mockSpawnSync.mockReturnValue({ status: 0, stdout: "", stderr: "", error: null })
 
-		const getDiffForChanges = (service as any).getDiffForChanges
-		const result = await getDiffForChanges.call(service, { staged: false })
+		const getDiff = (service as any).getDiff
+		const result = await getDiff.call(service, { staged: false })
 
 		expect(result).toBe("")
 		expect(mockSpawnSync).toHaveBeenCalledTimes(1)
 	})
 
-	describe("getCommitContext", () => {
+	describe("buildGitContext", () => {
 		it("should generate context for staged changes by default", async () => {
 			const mockChanges = [{ filePath: "file1.ts", status: "Modified" }]
 
@@ -236,7 +236,7 @@ describe("GitExtensionService", () => {
 				.mockReturnValueOnce({ status: 0, stdout: "main", stderr: "", error: null })
 				.mockReturnValueOnce({ status: 0, stdout: "abc123 commit", stderr: "", error: null })
 
-			const result = await service.getCommitContext(mockChanges, { staged: true })
+			const result = await service.buildGitContext(mockChanges, { staged: true })
 
 			expect(result).toContain("Full Diff of Staged Changes")
 			expect(result).not.toContain("Full Diff of Unstaged Changes")
@@ -252,7 +252,7 @@ describe("GitExtensionService", () => {
 				.mockReturnValueOnce({ status: 0, stdout: "main", stderr: "", error: null })
 				.mockReturnValueOnce({ status: 0, stdout: "abc123 commit", stderr: "", error: null })
 
-			const result = await service.getCommitContext(mockChanges, { staged: false })
+			const result = await service.buildGitContext(mockChanges, { staged: false })
 
 			expect(result).toContain("Full Diff of Unstaged Changes")
 			expect(result).not.toContain("Full Diff of Staged Changes")

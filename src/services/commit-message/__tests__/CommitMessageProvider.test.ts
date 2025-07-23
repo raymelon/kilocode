@@ -99,7 +99,7 @@ describe("CommitMessageProvider", () => {
 		mockGitService.setCommitMessage = vi.fn()
 		mockGitService.spawnGitWithArgs = vi.fn().mockReturnValue("")
 		mockGitService.configureRepositoryContext = vi.fn()
-		mockGitService.getCommitContext = vi.fn().mockReturnValue("Modified file1.ts, Added file2.ts")
+		mockGitService.buildGitContext = vi.fn().mockReturnValue("Modified file1.ts, Added file2.ts")
 
 		// Setup singleCompletionHandler mock
 		vi.mocked(singleCompletionHandler).mockResolvedValue(
@@ -128,7 +128,7 @@ describe("CommitMessageProvider", () => {
 
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: true })
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledTimes(1)
-			expect(vi.mocked(mockGitService.getCommitContext)).toHaveBeenCalledWith(
+			expect(vi.mocked(mockGitService.buildGitContext)).toHaveBeenCalledWith(
 				mockChanges,
 				expect.objectContaining({ staged: true }),
 			)
@@ -171,7 +171,7 @@ describe("CommitMessageProvider", () => {
 
 			// Verify that it shows the appropriate message and doesn't proceed
 			expect(vscode.window.showInformationMessage).toHaveBeenCalled()
-			expect(vi.mocked(mockGitService.getCommitContext)).not.toHaveBeenCalled()
+			expect(vi.mocked(mockGitService.buildGitContext)).not.toHaveBeenCalled()
 			expect(singleCompletionHandler).not.toHaveBeenCalled()
 			expect(vi.mocked(mockGitService.setCommitMessage)).not.toHaveBeenCalled()
 		})
@@ -187,7 +187,7 @@ describe("CommitMessageProvider", () => {
 
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: true })
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: false })
-			expect(vi.mocked(mockGitService.getCommitContext)).toHaveBeenCalledWith(
+			expect(vi.mocked(mockGitService.buildGitContext)).toHaveBeenCalledWith(
 				mockUnstagedChanges,
 				expect.objectContaining({
 					staged: false,
@@ -210,7 +210,7 @@ describe("CommitMessageProvider", () => {
 			// Verify that it shows the appropriate message and doesn't proceed
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: true })
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: false })
-			expect(vi.mocked(mockGitService.getCommitContext)).not.toHaveBeenCalled()
+			expect(vi.mocked(mockGitService.buildGitContext)).not.toHaveBeenCalled()
 			expect(singleCompletionHandler).not.toHaveBeenCalled()
 			expect(vi.mocked(mockGitService.setCommitMessage)).not.toHaveBeenCalled()
 		})
@@ -227,7 +227,7 @@ describe("CommitMessageProvider", () => {
 			// Verify that it shows the appropriate message and doesn't proceed
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: true })
 			expect(vi.mocked(mockGitService.gatherChanges)).toHaveBeenCalledWith({ staged: false })
-			expect(vi.mocked(mockGitService.getCommitContext)).not.toHaveBeenCalled()
+			expect(vi.mocked(mockGitService.buildGitContext)).not.toHaveBeenCalled()
 			expect(singleCompletionHandler).not.toHaveBeenCalled()
 			expect(vi.mocked(mockGitService.setCommitMessage)).not.toHaveBeenCalled()
 		})
