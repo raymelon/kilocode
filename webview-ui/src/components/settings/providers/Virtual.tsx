@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect } from "react"
+import { useCallback, useMemo } from "react"
 import { Trans } from "react-i18next"
 
 import { type ProviderSettings, type ProviderSettingsEntry } from "@roo-code/types"
