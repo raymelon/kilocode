@@ -214,8 +214,8 @@ const humanRelaySchema = baseProviderSettingsSchema
 
 const providerDataSchema = z.object({
 	//using this prevents mistakes by repeating the defintition.
-	providerId: z.string(),
 	providerName: z.string().optional(),
+	providerId: z.string().optional(),
 	providerLimits: z
 		.object({
 			tokensPerMinute: z.coerce.number().optional(),
