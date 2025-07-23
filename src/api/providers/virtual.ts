@@ -244,7 +244,7 @@ export class VirtualHandler implements ApiHandler {
 
 export type UsageType = "tokens" | "requests"
 export type UsageWindow = "minute" | "hour" | "day"
-interface UsageEvent {
+export interface UsageEvent {
 	/** The timestamp of the event in milliseconds since epoch. */
 	timestamp: number
 	/** The identifier for the AI provider (e.g., 'ds8f93js'). */
