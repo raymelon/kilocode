@@ -152,7 +152,6 @@ export class VirtualHandler implements ApiHandler {
 		const availableHandlers = [this.primaryHandler, this.secondaryHandler, this.backupHandler].filter(
 			(handler): handler is ApiHandler => handler !== undefined,
 		)
-		console.log(availableHandlers)
 
 		if (availableHandlers.length === 0) {
 			this.activeHandler = undefined
@@ -191,53 +190,31 @@ export class VirtualHandler implements ApiHandler {
 		// Thats a weird config, but send it!
 		if (limits.requestsPerMinute || limits.tokensPerMinute) {
 			const minuteUsage = this.usage.getUsage(providerId, "minute")
-			console.log(`Minute usage for ${providerId}:`, minuteUsage)
 			if (limits.requestsPerMinute && minuteUsage.requests >= limits.requestsPerMinute) {
-				console.log(
-					`RATE LIMIT: Requests per minute exceeded for ${providerId}. Usage: ${minuteUsage.requests}, Limit: ${limits.requestsPerMinute}`,
-				)
 				return false
 			}
 			if (limits.tokensPerMinute && minuteUsage.tokens >= limits.tokensPerMinute) {
-				console.log(
-					`RATE LIMIT: Tokens per minute exceeded for ${providerId}. Usage: ${minuteUsage.tokens}, Limit: ${limits.tokensPerMinute}`,
-				)
 				return false
 			}
 		}
 		if (limits.requestsPerHour || limits.tokensPerHour) {
 			const hourUsage = this.usage.getUsage(providerId, "hour")
-			console.log(`Hour usage for ${providerId}:`, hourUsage)
 			if (limits.requestsPerHour && hourUsage.requests >= limits.requestsPerHour) {
-				console.log(
-					`RATE LIMIT: Requests per hour exceeded for ${providerId}. Usage: ${hourUsage.requests}, Limit: ${limits.requestsPerHour}`,
-				)
 				return false
 			}
 			if (limits.tokensPerHour && hourUsage.tokens >= limits.tokensPerHour) {
-				console.log(
-					`RATE LIMIT: Tokens per hour exceeded for ${providerId}. Usage: ${hourUsage.tokens}, Limit: ${limits.tokensPerHour}`,
-				)
 				return false
 			}
 		}
 		if (limits.requestsPerDay || limits.tokensPerDay) {
 			const dayUsage = this.usage.getUsage(providerId, "day")
-			console.log(`Day usage for ${providerId}:`, dayUsage)
 			if (limits.requestsPerDay && dayUsage.requests >= limits.requestsPerDay) {
-				console.log(
-					`RATE LIMIT: Requests per day exceeded for ${providerId}. Usage: ${dayUsage.requests}, Limit: ${limits.requestsPerDay}`,
-				)
 				return false
 			}
 			if (limits.tokensPerDay && dayUsage.tokens >= limits.tokensPerDay) {
-				console.log(
-					`RATE LIMIT: Tokens per day exceeded for ${providerId}. Usage: ${dayUsage.tokens}, Limit: ${limits.tokensPerDay}`,
-				)
 				return false
 			}
 		}
-		console.log(`Provider ${providerId} is ready for request.`)
 		return true
 	}
 }

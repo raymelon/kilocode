@@ -178,7 +178,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 			providerKey: "primaryProvider" | "secondaryProvider",
 			limitKey: keyof NonNullable<NonNullable<ProviderSettings["primaryProvider"]>["providerLimits"]>,
 		) =>
-			(event: any) => {
+			(event: Event) => {
 				const value = (event.target as HTMLInputElement).value
 				const currentProvider = apiConfiguration[providerKey]
 

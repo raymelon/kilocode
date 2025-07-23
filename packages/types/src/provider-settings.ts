@@ -213,7 +213,7 @@ const requestySchema = baseProviderSettingsSchema.extend({
 const humanRelaySchema = baseProviderSettingsSchema
 
 export const virtualProviderDataSchema = z.object({
-	//using this prevents mistakes by repeating the defintition.
+	//using this prevents mistakes by repeating the definition.
 	providerName: z.string().optional(),
 	providerId: z.string().optional(),
 	providerLimits: z
