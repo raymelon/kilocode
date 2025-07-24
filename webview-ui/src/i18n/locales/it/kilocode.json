@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Impostazioni Provider Virtuale",
-		"description": "Configura un elenco di provider, ognuno con i propri limiti. Quando i limiti di un provider vengono raggiunti, verrà utilizzato il provider successivo nell'elenco fino a quando non ne rimane nessuno.",
+		"title": "Impostazioni Provider di Fallback per Quote Virtuali",
+		"description": "Configura un elenco di provider, ciascuno con i propri limiti di quota. Quando i limiti di quota di un provider vengono raggiunti, verrà utilizzato il provider successivo nell'elenco fino a quando non ne rimane nessuno.",
 		"providerLabel": "Provider {{number}}",
 		"primaryProviderLabel": "Provider {{number}} (Primario)",
 		"moveProviderUp": "Sposta provider in alto",

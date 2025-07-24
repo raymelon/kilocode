@@ -25,7 +25,7 @@ type VirtualProps = {
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
 }
 
-type VirtualProviderData = {
+type VirtualQuotaFallbackProviderData = {
 	providerName?: string
 	providerId?: string
 	providerLimits?: {
@@ -39,9 +39,9 @@ type VirtualProviderData = {
 }
 
 type LimitInputsProps = {
-	provider: VirtualProviderData
+	provider: VirtualQuotaFallbackProviderData
 	index: number
-	onProviderChange: (index: number, provider: VirtualProviderData) => void
+	onProviderChange: (index: number, provider: VirtualQuotaFallbackProviderData) => void
 }
 
 export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
@@ -68,14 +68,14 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 	}, [apiConfiguration.providers])
 
 	const updateProviders = useCallback(
-		(newProviders: VirtualProviderData[]) => {
+		(newProviders: VirtualQuotaFallbackProviderData[]) => {
 			setApiConfigurationField("providers", newProviders)
 		},
 		[setApiConfigurationField],
 	)
 
 	const handleProviderChange = useCallback(
-		(index: number, provider: VirtualProviderData) => {
+		(index: number, provider: VirtualQuotaFallbackProviderData) => {
 			const newProviders = [...providers]
 			newProviders[index] = provider
 			updateProviders(newProviders)
@@ -157,7 +157,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 			<h3 className="text-lg font-medium mb-0">
 				<Trans i18nKey="kilocode:virtualProvider.title">Virtual Provider Settings</Trans>
 			</h3>
-			<div className="text-sm text-vscode-descriptionForeground">
+			<div className="text-sm text-vscode-descriptionForeground mb-4">
 				<Trans i18nKey="kilocode:virtualProvider.description">
 					Configure a list of providers each with their own limits. When one providers limits are reached, the
 					next provider in the list will be used until none remain.
@@ -298,7 +298,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 
 const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) => {
 	const handleLimitChange = useCallback(
-		(limitKey: keyof NonNullable<VirtualProviderData["providerLimits"]>) => (event: any) => {
+		(limitKey: keyof NonNullable<VirtualQuotaFallbackProviderData["providerLimits"]>) => (event: any) => {
 			const value = inputEventTransform(event)
 			const updatedProvider = {
 				...provider,
@@ -317,72 +317,82 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 	}
 
 	return (
-		<div className="grid grid-cols-2 gap-x-4 gap-y-2 p-2 border border-vscode-settings-sashBorder rounded-md mt-2">
-			{/* Tokens Column */}
-			<div className="space-y-2">
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.tokensPerMinute">Tokens/min</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.tokensPerMinute?.toString() ?? ""}
-						onInput={handleLimitChange("tokensPerMinute")}
-						className="w-full"
-					/>
-				</div>
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.tokensPerHour">Tokens/hr</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.tokensPerHour?.toString() ?? ""}
-						onInput={handleLimitChange("tokensPerHour")}
-						className="w-full"
-					/>
-				</div>
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.tokensPerDay">Tokens/day</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.tokensPerDay?.toString() ?? ""}
-						onInput={handleLimitChange("tokensPerDay")}
-						className="w-full"
-					/>
+		<div className="space-y-4 p-2 rounded-md mt-2">
+			{/* Tokens Row */}
+			<div>
+				<label className="block text-sm font-medium mb-2">
+					<Trans i18nKey="kilocode:virtualProvider.tokensLabel">Tokens</Trans>
+				</label>
+				<div className="grid grid-cols-3 gap-x-4">
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perMinute">Per Minute</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.tokensPerMinute?.toString() ?? ""}
+							onInput={handleLimitChange("tokensPerMinute")}
+							className="w-full"
+						/>
+					</div>
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perHour">Per Hour</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.tokensPerHour?.toString() ?? ""}
+							onInput={handleLimitChange("tokensPerHour")}
+							className="w-full"
+						/>
+					</div>
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perDay">Per Day</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.tokensPerDay?.toString() ?? ""}
+							onInput={handleLimitChange("tokensPerDay")}
+							className="w-full"
+						/>
+					</div>
 				</div>
 			</div>
 
-			{/* Requests Column */}
-			<div className="space-y-2">
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.requestsPerMinute">Requests/min</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.requestsPerMinute?.toString() ?? ""}
-						onInput={handleLimitChange("requestsPerMinute")}
-						className="w-full"
-					/>
-				</div>
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.requestsPerHour">Requests/hr</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.requestsPerHour?.toString() ?? ""}
-						onInput={handleLimitChange("requestsPerHour")}
-						className="w-full"
-					/>
-				</div>
-				<div>
-					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="kilocode:virtualProvider.requestsPerDay">Requests/day</Trans>
-					</label>
-					<VSCodeTextField
-						value={provider.providerLimits?.requestsPerDay?.toString() ?? ""}
-						onInput={handleLimitChange("requestsPerDay")}
-						className="w-full"
-					/>
+			{/* Requests Row */}
+			<div>
+				<label className="block text-sm font-medium mb-2">
+					<Trans i18nKey="kilocode:virtualProvider.requestsLabel">Requests</Trans>
+				</label>
+				<div className="grid grid-cols-3 gap-x-4">
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perMinute">Per Minute</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.requestsPerMinute?.toString() ?? ""}
+							onInput={handleLimitChange("requestsPerMinute")}
+							className="w-full"
+						/>
+					</div>
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perHour">Per Hour</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.requestsPerHour?.toString() ?? ""}
+							onInput={handleLimitChange("requestsPerHour")}
+							className="w-full"
+						/>
+					</div>
+					<div>
+						<label className="block text-xs text-vscode-descriptionForeground mb-1">
+							<Trans i18nKey="kilocode:virtualProvider.perDay">Per Day</Trans>
+						</label>
+						<VSCodeTextField
+							value={provider.providerLimits?.requestsPerDay?.toString() ?? ""}
+							onInput={handleLimitChange("requestsPerDay")}
+							className="w-full"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

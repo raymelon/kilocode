@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "虚拟提供商设置",
-		"description": "配置提供商列表，每个都有自己的限制。当一个提供商的限制达到时，将使用列表中的下一个提供商，直到没有剩余。",
+		"title": "虚拟配额回退提供商设置",
+		"description": "配置一个提供商列表，每个提供商都有自己的配额限制。当一个提供商的配额限制达到上限时，将使用列表中的下一个提供商，直到所有提供商都用尽为止。",
 		"providerLabel": "提供商 {{number}}",
 		"primaryProviderLabel": "提供商 {{number}} (主要)",
 		"moveProviderUp": "向上移动提供商",

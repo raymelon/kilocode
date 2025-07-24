@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Configuración del Proveedor Virtual",
-		"description": "Configura una lista de proveedores, cada uno con sus propios límites. Cuando se alcancen los límites de un proveedor, se utilizará el siguiente proveedor de la lista hasta que no quede ninguno.",
+		"title": "Configuración del proveedor alternativo de cuota virtual",
+		"description": "Configura una lista de proveedores, cada uno con sus propios límites de cuota. Cuando se alcancen los límites de cuota de un proveedor, se utilizará el siguiente proveedor de la lista hasta que no quede ninguno.",
 		"providerLabel": "Proveedor {{number}}",
 		"primaryProviderLabel": "Proveedor {{number}} (Principal)",
 		"moveProviderUp": "Mover proveedor hacia arriba",

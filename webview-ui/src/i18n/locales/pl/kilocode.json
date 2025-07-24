@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Ustawienia Wirtualnego Dostawcy",
-		"description": "Skonfiguruj listę dostawców, każdy z własnymi limitami. Gdy limity jednego dostawcy zostaną osiągnięte, zostanie użyty następny dostawca z listy, aż do wyczerpania wszystkich.",
+		"title": "Ustawienia Wirtualnego Dostawcy Zapasowego Limitu",
+		"description": "Skonfiguruj listę dostawców, z których każdy ma własne limity przydziału. Gdy limity przydziału jednego dostawcy zostaną wyczerpane, użyty zostanie kolejny dostawca z listy, aż do wyczerpania wszystkich dostępnych.",
 		"providerLabel": "Dostawca {{number}}",
 		"primaryProviderLabel": "Dostawca {{number}} (Główny)",
 		"moveProviderUp": "Przenieś dostawcę w górę",

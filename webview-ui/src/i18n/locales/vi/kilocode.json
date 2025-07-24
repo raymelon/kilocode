@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Cài đặt Nhà cung cấp Ảo",
-		"description": "Cấu hình danh sách các nhà cung cấp, mỗi nhà có giới hạn riêng. Khi giới hạn của một nhà cung cấp đạt đến, nhà cung cấp tiếp theo trong danh sách sẽ được sử dụng cho đến khi không còn nhà nào.",
+		"title": "Cài đặt Nhà Cung Cấp Dự Phòng Hạn Ngạch Ảo",
+		"description": "Cấu hình danh sách các nhà cung cấp, mỗi nhà cung cấp có giới hạn hạn mức riêng. Khi giới hạn hạn mức của một nhà cung cấp bị đạt đến, nhà cung cấp tiếp theo trong danh sách sẽ được sử dụng cho đến khi không còn nhà cung cấp nào.",
 		"providerLabel": "Nhà cung cấp {{number}}",
 		"primaryProviderLabel": "Nhà cung cấp {{number}} (Chính)",
 		"moveProviderUp": "Di chuyển nhà cung cấp lên",

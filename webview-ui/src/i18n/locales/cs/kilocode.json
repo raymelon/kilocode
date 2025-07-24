@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Nastavení virtuálního poskytovatele",
-		"description": "Nakonfiguruj seznam poskytovatelů, každý s vlastními limity. Když jsou dosaženy limity jednoho poskytovatele, použije se další poskytovatel v seznamu, dokud žádný nezůstane.",
+		"title": "Nastavení poskytovatele virtuálního kvótového záložního řešení",
+		"description": "Nakonfigurujte seznam poskytovatelů, z nichž každý má své vlastní kvótové limity. Když jsou dosaženy kvótové limity jednoho poskytovatele, použije se další poskytovatel v seznamu, dokud žádní nezbývají.",
 		"providerLabel": "Poskytovatel {{number}}",
 		"primaryProviderLabel": "Poskytovatel {{number}} (Primární)",
 		"moveProviderUp": "Posunout poskytovatele nahoru",

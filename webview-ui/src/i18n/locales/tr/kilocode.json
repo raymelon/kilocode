@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Sanal Sağlayıcı Ayarları",
-		"description": "Her birinin kendi limitleri olan sağlayıcıların bir listesini yapılandırın. Bir sağlayıcının limitlerine ulaşıldığında, hiçbiri kalmayana kadar listedeki bir sonraki sağlayıcı kullanılacaktır.",
+		"title": "Sanal Kota Yedek Sağlayıcı Ayarları",
+		"description": "Her biri kendi kota sınırlarına sahip olan sağlayıcıların bir listesini yapılandırın. Bir sağlayıcının kota sınırlarına ulaşıldığında, hiçbiri kalmayana kadar listedeki bir sonraki sağlayıcı kullanılacaktır.",
 		"providerLabel": "Sağlayıcı {{number}}",
 		"primaryProviderLabel": "Sağlayıcı {{number}} (Birincil)",
 		"moveProviderUp": "Sağlayıcıyı yukarı taşı",

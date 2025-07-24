@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Configuració del Proveïdor Virtual",
-		"description": "Configura una llista de proveïdors cadascun amb els seus propis límits. Quan s'arribi als límits d'un proveïdor, s'utilitzarà el següent proveïdor de la llista fins que no en quedi cap.",
+		"title": "Configuració del Proveïdor de Reserva per a Quota Virtual",
+		"description": "Configureu una llista de proveïdors cadascun amb els seus propis límits de quota. Quan s'assoleixen els límits de quota d'un proveïdor, s'utilitzarà el següent proveïdor de la llista fins que no en quedi cap.",
 		"providerLabel": "Proveïdor {{number}}",
 		"primaryProviderLabel": "Proveïdor {{number}} (Principal)",
 		"moveProviderUp": "Moure proveïdor amunt",

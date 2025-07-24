@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Configurações do Provedor Virtual",
-		"description": "Configure uma lista de provedores, cada um com seus próprios limites. Quando os limites de um provedor forem atingidos, o próximo provedor da lista será usado até que não reste nenhum.",
+		"title": "Configurações de Provedor de Reserva para Cota Virtual",
+		"description": "Configure uma lista de provedores, cada um com seus próprios limites de cota. Quando os limites de cota de um provedor forem atingidos, o próximo provedor na lista será usado até que nenhum reste.",
 		"providerLabel": "Provedor {{number}}",
 		"primaryProviderLabel": "Provedor {{number}} (Principal)",
 		"moveProviderUp": "Mover provedor para cima",

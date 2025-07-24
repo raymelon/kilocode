@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Virtueller Anbieter Einstellungen",
-		"description": "Konfiguriere eine Liste von Anbietern, jeder mit eigenen Limits. Wenn die Limits eines Anbieters erreicht sind, wird der nächste Anbieter in der Liste verwendet, bis keiner mehr übrig ist.",
+		"title": "Virtuelle Kontingent-Fallback-Anbieter-Einstellungen",
+		"description": "Konfigurieren Sie eine Liste von Anbietern, wobei jeder seine eigenen Kontingentbegrenzungen hat. Wenn die Kontingentgrenzen eines Anbieters erreicht sind, wird der nächste Anbieter in der Liste verwendet, bis keine mehr übrig sind.",
 		"providerLabel": "Anbieter {{number}}",
 		"primaryProviderLabel": "Anbieter {{number}} (Primär)",
 		"moveProviderUp": "Anbieter nach oben verschieben",

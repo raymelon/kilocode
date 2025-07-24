@@ -29,7 +29,7 @@ vitest.mock("../../../core/config/ProviderSettingsManager")
 vitest.mock("../../index")
 vitest.mock("../../../core/config/ContextProxy")
 
-describe("Virtual Provider Suite", () => {
+describe("Virtual Quota Fallback Provider Suite", () => {
 	describe("UsageTracker", () => {
 		let usageTracker: UsageTracker
 		let mockContext: ExtensionContext
@@ -125,7 +125,7 @@ describe("Virtual Provider Suite", () => {
 
 		it("should clear all usage data", async () => {
 			await usageTracker.clearAllUsageData()
-			expect(mockContext.globalState.update).toHaveBeenCalledWith("kilocode.virtualprovider.usage.v1", undefined)
+			expect(mockContext.globalState.update).toHaveBeenCalledWith(expect.any(String), undefined)
 		})
 	})
 

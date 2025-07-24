@@ -366,7 +366,10 @@ const ApiOptions = ({
 	}, [selectedProvider])
 
 	const filteredProviders = useMemo(() => {
-		const isVirtualEnabled = experimentsHelper.isEnabled(experiments, EXPERIMENT_IDS.VIRTUAL_PROVIDER)
+		const isVirtualEnabled = experimentsHelper.isEnabled(
+			experiments,
+			EXPERIMENT_IDS.VIRTUAL_QUOTA_FALLBACK_PROVIDER,
+		)
 		if (isVirtualEnabled) {
 			return PROVIDERS
 		}

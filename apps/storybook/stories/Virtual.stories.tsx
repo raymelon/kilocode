@@ -5,14 +5,14 @@ import type { ProviderSettings, ProviderSettingsEntry } from "../../../packages/
 import { withExtensionState } from "../src/decorators/withExtensionState"
 
 const meta = {
-	title: "Settings/Providers/Virtual",
+	title: "Settings/Providers/Virtual Quota Fallback",
 	component: Virtual,
 	parameters: {
 		layout: "padded",
 		docs: {
 			description: {
 				component:
-					"Virtual provider settings component that allows configuring multiple providers with usage limits and automatic failover.",
+					"Virtual Quota Fallback Provider settings component that allows configuring multiple providers with quota limits and automatic fallback.",
 			},
 		},
 		extensionState: {
@@ -34,7 +34,7 @@ const meta = {
 				},
 				{
 					id: "virtual-1",
-					name: "Virtual Provider",
+					name: "Virtual Quota Fallback Provider",
 					apiProvider: "virtual" as const,
 				},
 				{
@@ -100,7 +100,7 @@ export const SingleProvider: Story = {
 	parameters: {
 		docs: {
 			description: {
-				story: "Shows the virtual provider configuration with a single Anthropic provider configured with comprehensive rate limits.",
+				story: "Shows the virtual quota fallback provider configuration with a single Anthropic provider configured with comprehensive quota limits.",
 			},
 		},
 	},
@@ -148,7 +148,7 @@ export const MultipleProviders: Story = {
 	parameters: {
 		docs: {
 			description: {
-				story: "Demonstrates a complete virtual provider setup with three different providers, each with different rate limiting strategies. The first provider (Anthropic) has comprehensive limits, the second (OpenAI) focuses on minute/hour limits, and the third (Gemini) only has daily limits.",
+				story: "Demonstrates a complete virtual quota fallback provider setup with three different providers, each with different quota limiting strategies. The first provider (Anthropic) has comprehensive limits, the second (OpenAI) focuses on minute/hour limits, and the third (Gemini) only has daily limits.",
 			},
 		},
 	},
@@ -295,14 +295,14 @@ export const NoAvailableProviders: Story = {
 	parameters: {
 		docs: {
 			description: {
-				story: "Edge case showing the component when no non-virtual provider profiles are available for configuration. Displays the appropriate message to guide users.",
+				story: "Edge case showing the component when no non-virtual quota fallback provider profiles are available for configuration. Displays the appropriate message to guide users.",
 			},
 		},
 		extensionState: {
 			listApiConfigMeta: [
 				{
 					id: "virtual-1",
-					name: "Virtual Provider",
+					name: "Virtual Quota Fallback Provider",
 					apiProvider: "virtual" as const,
 				},
 				{

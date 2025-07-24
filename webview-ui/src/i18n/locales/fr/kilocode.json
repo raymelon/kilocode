@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Paramètres du Fournisseur Virtuel",
-		"description": "Configurez une liste de fournisseurs, chacun avec ses propres limites. Lorsque les limites d'un fournisseur sont atteintes, le fournisseur suivant de la liste sera utilisé jusqu'à ce qu'il n'en reste plus.",
+		"title": "Paramètres du fournisseur de secours pour quota virtuel",
+		"description": "Configurez une liste de fournisseurs, chacun avec ses propres limites de quota. Lorsque les limites de quota d'un fournisseur sont atteintes, le fournisseur suivant dans la liste sera utilisé jusqu'à ce qu'il n'en reste plus.",
 		"providerLabel": "Fournisseur {{number}}",
 		"primaryProviderLabel": "Fournisseur {{number}} (Principal)",
 		"moveProviderUp": "Déplacer le fournisseur vers le haut",

@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Virtuele Provider Instellingen",
-		"description": "Configureer een lijst van providers, elk met hun eigen limieten. Wanneer de limieten van één provider zijn bereikt, wordt de volgende provider in de lijst gebruikt totdat er geen meer over zijn.",
+		"title": "Virtuele Quota Fallback Provider Instellingen",
+		"description": "Configureer een lijst van providers, elk met hun eigen quotalimieten. Wanneer de quotalimieten van één provider zijn bereikt, wordt de volgende provider in de lijst gebruikt totdat er geen meer over zijn.",
 		"providerLabel": "Provider {{number}}",
 		"primaryProviderLabel": "Provider {{number}} (Primair)",
 		"moveProviderUp": "Provider omhoog verplaatsen",

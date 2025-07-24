@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Pengaturan Penyedia Virtual",
-		"description": "Konfigurasikan daftar penyedia, masing-masing dengan batas mereka sendiri. Ketika batas satu penyedia tercapai, penyedia berikutnya dalam daftar akan digunakan sampai tidak ada yang tersisa.",
+		"title": "Pengaturan Penyedia Fallback Kuota Virtual",
+		"description": "Konfigurasikan daftar penyedia, masing-masing dengan batas kuota mereka sendiri. Ketika batas kuota salah satu penyedia tercapai, penyedia berikutnya dalam daftar akan digunakan sampai tidak ada lagi yang tersisa.",
 		"providerLabel": "Penyedia {{number}}",
 		"primaryProviderLabel": "Penyedia {{number}} (Utama)",
 		"moveProviderUp": "Pindahkan penyedia ke atas",

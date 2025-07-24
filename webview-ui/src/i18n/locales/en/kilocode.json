@@ -157,8 +157,8 @@
 		}
 	},
 	"virtualProvider": {
-		"title": "Virtual Provider Settings",
-		"description": "Configure a list of providers each with their own limits. When one providers limits are reached, the next provider in the list will be used until none remain.",
+		"title": "Virtual Quota Fallback Provider Settings",
+		"description": "Configure a list of providers each with their own quota limits. When one provider's quota limits are reached, the next provider in the list will be used until none remain.",
 		"providerLabel": "Provider {{number}}",
 		"primaryProviderLabel": "Provider {{number}} (Primary)",
 		"moveProviderUp": "Move provider up",

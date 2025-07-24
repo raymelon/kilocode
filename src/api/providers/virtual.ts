@@ -7,20 +7,20 @@ import { ApiStream } from "../transform/stream"
 
 import type { ApiHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { buildApiHandler } from "../index"
-import { virtualProviderDataSchema } from "../../../packages/types/src/provider-settings"
+import { virtualQuotaFallbackProviderDataSchema } from "../../../packages/types/src/provider-settings"
 import { UsageTracker } from "../../utils/usage-tracker"
 
-type VirtualProvider = z.infer<typeof virtualProviderDataSchema>
+type VirtualQuotaFallbackProvider = z.infer<typeof virtualQuotaFallbackProviderDataSchema>
 
 /**
- * Virtual API processor.
- * This handler is designed to call other API handlers.
+ * Virtual Quota Fallback Provider API processor.
+ * This handler is designed to call other API handlers with automatic fallback when quota limits are reached.
  */
 export class VirtualHandler implements ApiHandler {
 	private settingsManager: ProviderSettingsManager
 	private settings: ProviderSettings
 
-	private handlers: Array<{ handler: ApiHandler; providerId: string; config: VirtualProvider }> = []
+	private handlers: Array<{ handler: ApiHandler; providerId: string; config: VirtualQuotaFallbackProvider }> = []
 	private activeHandler: ApiHandler | undefined
 	private activeHandlerId: string | undefined
 	private usage: UsageTracker
@@ -127,7 +127,7 @@ export class VirtualHandler implements ApiHandler {
 	/**
 	 * Gets the providers array
 	 */
-	private getProvidersArray(): VirtualProvider[] {
+	private getProvidersArray(): VirtualQuotaFallbackProvider[] {
 		return this.settings.providers || []
 	}
 
@@ -156,7 +156,7 @@ export class VirtualHandler implements ApiHandler {
 		this.activeHandlerId = firstHandler.providerId
 	}
 
-	underLimit(providerData: VirtualProvider): boolean {
+	underLimit(providerData: VirtualQuotaFallbackProvider): boolean {
 		const { providerId, providerLimits: limits } = providerData
 		if (!providerId) {
 			return false
