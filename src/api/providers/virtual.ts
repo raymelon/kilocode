@@ -8,9 +8,20 @@ import { ApiStream } from "../transform/stream"
 import type { ApiHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { buildApiHandler } from "../index"
 import { virtualQuotaFallbackProviderDataSchema } from "../../../packages/types/src/provider-settings"
-import { UsageTracker } from "../../utils/usage-tracker"
+import { UsageTracker, type UsageWindow } from "../../utils/usage-tracker"
 
 type VirtualQuotaFallbackProvider = z.infer<typeof virtualQuotaFallbackProviderDataSchema>
+
+interface HandlerConfig {
+	handler: ApiHandler
+	providerId: string
+	config: VirtualQuotaFallbackProvider
+}
+
+interface UsageResult {
+	tokens: number
+	requests: number
+}
 
 /**
  * Virtual Quota Fallback Provider API processor.
@@ -20,7 +31,7 @@ export class VirtualHandler implements ApiHandler {
 	private settingsManager: ProviderSettingsManager
 	private settings: ProviderSettings
 
-	private handlers: Array<{ handler: ApiHandler; providerId: string; config: VirtualQuotaFallbackProvider }> = []
+	private handlers: HandlerConfig[] = []
 	private activeHandler: ApiHandler | undefined
 	private activeHandlerId: string | undefined
 	private usage: UsageTracker
@@ -54,7 +65,9 @@ export class VirtualHandler implements ApiHandler {
 			try {
 				const profile = await this.settingsManager.getProfile({ id: this.activeHandlerId })
 				providerName = profile.name
-			} catch (error) {}
+			} catch (error) {
+				console.warn(`Failed to get provider name for ${this.activeHandlerId}:`, error)
+			}
 		}
 
 		// Track request consumption - one request per createMessage call
@@ -62,7 +75,7 @@ export class VirtualHandler implements ApiHandler {
 			try {
 				await this.usage.consume(this.activeHandlerId, "requests", 1)
 			} catch (error) {
-				// console.warn("Failed to track request consumption:", error)
+				console.warn("Failed to track request consumption:", error)
 			}
 		}
 
@@ -76,7 +89,7 @@ export class VirtualHandler implements ApiHandler {
 						await this.usage.consume(this.activeHandlerId, "tokens", totalTokens)
 					}
 				} catch (error) {
-					// console.warn("Failed to track token consumption:", error)
+					console.warn("Failed to track token consumption:", error)
 				}
 			}
 			yield chunk
@@ -90,45 +103,42 @@ export class VirtualHandler implements ApiHandler {
 		const model = this.activeHandler.getModel()
 		return model
 	}
+
 	/**
 	 * Loads and validates the configured provider profiles from settings
 	 */
-	private async loadConfiguredProviders() {
+	private async loadConfiguredProviders(): Promise<void> {
 		this.handlers = []
 
-		// Get providers array - support both new format and legacy format
-		const providers = this.getProvidersArray()
+		const providers = this.settings.providers || []
 
-		// Validate and load each configured provider
-		for (let i = 0; i < providers.length; i++) {
-			const provider = providers[i]
-			if (provider && provider.providerId && provider.providerName) {
-				try {
-					const profile = await this.settingsManager.getProfile({ id: provider.providerId })
-
-					// Build the actual API handler using the profile
-					const apiHandler = buildApiHandler(profile)
-
-					if (apiHandler) {
-						this.handlers.push({
-							handler: apiHandler,
-							providerId: provider.providerId,
-							config: provider,
-						})
-					}
-				} catch (error) {
-					console.error(`  ❌ Failed to load provider ${i + 1} (${provider.providerName}): ${error}`)
-				}
+		// Load all providers in parallel for better performance
+		const handlerPromises = providers.map(async (provider, index) => {
+			if (!provider?.providerId || !provider?.providerName) {
+				return null
 			}
-		}
-		this.adjustActiveHandler()
-	}
 
-	/**
-	 * Gets the providers array
-	 */
-	private getProvidersArray(): VirtualQuotaFallbackProvider[] {
-		return this.settings.providers || []
+			try {
+				const profile = await this.settingsManager.getProfile({ id: provider.providerId })
+				const apiHandler = buildApiHandler(profile)
+
+				if (apiHandler) {
+					return {
+						handler: apiHandler,
+						providerId: provider.providerId,
+						config: provider,
+					} as HandlerConfig
+				}
+			} catch (error) {
+				console.error(`❌ Failed to load provider ${index + 1} (${provider.providerName}): ${error}`)
+			}
+			return null
+		})
+
+		const results = await Promise.all(handlerPromises)
+		this.handlers = results.filter((handler): handler is HandlerConfig => handler !== null)
+
+		await this.adjustActiveHandler()
 	}
 
 	/**
@@ -156,42 +166,42 @@ export class VirtualHandler implements ApiHandler {
 		this.activeHandlerId = firstHandler.providerId
 	}
 
+	/**
+	 * Checks if a provider is under its configured limits
+	 */
 	underLimit(providerData: VirtualQuotaFallbackProvider): boolean {
 		const { providerId, providerLimits: limits } = providerData
+
 		if (!providerId) {
 			return false
-		} //what does that even?
+		}
+
 		if (!limits) {
+			// Provider exists but has no limits set, so it can always be used
 			return true
-		} //The provider exists, but has no limits set, so we should use it always.
-		// Thats a weird config, but send it!
-		if (limits.requestsPerMinute || limits.tokensPerMinute) {
-			const minuteUsage = this.usage.getUsage(providerId, "minute")
-			if (limits.requestsPerMinute && minuteUsage.requests >= limits.requestsPerMinute) {
-				return false
-			}
-			if (limits.tokensPerMinute && minuteUsage.tokens >= limits.tokensPerMinute) {
-				return false
+		}
+
+		// Check limits for each time window
+		const timeWindows: Array<{ window: UsageWindow; requests?: number; tokens?: number }> = [
+			{ window: "minute", requests: limits.requestsPerMinute, tokens: limits.tokensPerMinute },
+			{ window: "hour", requests: limits.requestsPerHour, tokens: limits.tokensPerHour },
+			{ window: "day", requests: limits.requestsPerDay, tokens: limits.tokensPerDay },
+		]
+
+		for (const { window, requests: requestLimit, tokens: tokenLimit } of timeWindows) {
+			if (requestLimit || tokenLimit) {
+				const usage = this.usage.getUsage(providerId, window)
+
+				if (requestLimit && usage.requests >= requestLimit) {
+					return false
+				}
+
+				if (tokenLimit && usage.tokens >= tokenLimit) {
+					return false
+				}
 			}
 		}
-		if (limits.requestsPerHour || limits.tokensPerHour) {
-			const hourUsage = this.usage.getUsage(providerId, "hour")
-			if (limits.requestsPerHour && hourUsage.requests >= limits.requestsPerHour) {
-				return false
-			}
-			if (limits.tokensPerHour && hourUsage.tokens >= limits.tokensPerHour) {
-				return false
-			}
-		}
-		if (limits.requestsPerDay || limits.tokensPerDay) {
-			const dayUsage = this.usage.getUsage(providerId, "day")
-			if (limits.requestsPerDay && dayUsage.requests >= limits.requestsPerDay) {
-				return false
-			}
-			if (limits.tokensPerDay && dayUsage.tokens >= limits.tokensPerDay) {
-				return false
-			}
-		}
+
 		return true
 	}
 }

@@ -97,7 +97,8 @@ export class UsageTracker {
 				break
 		}
 
-		const allEvents = this.memento.get<UsageEvent[]>(USAGE_STORAGE_KEY, [])
+		// Get pruned events to improve memory efficiency
+		const allEvents = this.getPrunedEvents()
 
 		const relevantEvents = allEvents.filter(
 			(event) => event.providerId === providerId && event.timestamp >= startTime,

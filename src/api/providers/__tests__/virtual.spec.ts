@@ -223,7 +223,7 @@ describe("Virtual Quota Fallback Provider Suite", () => {
 			expect(handlers[1].handler).toBe(mockBackupHandler)
 			expect(handlers[1].providerId).toBe("p3")
 			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"  ❌ Failed to load provider 2 (secondary): Error: Failed to load profile",
+				"❌ Failed to load provider 2 (secondary): Error: Failed to load profile",
 			)
 
 			consoleErrorSpy.mockRestore()
