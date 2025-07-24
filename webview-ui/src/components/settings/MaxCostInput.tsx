@@ -1,26 +1,8 @@
+// kilocode_change - new file
 import { useTranslation } from "react-i18next"
 import { vscode } from "@/utils/vscode"
 import { useCallback } from "react"
-import { FormattedTextField, InputFormatter } from "../common/FormattedTextField"
-
-const unlimitedDecimalFormatter: InputFormatter<number> = {
-	parse: (input: string) => {
-		if (input.trim() === "") return undefined
-		const value = parseFloat(input)
-		return !isNaN(value) && value >= 0 ? value : undefined
-	},
-	format: (value: number | undefined) => {
-		return value === undefined || value === Infinity ? "" : value.toString()
-	},
-	filter: (input: string) => {
-		let cleanValue = input.replace(/[^0-9.]/g, "")
-		const parts = cleanValue.split(".")
-		if (parts.length > 2) {
-			cleanValue = parts[0] + "." + parts.slice(1).join("")
-		}
-		return cleanValue
-	},
-}
+import { FormattedTextField, unlimitedDecimalFormatter } from "../common/FormattedTextField"
 
 interface MaxCostInputProps {
 	allowedMaxCost?: number

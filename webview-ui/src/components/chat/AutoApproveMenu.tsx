@@ -24,7 +24,7 @@ const AutoApproveMenu = ({ style, initialExpanded = false }: AutoApproveMenuProp
 		setAutoApprovalEnabled,
 		alwaysApproveResubmit,
 		allowedMaxRequests,
-		allowedMaxCost,
+		allowedMaxCost, // kilcode_change
 		setAlwaysAllowReadOnly,
 		setAlwaysAllowWrite,
 		setAlwaysAllowExecute,
@@ -36,7 +36,7 @@ const AutoApproveMenu = ({ style, initialExpanded = false }: AutoApproveMenuProp
 		setAlwaysAllowFollowupQuestions,
 		setAlwaysAllowUpdateTodoList,
 		setAllowedMaxRequests,
-		setAllowedMaxCost,
+		setAllowedMaxCost, // kilcode_change
 	} = useExtensionState()
 
 	const { t } = useAppTranslation()

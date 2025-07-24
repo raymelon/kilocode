@@ -90,7 +90,7 @@ export interface WebviewMessage {
 		| "alwaysAllowMcp"
 		| "alwaysAllowModeSwitch"
 		| "allowedMaxRequests"
-		| "allowedMaxCost"
+		| "allowedMaxCost" // kilocode_change
 		| "alwaysAllowSubtasks"
 		| "alwaysAllowUpdateTodoList"
 		| "autoCondenseContext"

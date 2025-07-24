@@ -12,12 +12,13 @@ type AutoApprovedRequestLimitWarningProps = {
 
 export const AutoApprovedRequestLimitWarning = memo(({ message }: AutoApprovedRequestLimitWarningProps) => {
 	const [buttonClicked, setButtonClicked] = useState(false)
-	const { count, type = "requests" } = JSON.parse(message.text ?? "{}")
+	const { count, type = "requests" } = JSON.parse(message.text ?? "{}") // kilcode_change
 
 	if (buttonClicked) {
 		return null
 	}
 
+	// kilcode_change start
 	const isCostLimit = type === "cost"
 	const titleKey = isCostLimit
 		? "ask.autoApprovedCostLimitReached.title"
@@ -28,6 +29,7 @@ export const AutoApprovedRequestLimitWarning = memo(({ message }: AutoApprovedRe
 	const buttonKey = isCostLimit
 		? "ask.autoApprovedCostLimitReached.button"
 		: "ask.autoApprovedRequestLimitReached.button"
+	// kilcode_change end
 
 	return (
 		<>

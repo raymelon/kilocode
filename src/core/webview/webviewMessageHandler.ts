@@ -350,10 +350,12 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("allowedMaxRequests", message.value)
 			await provider.postStateToWebview()
 			break
+		// kilocode_change start
 		case "allowedMaxCost":
 			await updateGlobalState("allowedMaxCost", message.value)
 			await provider.postStateToWebview()
 			break
+		// kilocode_change end
 		case "alwaysAllowSubtasks":
 			await updateGlobalState("alwaysAllowSubtasks", message.bool)
 			await provider.postStateToWebview()

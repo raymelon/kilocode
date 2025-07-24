@@ -51,30 +51,6 @@ export const WithBothNodes: Story = {
 	},
 }
 
-export const PriceInput: Story = {
-	name: "Price Input Example",
-	args: {
-		placeholder: "0.00",
-		leftNodes: [<span key="dollar">$</span>],
-		rightNodes: [<span key="usd">USD</span>],
-		value: "25.99",
-	},
-}
-
-export const SearchInput: Story = {
-	name: "Search Input Example",
-	args: {
-		value: "",
-		placeholder: "Search files...",
-		leftNodes: [<span key="search">🔍</span>],
-		rightNodes: [
-			<span key="shortcut" style={{ fontSize: "11px", opacity: 0.7 }}>
-				⌘K
-			</span>,
-		],
-	},
-}
-
 export const Disabled: Story = {
 	args: {
 		placeholder: "Disabled input",

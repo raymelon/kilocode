@@ -165,7 +165,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	api: ApiHandler
 	private static lastGlobalApiRequestTime?: number
 	private consecutiveAutoApprovedRequestsCount: number = 0
-	private consecutiveAutoApprovedCost: number = 0
+	private consecutiveAutoApprovedCost: number = 0 // kilocode_change
 
 	/**
 	 * Reset the global API request timestamp. This should only be used for testing.

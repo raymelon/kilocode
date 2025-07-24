@@ -1,3 +1,4 @@
+// kilocode_change - new file
 import React from "react"
 import { useTranslation } from "react-i18next"
 import { MaxRequestsInput } from "./MaxRequestsInput"
