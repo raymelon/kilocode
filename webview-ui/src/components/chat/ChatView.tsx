@@ -587,11 +587,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setClineAsk(undefined)
 		setEnableButtons(false)
 
-		clearQueue() // kilocode_change - Clear queued state on chat reset
-
 		// Do not reset mode here as it should persist.
 		// setPrimaryButtonText(undefined)
 		// setSecondaryButtonText(undefined)
+		clearQueue() // kilocode_change - Clear queued state on chat reset
 		disableAutoScrollRef.current = false
 	}, [clearQueue])
 
