@@ -32,25 +32,30 @@ export function useQueuedMessages({
 	const [isQueuePaused, setIsQueuePaused] = useState(false)
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-	const addToQueue = useCallback((text: string, images: string[] = []) => {
-		const message: QueuedMessage = {
+	const createQueuedMessage = useCallback((text: string, images: string[] = []): QueuedMessage => {
+		return {
 			id: crypto.randomUUID(),
 			text: text.trim(),
 			images: [...images],
 			timestamp: Date.now(),
 		}
-		setQueuedMessages((prevQueue) => [...prevQueue, message])
 	}, [])
 
-	const addToQueueAtFront = useCallback((text: string, images: string[] = []) => {
-		const message: QueuedMessage = {
-			id: crypto.randomUUID(),
-			text: text.trim(),
-			images: [...images],
-			timestamp: Date.now(),
-		}
-		setQueuedMessages((prevQueue) => [message, ...prevQueue])
-	}, [])
+	const addToQueue = useCallback(
+		(text: string, images: string[] = []) => {
+			const message = createQueuedMessage(text, images)
+			setQueuedMessages((prevQueue) => [...prevQueue, message])
+		},
+		[createQueuedMessage],
+	)
+
+	const addToQueueAtFront = useCallback(
+		(text: string, images: string[] = []) => {
+			const message = createQueuedMessage(text, images)
+			setQueuedMessages((prevQueue) => [message, ...prevQueue])
+		},
+		[createQueuedMessage],
+	)
 
 	const removeFromQueue = useCallback((messageId: string) => {
 		setQueuedMessages((prevQueue) => prevQueue.filter((msg) => msg.id !== messageId))
@@ -77,7 +82,6 @@ export function useQueuedMessages({
 			timeoutRef.current = setTimeout(() => {
 				setQueuedMessages((prevQueue) => {
 					const nextMessage = prevQueue[0]
-					console.log("🚀 ~ useQueuedMessages ~ nextMessage:", nextMessage)
 					if (nextMessage) {
 						handleSendMessage(nextMessage.text, nextMessage.images)
 						return prevQueue.slice(1)
@@ -87,12 +91,9 @@ export function useQueuedMessages({
 			}, 500) // Updated to 500ms cooldown to prevent double sends
 		}
 
-		// Cleanup timeout on unmount
 		return () => {
-			if (timeoutRef.current) {
-				clearTimeout(timeoutRef.current)
-				timeoutRef.current = null
-			}
+			clearTimeout(timeoutRef.current ?? undefined)
+			timeoutRef.current = null
 		}
 	}, [canSendNextMessage, isQueuePaused, queuedMessages.length, handleSendMessage])
 

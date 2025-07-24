@@ -16,40 +16,44 @@ export function QueuedMessageListExample({ initialMessages = [], className }: Qu
 		setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
 	}
 
-	const addSampleTextMessage = () => {
-		const sampleTexts = [
-			"Write a function to calculate fibonacci numbers",
-			"Add error handling to the previous code",
-			"Refactor this component to use TypeScript",
-			"Create unit tests for the authentication service",
-			"Optimize the database query performance",
-			"Add responsive design to the dashboard",
-		]
-		const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)]
-		const newMessage = createSampleMessage(randomText)
+	const sampleTexts = [
+		"Write a function to calculate fibonacci numbers",
+		"Add error handling to the previous code",
+		"Refactor this component to use TypeScript",
+		"Create unit tests for the authentication service",
+		"Optimize the database query performance",
+		"Add responsive design to the dashboard",
+	]
+
+	const sampleImageMessages = [
+		{ text: "Fix the layout issue shown in this screenshot", images: ["screenshot.png"] },
+		{ text: "Implement the design from these mockups", images: ["design1.png", "design2.png"] },
+		{ text: "", images: ["error-log.png"] },
+		{
+			text: "Update the UI based on these wireframes",
+			images: ["wireframe1.jpg", "wireframe2.jpg", "wireframe3.jpg"],
+		},
+	]
+
+	const addSampleMessage = (messageData: { text: string; images?: string[] }) => {
+		const newMessage = createSampleMessage(messageData.text, messageData.images)
 		setMessages((prev) => [...prev, newMessage])
+	}
+
+	const addSampleTextMessage = () => {
+		const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)]
+		addSampleMessage({ text: randomText })
 	}
 
 	const addSampleImageMessage = () => {
-		const sampleImageMessages = [
-			{ text: "Fix the layout issue shown in this screenshot", images: ["screenshot.png"] },
-			{ text: "Implement the design from these mockups", images: ["design1.png", "design2.png"] },
-			{ text: "", images: ["error-log.png"] }, // Image-only message
-			{
-				text: "Update the UI based on these wireframes",
-				images: ["wireframe1.jpg", "wireframe2.jpg", "wireframe3.jpg"],
-			},
-		]
 		const randomMessage = sampleImageMessages[Math.floor(Math.random() * sampleImageMessages.length)]
-		const newMessage = createSampleMessage(randomMessage.text, randomMessage.images)
-		setMessages((prev) => [...prev, newMessage])
+		addSampleMessage({ text: randomMessage.text, images: randomMessage.images })
 	}
 
 	const addLongMessage = () => {
-		const longMessage = createSampleMessage(
-			"This is a very long message that demonstrates how the component handles text truncation and maintains proper layout even with extensive content that would normally overflow the container and cause layout issues in the user interface",
-		)
-		setMessages((prev) => [...prev, longMessage])
+		addSampleMessage({
+			text: "This is a very long message that demonstrates how the component handles text truncation and maintains proper layout even with extensive content that would normally overflow the container and cause layout issues in the user interface",
+		})
 	}
 
 	const clearAllMessages = () => {
