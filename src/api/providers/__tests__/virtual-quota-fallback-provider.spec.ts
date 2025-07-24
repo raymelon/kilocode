@@ -129,7 +129,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 		})
 	})
 
-	describe("VirtualHandler", () => {
+	describe("VirtualQuotaFallbackHandler", () => {
 		let mockSettingsManager: {
 			getProfile: any
 		}

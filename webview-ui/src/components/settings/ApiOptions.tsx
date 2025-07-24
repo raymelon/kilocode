@@ -29,7 +29,6 @@ import {
 } from "@roo-code/types"
 
 import { vscode } from "@src/utils/vscode"
-import { EXPERIMENT_IDS, experiments as experimentsHelper } from "@roo/experiments"
 import { validateApiConfigurationExcludingModelErrors, getModelValidationError } from "@src/utils/validate"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
@@ -76,7 +75,7 @@ import {
 	VSCodeLM,
 	XAI,
 	Cerebras, // kilocode_change
-	VirtualQuotaFallbackProvider,
+	VirtualQuotaFallbackProvider, // kilocode_change
 } from "./providers"
 
 import { MODELS_BY_PROVIDER, PROVIDERS } from "./constants"
@@ -120,7 +119,7 @@ const ApiOptions = ({
 	currentApiConfigName, // kilocode_change
 }: ApiOptionsProps) => {
 	const { t } = useAppTranslation()
-	const { organizationAllowList, experiments } = useExtensionState()
+	const { organizationAllowList } = useExtensionState()
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -365,19 +364,6 @@ const ApiOptions = ({
 		}
 	}, [selectedProvider])
 
-	// kilocode_change start - filter out virtual-quota-fallback based on experiment
-	const filteredProviders = useMemo(() => {
-		const isVirtualEnabled = experimentsHelper.isEnabled(
-			experiments,
-			EXPERIMENT_IDS.VIRTUAL_QUOTA_FALLBACK_PROVIDER,
-		)
-		if (isVirtualEnabled) {
-			return PROVIDERS
-		}
-		return PROVIDERS.filter((p) => p.value !== "virtual-quota-fallback")
-	}, [experiments])
-	// kilocode_change end - filter out virtual-quota-fallback based on experiment
-
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-1 relative">
@@ -397,7 +383,7 @@ const ApiOptions = ({
 					</SelectTrigger>
 					<SelectContent>
 						{/*  kilocode_change start: separator */}
-						{filteredProviders.map(({ value, label }, i) => (
+						{PROVIDERS.map(({ value, label }, i) => (
 							<Fragment key={value}>
 								<SelectItem value={value}>{label}</SelectItem>
 								{i === 0 ? <SelectSeparator /> : null}

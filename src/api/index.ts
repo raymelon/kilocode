@@ -29,8 +29,8 @@ import {
 	ChutesHandler,
 	LiteLLMHandler,
 	CerebrasHandler, // kilocode_change
+	VirtualQuotaFallbackHandler, // kilocode_change
 	ClaudeCodeHandler,
-	VirtualHandler,
 } from "./providers"
 // kilocode_change start
 import { FireworksHandler } from "./providers/fireworks"
@@ -112,11 +112,11 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 			return new RequestyHandler(options)
 		case "human-relay":
 			return new HumanRelayHandler()
-		case "virtual-quota-fallback":
-			return new VirtualHandler(options)
 		// kilocode_change start
 		case "fireworks":
 			return new FireworksHandler(options)
+		case "virtual-quota-fallback":
+			return new VirtualQuotaFallbackHandler(options)
 		// kilocode_change end
 		case "fake-ai":
 			return new FakeAIHandler(options)

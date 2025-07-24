@@ -2376,6 +2376,7 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
+		// kilocode_change start - add clearUsageData
 		case "clearUsageData": {
 			try {
 				const usageTracker = UsageTracker.getInstance()
@@ -2388,12 +2389,13 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
-		// kilocode_change start
+		// kilocode_change start - add toggleTaskFavorite
 		case "toggleTaskFavorite":
 			if (message.text) {
 				await provider.toggleTaskFavorite(message.text)
 			}
 			break
+		// kilocode_change start - add fixMermaidSyntax
 		case "fixMermaidSyntax":
 			if (message.text && message.requestId) {
 				try {

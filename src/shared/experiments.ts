@@ -4,7 +4,6 @@ export const EXPERIMENT_IDS = {
 	AUTOCOMPLETE: "autocomplete", // kilocode_change
 	MULTI_FILE_APPLY_DIFF: "multiFileApplyDiff",
 	POWER_STEERING: "powerSteering",
-	VIRTUAL_QUOTA_FALLBACK_PROVIDER: "virtualQuotaFallbackProvider",
 } as const satisfies Record<string, ExperimentId>
 
 type _AssertExperimentIds = AssertEqual<Equals<ExperimentId, Values<typeof EXPERIMENT_IDS>>>
@@ -19,7 +18,6 @@ export const experimentConfigsMap: Record<ExperimentKey, ExperimentConfig> = {
 	AUTOCOMPLETE: { enabled: false }, // kilocode_change
 	MULTI_FILE_APPLY_DIFF: { enabled: false },
 	POWER_STEERING: { enabled: false },
-	VIRTUAL_QUOTA_FALLBACK_PROVIDER: { enabled: false },
 }
 
 export const experimentDefault = Object.fromEntries(

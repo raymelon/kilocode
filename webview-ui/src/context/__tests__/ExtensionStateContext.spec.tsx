@@ -268,7 +268,6 @@ describe("mergeExtensionState", () => {
 				disableCompletionCommand: false,
 				concurrentFileReads: true,
 				multiFileApplyDiff: true,
-				virtualQuotaFallbackProvider: true,
 			} as Record<ExperimentId, boolean>,
 		}
 
@@ -286,7 +285,6 @@ describe("mergeExtensionState", () => {
 			disableCompletionCommand: false,
 			concurrentFileReads: true,
 			multiFileApplyDiff: true,
-			virtualQuotaFallbackProvider: true,
 		})
 	})
 })

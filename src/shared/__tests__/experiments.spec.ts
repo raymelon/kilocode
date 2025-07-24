@@ -34,22 +34,12 @@ describe("experiments", () => {
 		})
 	})
 
-	describe("VIRTUAL_QUOTA_FALLBACK_PROVIDER", () => {
-		it("is configured correctly", () => {
-			expect(EXPERIMENT_IDS.VIRTUAL_QUOTA_FALLBACK_PROVIDER).toBe("virtualQuotaFallbackProvider")
-			expect(experimentConfigsMap.VIRTUAL_QUOTA_FALLBACK_PROVIDER).toMatchObject({
-				enabled: false,
-			})
-		})
-	})
-
 	describe("isEnabled", () => {
 		it("returns false when POWER_STEERING experiment is not enabled", () => {
 			const experiments: Record<ExperimentId, boolean> = {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
-				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})
@@ -59,7 +49,6 @@ describe("experiments", () => {
 				autocomplete: true,
 				powerSteering: true,
 				multiFileApplyDiff: false,
-				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(true)
 		})
@@ -69,7 +58,6 @@ describe("experiments", () => {
 				autocomplete: false,
 				powerSteering: false,
 				multiFileApplyDiff: false,
-				virtualQuotaFallbackProvider: false,
 			}
 			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.POWER_STEERING)).toBe(false)
 		})

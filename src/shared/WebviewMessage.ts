@@ -207,10 +207,10 @@ export interface WebviewMessage {
 		| "clearIndexData"
 		| "indexingStatusUpdate"
 		| "indexCleared"
-		| "clearUsageData"
 		| "focusPanelRequest"
 		| "profileThresholds"
 		| "setHistoryPreviewCollapsed"
+		| "clearUsageData" // kilocode_change
 		| "showTaskTimeline" // kilocode_change
 		| "toggleTaskFavorite" // kilocode_change
 		| "fixMermaidSyntax" // kilocode_change
