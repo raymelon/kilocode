@@ -22,7 +22,7 @@ import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsMa
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { buildApiHandler } from "../../index"
 import { VirtualHandler } from "../virtual"
-import { UsageTracker, type UsageEvent } from "../usage-tracker"
+import { UsageEvent, UsageTracker } from "../../../utils/usage-tracker"
 
 // Mock dependencies
 vitest.mock("../../../core/config/ProviderSettingsManager")

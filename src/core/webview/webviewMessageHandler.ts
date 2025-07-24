@@ -55,12 +55,12 @@ import { getCommand } from "../../utils/commands"
 import { toggleWorkflow, toggleRule, createRuleFile, deleteRuleFile } from "./kilorules"
 import { mermaidFixPrompt } from "../prompts/utilities/mermaid" // kilocode_change
 import { editMessageHandler } from "../kilocode/webview/webviewMessageHandlerUtils" // kilocode_change
-import { UsageTracker } from "../../api/providers/usage-tracker"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
 import { MarketplaceManager, MarketplaceItemType } from "../../services/marketplace"
 import { setPendingTodoList } from "../tools/updateTodoListTool"
+import { UsageTracker } from "../../utils/usage-tracker"
 
 export const webviewMessageHandler = async (
 	provider: ClineProvider,
