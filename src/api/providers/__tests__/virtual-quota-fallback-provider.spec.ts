@@ -1,4 +1,4 @@
-// npx vitest run src/api/providers/__tests__/virtual.spec.ts
+// npx vitest run src/api/providers/__tests__/virtual-quota-fallback-provider.spec.spec.ts
 
 // Mock vscode first to avoid import errors
 vitest.mock("vscode", () => ({
@@ -21,7 +21,7 @@ import type { ExtensionContext } from "vscode"
 import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { buildApiHandler } from "../../index"
-import { VirtualHandler } from "../virtual"
+import { VirtualHandler } from "../virtual-quota-fallback"
 import { UsageEvent, UsageTracker } from "../../../utils/usage-tracker"
 
 // Mock dependencies
@@ -29,7 +29,7 @@ vitest.mock("../../../core/config/ProviderSettingsManager")
 vitest.mock("../../index")
 vitest.mock("../../../core/config/ContextProxy")
 
-describe("Virtual Quota Fallback Provider Suite", () => {
+describe("VirtualQuotaFallbackProvider", () => {
 	describe("UsageTracker", () => {
 		let usageTracker: UsageTracker
 		let mockContext: ExtensionContext

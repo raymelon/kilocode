@@ -18,11 +18,6 @@ interface HandlerConfig {
 	config: VirtualQuotaFallbackProvider
 }
 
-interface UsageResult {
-	tokens: number
-	requests: number
-}
-
 /**
  * Virtual Quota Fallback Provider API processor.
  * This handler is designed to call other API handlers with automatic fallback when quota limits are reached.

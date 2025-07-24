@@ -19,5 +19,5 @@ export { Vertex } from "./Vertex"
 export { VSCodeLM } from "./VSCodeLM"
 export { XAI } from "./XAI"
 export { LiteLLM } from "./LiteLLM"
-export { Virtual } from "./Virtual"
+export { VirtualQuotaFallbackProvider as Virtual } from "./VirtualQuotaFallbackProvider"
 export { Cerebras } from "./Cerebras" // kilocode_change

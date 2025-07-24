@@ -20,7 +20,7 @@ import {
 } from "@src/components/ui/alert-dialog"
 import { inputEventTransform } from "../transforms"
 
-type VirtualProps = {
+type VirtualQuotaFallbackProviderProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
 }
@@ -44,7 +44,10 @@ type LimitInputsProps = {
 	onProviderChange: (index: number, provider: VirtualQuotaFallbackProviderData) => void
 }
 
-export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
+export const VirtualQuotaFallbackProvider = ({
+	apiConfiguration,
+	setApiConfigurationField,
+}: VirtualQuotaFallbackProviderProps) => {
 	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
 	const [isAlertOpen, setIsAlertOpen] = useState(false)
 	const { t } = useTranslation()
@@ -57,7 +60,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 	const availableProfiles = useMemo(() => {
 		return (
 			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
-				return profile.apiProvider !== "virtual" && profile.id !== currentProfileId
+				return profile.apiProvider !== "virtual-quota-fallback" && profile.id !== currentProfileId
 			}) || []
 		)
 	}, [listApiConfigMeta, currentProfileId])

@@ -373,7 +373,7 @@ const ApiOptions = ({
 		if (isVirtualEnabled) {
 			return PROVIDERS
 		}
-		return PROVIDERS.filter((p) => p.value !== "virtual")
+		return PROVIDERS.filter((p) => p.value !== "virtual-quota-fallback")
 	}, [experiments])
 
 	return (
@@ -574,7 +574,7 @@ const ApiOptions = ({
 			{selectedProvider === "cerebras" && (
 				<Cerebras apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
-			{selectedProvider === "virtual" && (
+			{selectedProvider === "virtual-quota-fallback" && (
 				<Virtual apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 			{/* kilocode_change end */}
