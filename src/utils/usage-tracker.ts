@@ -1,5 +1,5 @@
 import type { ExtensionContext, Memento } from "vscode"
-import { ContextProxy } from "../../core/config/ContextProxy"
+import { ContextProxy } from "../core/config/ContextProxy"
 
 export type UsageType = "tokens" | "requests"
 export type UsageWindow = "minute" | "hour" | "day"

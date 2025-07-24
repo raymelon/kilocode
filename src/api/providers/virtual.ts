@@ -8,8 +8,7 @@ import { ApiStream } from "../transform/stream"
 import type { ApiHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { buildApiHandler } from "../index"
 import { virtualProviderDataSchema } from "../../../packages/types/src/provider-settings"
-import { EXPERIMENT_IDS, experiments as Experiments } from "../../shared/experiments"
-import { UsageTracker } from "./usage-tracker"
+import { UsageTracker } from "../../utils/usage-tracker"
 
 type VirtualProvider = z.infer<typeof virtualProviderDataSchema>
 
