@@ -68,7 +68,6 @@ export function QueuedMessageList({
 									onResumeQueue()
 								}}
 								className="ml-1"
-								variant="subtle"
 								size="sm"
 								title="Resume queue">
 								<Play size={10} className="text-vscode-charts-green" />

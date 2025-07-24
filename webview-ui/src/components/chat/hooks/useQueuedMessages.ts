@@ -88,7 +88,7 @@ export function useQueuedMessages({
 					}
 					return prevQueue
 				})
-			}, 500) // Updated to 500ms cooldown to prevent double sends
+			}, 500) // prevent double sends by waiting a bit
 		}
 
 		return () => {

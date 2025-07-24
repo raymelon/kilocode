@@ -33,7 +33,7 @@ export function QueuedMessageRow({ message, onRemove }: QueuedMessageRowProps) {
 				)}
 			</div>
 			<motion.div transition={{ duration: 0.1 }} className="flex-shrink-0">
-				<IconButton onClick={handleRemove} title="Remove queued message" variant="default" size="md">
+				<IconButton onClick={handleRemove} title="Remove queued message" size="md">
 					<Trash2 size={14} />
 				</IconButton>
 			</motion.div>
