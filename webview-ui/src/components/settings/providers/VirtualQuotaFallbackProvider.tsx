@@ -65,7 +65,6 @@ export const VirtualQuotaFallbackProvider = ({
 		)
 	}, [listApiConfigMeta, currentProfileId])
 
-	// Get profiles array
 	const profiles = useMemo(() => {
 		return apiConfiguration.profiles && apiConfiguration.profiles.length > 0 ? apiConfiguration.profiles : [{}]
 	}, [apiConfiguration.profiles])
@@ -115,30 +114,33 @@ export const VirtualQuotaFallbackProvider = ({
 		},
 		[profiles, updateProfiles],
 	)
+	const swapProfiles = useCallback(
+		(fromIndex: number, toIndex: number) => {
+			const newProfiles = [...profiles]
+			const temp = newProfiles[fromIndex]
+			newProfiles[fromIndex] = newProfiles[toIndex]
+			newProfiles[toIndex] = temp
+			updateProfiles(newProfiles)
+		},
+		[profiles, updateProfiles],
+	)
+
 	const moveProfileUp = useCallback(
 		(index: number) => {
 			if (index > 0) {
-				const newProfiles = [...profiles]
-				const temp = newProfiles[index]
-				newProfiles[index] = newProfiles[index - 1]
-				newProfiles[index - 1] = temp
-				updateProfiles(newProfiles)
+				swapProfiles(index, index - 1)
 			}
 		},
-		[profiles, updateProfiles],
+		[swapProfiles],
 	)
 
 	const moveProfileDown = useCallback(
 		(index: number) => {
 			if (index < profiles.length - 1) {
-				const newProfiles = [...profiles]
-				const temp = newProfiles[index]
-				newProfiles[index] = newProfiles[index + 1]
-				newProfiles[index + 1] = temp
-				updateProfiles(newProfiles)
+				swapProfiles(index, index + 1)
 			}
 		},
-		[profiles, updateProfiles],
+		[profiles.length, swapProfiles],
 	)
 
 	const handleClearUsageData = useCallback(() => {
@@ -295,7 +297,7 @@ export const VirtualQuotaFallbackProvider = ({
 
 const VirtualLimitInputs = ({ profile, index, onProfileChange }: LimitInputsProps) => {
 	const handleLimitChange = useCallback(
-		(limitKey: keyof NonNullable<VirtualQuotaFallbackProviderData["profileLimits"]>) => (event: any) => {
+		(limitKey: keyof NonNullable<VirtualQuotaFallbackProviderData["profileLimits"]>) => (event: unknown) => {
 			const value = inputEventTransform(event)
 			const updatedProfile = {
 				...profile,
