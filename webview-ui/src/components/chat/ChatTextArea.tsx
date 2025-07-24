@@ -74,11 +74,13 @@ interface ChatTextAreaProps {
 	// Edit mode props
 	isEditMode?: boolean
 	onCancel?: () => void
-	onInterjection?: () => void // kilocode_change: Add interjection handler prop
-	queuedMessages?: QueuedMessage[] // kilocode_change: Add message queue prop
-	isQueuePaused?: boolean // kilocode_change: Add queue paused state prop
-	onRemoveQueuedMessage?: (messageId: string) => void // kilocode_change: Add remove callback prop
-	onResumeQueue?: () => void // kilocode_change: Add resume queue function prop
+	// kilocode_change - start message queuing props
+	isQueuePaused?: boolean // kilocode_change
+	queuedMessages?: QueuedMessage[] // kilocode_change
+	onInterjection?: () => void // kilocode_change
+	onRemoveQueuedMessage?: (messageId: string) => void // kilocode_change
+	onResumeQueue?: () => void // kilocode_change
+	// kilocode_change - end message queuing props
 }
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -100,11 +102,13 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			modeShortcutText,
 			isEditMode = false,
 			onCancel,
-			onInterjection, // kilocode_change: Add interjection handler prop
-			queuedMessages, // kilocode_change: Add message queue prop
-			onRemoveQueuedMessage, // kilocode_change: Add remove callback prop
-			isQueuePaused, // kilocode_change: Add queue paused state prop
-			onResumeQueue, // kilocode_change: Add resume queue function prop
+			// kilocode_change - start message queuing props
+			onInterjection, // kilocode_change
+			queuedMessages, // kilocode_change
+			onRemoveQueuedMessage, // kilocode_change
+			isQueuePaused, // kilocode_change
+			onResumeQueue, // kilocode_change
+			// kilocode_change - end message queuing props
 		},
 		ref,
 	) => {
@@ -599,8 +603,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					event.preventDefault()
 
 					// Always call onSend - ChatView's handleSendMessage will handle queuing when sendingDisabled
-					resetHistoryNavigation()
-					onSend()
+					resetHistoryNavigation() // kilocode_change
+					onSend() // kilocode_change
 				}
 
 				if (event.key === "Backspace" && !isComposing) {
@@ -656,7 +660,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				handleSlashCommandsSelect,
 				selectedSlashCommandsIndex,
 				slashCommandsQuery,
+				onInterjection, // kilocode_change: Add missing dependency
 				// kilocode_change end
+				// sendingDisabled,
 				onSend,
 				showContextMenu,
 				searchQuery,
@@ -672,7 +678,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				fileSearchResults,
 				handleHistoryNavigation,
 				resetHistoryNavigation,
-				onInterjection, // kilocode_change: Add missing dependency
 			],
 		)
 
@@ -1769,6 +1774,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						/>
 					)}
 				</div>
+
 				{selectedImages.length > 0 && (
 					<Thumbnails
 						images={selectedImages}
@@ -1781,6 +1787,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						}}
 					/>
 				)}
+
 				{/* kilocode_change: renderNonEditModeControls moved */}
 			</div>
 		)

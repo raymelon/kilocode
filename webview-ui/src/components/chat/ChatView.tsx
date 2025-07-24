@@ -36,12 +36,13 @@ import { buildDocLink } from "@src/utils/docLinks"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
-import { useQueuedMessages } from "./hooks/useQueuedMessages"
 import { StandardTooltip } from "@src/components/ui"
 import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@src/hooks/useAutoApprovalToggles"
 
+import { noop } from "framer-motion" // kilocode_change
 import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
+import { useQueuedMessages } from "./hooks/useQueuedMessages" // kilocode_change
 // import VersionIndicator from "../common/VersionIndicator" // kilocode_change: unused
 import { useTaskSearch } from "../history/useTaskSearch"
 import HistoryPreview from "../history/HistoryPreview"
@@ -58,7 +59,6 @@ import { showSystemNotification } from "@/kilocode/helpers" // kilocode_change
 import { CheckpointWarning } from "./CheckpointWarning"
 import { IdeaSuggestionsBox } from "../kilocode/chat/IdeaSuggestionsBox" // kilocode_change
 import { getLatestTodo } from "@roo/todo"
-import { noop } from "framer-motion"
 
 export interface ChatViewProps {
 	isHidden: boolean
@@ -200,9 +200,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [])
 
-	// kilocode_change start: Use consolidated message queue hook
+	// kilocode_change start - Use consolidated message queue hook
 	const sendMessageRef = useRef<typeof handleSendMessage>(noop)
-	// kilocode_change end: Use consolidated message queue hook
+	// kilocode_change end - Use consolidated message queue hook
 
 	const isProfileDisabled = useMemo(
 		() => !!apiConfiguration && !ProfileValidator.isProfileAllowed(apiConfiguration, organizationAllowList),
@@ -540,6 +540,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return false
 	}, [modifiedMessages, clineAsk, enableButtons, primaryButtonText])
 
+	// kilocode_change start - canSendNextMessage and useQueuedMessages
 	// Simplified logic to determine if it's safe to send the next queued message
 	const canSendNextMessage = useMemo(() => {
 		return (
@@ -551,8 +552,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				clineAsk === "resume_task")
 		)
 	}, [sendingDisabled, isStreaming, clineAsk])
-
-	// kilocode_change start: Initialize queued messages hook with canSendNextMessage
 	const {
 		queuedMessages,
 		addToQueue,
@@ -563,7 +562,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		resumeQueue,
 		isQueuePaused,
 	} = useQueuedMessages({ canSendNextMessage, handleSendMessage: sendMessageRef.current })
-	// kilocode_change end: Initialize queued messages hook with canSendNextMessage
+	// kilocode_change end - canSendNextMessage and useQueuedMessages
 
 	const markFollowUpAsAnswered = useCallback(() => {
 		const lastFollowUpMessage = messagesRef.current.findLast((msg) => msg.ask === "followup")
@@ -604,10 +603,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				// Mark that user has responded - this prevents any pending auto-approvals
 				userRespondedRef.current = true
 
-				// Resume queue when user sends a new message
-				resumeQueue()
-
 				// kilocode_change start: Enhanced queued state logic - clear input and add to queue
+				resumeQueue() // resume queue when user sends a new message
 				if (sendingDisabled) {
 					addToQueue(text, images)
 					setInputValue("")
@@ -684,20 +681,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	// kilocode_change start: Add interjection handler for Alt/Option + Enter
 	const handleInterjection = useCallback(() => {
-		if (isStreaming) {
+		const trimmedInput = inputValue.trim()
+		if (trimmedInput || selectedImages.length > 0) {
 			// Add message to front of queue for immediate processing after cancel
-			const trimmedInput = inputValue.trim()
-			if (trimmedInput || selectedImages.length > 0) {
-				addToQueueAtFront(trimmedInput, selectedImages)
-				setInputValue("")
-				setSelectedImages([])
-			}
-
-			// Cancel current operation - but don't pause queue (unlike manual cancel)
-			vscode.postMessage({ type: "cancelTask" })
-			setDidClickCancel(true)
+			addToQueueAtFront(trimmedInput, selectedImages)
+			setInputValue("")
+			setSelectedImages([])
 		}
-	}, [isStreaming, inputValue, selectedImages, addToQueueAtFront])
+
+		// Cancel current operation - but don't pause queue (unlike manual cancel)
+		vscode.postMessage({ type: "cancelTask" })
+		setDidClickCancel(true)
+	}, [inputValue, selectedImages, addToQueueAtFront])
 	// kilocode_change end: Add interjection handler for Alt/Option + Enter
 
 	// This logic depends on the useEffect[messages] above to set clineAsk,
