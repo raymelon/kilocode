@@ -3,7 +3,7 @@ import React from "react"
 import { motion } from "framer-motion"
 import { Trash2 } from "lucide-react"
 import type { QueuedMessage } from "./hooks/useQueuedMessages"
-import { cn } from "@/lib/utils"
+import { IconButton } from "../ui/IconButton"
 
 interface QueuedMessageRowProps {
 	message: QueuedMessage
@@ -21,7 +21,7 @@ export function QueuedMessageRow({ message, onRemove }: QueuedMessageRowProps) {
 	}
 
 	return (
-		<motion.div className="flex items-center px-2 gap-2 bg-vscode-editor-background rounded">
+		<motion.div className="flex items-center px-2 gap-2 bg-vscode-editor-background">
 			<div className="flex-1 min-w-0 text-[12px] flex items-center gap-2">
 				<div className="text-vscode-foreground truncate" title={message.text}>
 					{displayText}
@@ -33,21 +33,9 @@ export function QueuedMessageRow({ message, onRemove }: QueuedMessageRowProps) {
 				)}
 			</div>
 			<motion.div transition={{ duration: 0.1 }} className="flex-shrink-0">
-				<button
-					onClick={handleRemove}
-					title="Remove queued message"
-					className={cn(
-						"cursor-pointer relative inline-flex items-center justify-center",
-						"bg-transparent border-none p-1.5",
-						"rounded-md min-w-[28px] min-h-[28px]",
-						"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-						"transition-all duration-150",
-						"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
-						"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
-						"active:bg-[rgba(255,255,255,0.1)]",
-					)}>
+				<IconButton onClick={handleRemove} title="Remove queued message" variant="default" size="md">
 					<Trash2 size={14} />
-				</button>
+				</IconButton>
 			</motion.div>
 		</motion.div>
 	)

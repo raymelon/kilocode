@@ -43,7 +43,7 @@ describe("useQueuedMessages", () => {
 
 		rerender({ canSendNextMessage: true })
 
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("First message", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
@@ -54,7 +54,9 @@ describe("useQueuedMessages", () => {
 		rerender({ canSendNextMessage: true })
 		rerender({ canSendNextMessage: true })
 
-		advanceTime(100)
+		// Need to wait for cooldown to finish before next message can be sent
+		advanceTime(500)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Second message", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
@@ -79,23 +81,21 @@ describe("useQueuedMessages", () => {
 		expect(result.current.queuedMessages).toHaveLength(3)
 
 		rerender({ canSendNextMessage: true })
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 1", [])
 		expect(result.current.queuedMessages).toHaveLength(2)
 		mockHandleSendMessage.mockClear()
 
 		rerender({ canSendNextMessage: true })
-		rerender({ canSendNextMessage: true })
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 2", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
 		mockHandleSendMessage.mockClear()
 
 		rerender({ canSendNextMessage: true })
-		rerender({ canSendNextMessage: true })
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 3", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
@@ -142,7 +142,7 @@ describe("useQueuedMessages", () => {
 
 		unmount()
 
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).not.toHaveBeenCalled()
 	})
@@ -220,7 +220,7 @@ describe("useQueuedMessages", () => {
 		expect(result.current.queuedMessages[0].text).toBe("Urgent message")
 
 		rerender({ canSendNextMessage: true })
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Urgent message", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
@@ -265,7 +265,7 @@ describe("useQueuedMessages", () => {
 		rerender({ canSendNextMessage: true })
 
 		act(() => {
-			advanceTime(100)
+			advanceTime(500)
 		})
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Interjected message", [])
@@ -279,7 +279,9 @@ describe("useQueuedMessages", () => {
 		rerender({ canSendNextMessage: true })
 
 		act(() => {
-			advanceTime(100)
+			// Need to wait for cooldown to finish before next message can be sent
+			advanceTime(500)
+			advanceTime(500)
 		})
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Regular message", [])
@@ -311,7 +313,7 @@ describe("useQueuedMessages", () => {
 
 		rerender({ canSendNextMessage: true })
 
-		advanceTime(100)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("First queued message", [])
 		expect(result.current.queuedMessages).toHaveLength(1)
@@ -322,7 +324,9 @@ describe("useQueuedMessages", () => {
 		rerender({ canSendNextMessage: true })
 		rerender({ canSendNextMessage: true })
 
-		advanceTime(100)
+		// Need to wait for cooldown to finish before next message can be sent
+		advanceTime(500)
+		advanceTime(500)
 
 		expect(mockHandleSendMessage).toHaveBeenCalledWith("Second queued message", [])
 		expect(result.current.queuedMessages).toHaveLength(0)
@@ -379,7 +383,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -404,7 +408,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -414,7 +418,7 @@ describe("useQueuedMessages", () => {
 			})
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).toHaveBeenCalledWith("Test message", [])
@@ -440,7 +444,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -451,7 +455,7 @@ describe("useQueuedMessages", () => {
 			})
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).toHaveBeenCalledWith("Message 1", [])
@@ -476,7 +480,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).toHaveBeenCalledWith("Test message", [])
@@ -489,7 +493,7 @@ describe("useQueuedMessages", () => {
 
 			// Queue is paused and agent is idle - should not submit
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -498,7 +502,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: false })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -509,7 +513,7 @@ describe("useQueuedMessages", () => {
 			})
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -518,7 +522,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).toHaveBeenCalledWith("Second message", [])
@@ -550,7 +554,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).not.toHaveBeenCalled()
@@ -563,7 +567,7 @@ describe("useQueuedMessages", () => {
 			})
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			expect(mockHandleSendMessage).toHaveBeenCalledWith("Intercepted message", [])
@@ -596,7 +600,7 @@ describe("useQueuedMessages", () => {
 			rerender({ canSendNextMessage: true })
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			// No auto-submission because queue is paused
@@ -613,7 +617,7 @@ describe("useQueuedMessages", () => {
 			expect(result.current.isQueuePaused).toBe(false)
 
 			act(() => {
-				advanceTime(100)
+				advanceTime(500)
 			})
 
 			// First queued message should be processed

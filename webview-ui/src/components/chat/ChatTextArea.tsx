@@ -1669,7 +1669,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"box-border",
 				)}>
 				{/* kilocode_change start - QueuedMessageList */}
-				<div className="mb-[-12px]">
+				<div className="mb-[calc(var(--spacing)*-1-2px)]">
 					<QueuedMessageList
 						messages={queuedMessages || []}
 						onRemoveMessage={onRemoveQueuedMessage || (() => {})}

@@ -70,23 +70,21 @@ export function useQueuedMessages({
 
 	// Auto-submit when it's safe to send and there are queued messages (only if queue is not paused)
 	useEffect(() => {
-		// Clear any existing timeout
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current)
-			timeoutRef.current = null
-		}
+		clearTimeout(timeoutRef.current ?? undefined)
+		timeoutRef.current = null
 
 		if (canSendNextMessage && !isQueuePaused && queuedMessages.length > 0) {
 			timeoutRef.current = setTimeout(() => {
 				setQueuedMessages((prevQueue) => {
 					const nextMessage = prevQueue[0]
+					console.log("🚀 ~ useQueuedMessages ~ nextMessage:", nextMessage)
 					if (nextMessage) {
 						handleSendMessage(nextMessage.text, nextMessage.images)
 						return prevQueue.slice(1)
 					}
 					return prevQueue
 				})
-			}, 100) // Small delay to match test expectations
+			}, 500) // Updated to 500ms cooldown to prevent double sends
 		}
 
 		// Cleanup timeout on unmount
