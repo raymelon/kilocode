@@ -602,9 +602,16 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				if (event.key === "Enter" && !event.shiftKey && !isComposing) {
 					event.preventDefault()
 
-					// Always call onSend - ChatView's handleSendMessage will handle queuing when sendingDisabled
+					// kilocode_change start - Always call onSend
+					// ChatView's handleSendMessage will handle queuing when sendingDisabled
+					// if (!sendingDisabled) {
+					// 	// Reset history navigation state when sending
+					// 	resetHistoryNavigation()
+					// 	onSend()
+					// }
 					resetHistoryNavigation() // kilocode_change
 					onSend() // kilocode_change
+					// kilocode_change end - Always call onSend
 				}
 
 				if (event.key === "Backspace" && !isComposing) {
@@ -660,7 +667,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				handleSlashCommandsSelect,
 				selectedSlashCommandsIndex,
 				slashCommandsQuery,
-				onInterjection, // kilocode_change: Add missing dependency
+				onInterjection, // kilocode_change
 				// kilocode_change end
 				// sendingDisabled,
 				onSend,

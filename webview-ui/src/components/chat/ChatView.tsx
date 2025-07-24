@@ -200,9 +200,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 	}, [])
 
-	// kilocode_change start - Use consolidated message queue hook
-	const sendMessageRef = useRef<typeof handleSendMessage>(noop)
-	// kilocode_change end - Use consolidated message queue hook
+	const sendMessageRef = useRef<typeof handleSendMessage>(noop) // kilocode_change
 
 	const isProfileDisabled = useMemo(
 		() => !!apiConfiguration && !ProfileValidator.isProfileAllowed(apiConfiguration, organizationAllowList),
@@ -651,7 +649,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 
 				// handleChatReset() - kilocode_change - manually reset the chat
-
 				setInputValue("") // kilocode_change - clear after sending message
 				setSelectedImages([]) // kilocode_change - clear after sending message
 				setSendingDisabled(true) // indicate agent is now busy
