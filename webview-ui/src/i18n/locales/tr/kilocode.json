@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Sağlayıcı seç...",
 		"addProvider": "Sağlayıcı Ekle",
 		"noProvidersAvailable": "Kullanılabilir sağlayıcı profili yok. Lütfen önce en az bir sanal olmayan sağlayıcı profili yapılandırın.",
-		"tokensPerMinute": "Token/dk",
-		"tokensPerHour": "Token/saat",
-		"tokensPerDay": "Token/gün",
-		"requestsPerMinute": "İstek/dk",
-		"requestsPerHour": "İstek/saat",
-		"requestsPerDay": "İstek/gün",
 		"dangerZoneTitle": "Tehlike Bölgesi",
 		"dangerZoneDescription": "Bu eylemler yıkıcıdır ve geri alınamaz.",
 		"clearUsageData": "Kullanım Verilerini Temizle",
 		"confirmClearTitle": "Emin misiniz?",
-		"confirmClearDescription": "Bu, sanal sağlayıcılar için depolanan tüm kullanım verilerini kalıcı olarak silecektir. Bu eylem geri alınamaz."
+		"confirmClearDescription": "Bu, sanal sağlayıcılar için depolanan tüm kullanım verilerini kalıcı olarak silecektir. Bu eylem geri alınamaz.",
+		"perDay": "Günlük",
+		"tokensLabel": "Jetonlar",
+		"perHour": "Saat Başına",
+		"perMinute": "Dakika Başına",
+		"requestsLabel": "İstekler"
 	}
 }

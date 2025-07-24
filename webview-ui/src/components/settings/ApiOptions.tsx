@@ -76,7 +76,7 @@ import {
 	VSCodeLM,
 	XAI,
 	Cerebras, // kilocode_change
-	Virtual,
+	VirtualQuotaFallbackProvider,
 } from "./providers"
 
 import { MODELS_BY_PROVIDER, PROVIDERS } from "./constants"
@@ -577,7 +577,10 @@ const ApiOptions = ({
 				<Cerebras apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 			{selectedProvider === "virtual-quota-fallback" && (
-				<Virtual apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
+				<VirtualQuotaFallbackProvider
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+				/>
 			)}
 			{/* kilocode_change end */}
 

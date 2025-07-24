@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "اختر مزود...",
 		"addProvider": "إضافة مزود",
 		"noProvidersAvailable": "لا توجد ملفات تعريف مزود متاحة. يرجى تكوين ملف تعريف مزود واحد على الأقل غير افتراضي أولاً.",
-		"tokensPerMinute": "رموز/دقيقة",
-		"tokensPerHour": "رموز/ساعة",
-		"tokensPerDay": "رموز/يوم",
-		"requestsPerMinute": "طلبات/دقيقة",
-		"requestsPerHour": "طلبات/ساعة",
-		"requestsPerDay": "طلبات/يوم",
 		"dangerZoneTitle": "منطقة الخطر",
 		"dangerZoneDescription": "هذه الإجراءات مدمرة ولا يمكن التراجع عنها.",
 		"clearUsageData": "مسح بيانات الاستخدام",
 		"confirmClearTitle": "هل أنت متأكد؟",
-		"confirmClearDescription": "سيؤدي هذا إلى حذف جميع بيانات الاستخدام المخزنة للمزودين الافتراضيين نهائياً. لا يمكن التراجع عن هذا الإجراء."
+		"confirmClearDescription": "سيؤدي هذا إلى حذف جميع بيانات الاستخدام المخزنة للمزودين الافتراضيين نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+		"requestsLabel": "طلبات",
+		"perMinute": "في الدقيقة",
+		"perDay": "في اليوم",
+		"tokensLabel": "الرموز",
+		"perHour": "في الساعة"
 	}
 }

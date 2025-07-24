@@ -20,8 +20,8 @@ export type ExperimentId = z.infer<typeof experimentIdsSchema>
 export const experimentsSchema = z.object({
 	powerSteering: z.boolean().optional(),
 	multiFileApplyDiff: z.boolean().optional(),
+	virtualQuotaFallbackProvider: z.boolean().optional(),
 	autocomplete: z.boolean(), // kilocode_change
-	virtualQuotaFallbackProvider: z.boolean().optional(), // kilocode_change
 })
 
 export type Experiments = z.infer<typeof experimentsSchema>

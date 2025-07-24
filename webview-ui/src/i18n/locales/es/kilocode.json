@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Seleccionar proveedor...",
 		"addProvider": "Agregar Proveedor",
 		"noProvidersAvailable": "No hay perfiles de proveedor disponibles. Por favor, configura al menos un perfil de proveedor no virtual primero.",
-		"tokensPerMinute": "Tokens/min",
-		"tokensPerHour": "Tokens/h",
-		"tokensPerDay": "Tokens/día",
-		"requestsPerMinute": "Solicitudes/min",
-		"requestsPerHour": "Solicitudes/h",
-		"requestsPerDay": "Solicitudes/día",
 		"dangerZoneTitle": "Zona de Peligro",
 		"dangerZoneDescription": "Estas acciones son destructivas y no se pueden deshacer.",
 		"clearUsageData": "Limpiar Datos de Uso",
 		"confirmClearTitle": "¿Estás seguro?",
-		"confirmClearDescription": "Esto eliminará permanentemente todos los datos de uso almacenados para proveedores virtuales. Esta acción no se puede deshacer."
+		"confirmClearDescription": "Esto eliminará permanentemente todos los datos de uso almacenados para proveedores virtuales. Esta acción no se puede deshacer.",
+		"perMinute": "Por Minuto",
+		"tokensLabel": "Tokens",
+		"perDay": "Por día",
+		"perHour": "Por hora",
+		"requestsLabel": "Solicitudes"
 	}
 }

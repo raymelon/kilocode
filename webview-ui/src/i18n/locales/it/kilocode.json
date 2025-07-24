@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Seleziona provider...",
 		"addProvider": "Aggiungi Provider",
 		"noProvidersAvailable": "Nessun profilo provider disponibile. Configura prima almeno un profilo provider non virtuale.",
-		"tokensPerMinute": "Token/min",
-		"tokensPerHour": "Token/ora",
-		"tokensPerDay": "Token/giorno",
-		"requestsPerMinute": "Richieste/min",
-		"requestsPerHour": "Richieste/ora",
-		"requestsPerDay": "Richieste/giorno",
 		"dangerZoneTitle": "Zona di Pericolo",
 		"dangerZoneDescription": "Queste azioni sono distruttive e non possono essere annullate.",
 		"clearUsageData": "Cancella Dati di Utilizzo",
 		"confirmClearTitle": "Sei sicuro?",
-		"confirmClearDescription": "Questo eliminerà permanentemente tutti i dati di utilizzo memorizzati per i provider virtuali. Questa azione non può essere annullata."
+		"confirmClearDescription": "Questo eliminerà permanentemente tutti i dati di utilizzo memorizzati per i provider virtuali. Questa azione non può essere annullata.",
+		"perMinute": "Al Minuto",
+		"tokensLabel": "Token",
+		"perHour": "All'ora",
+		"perDay": "Al Giorno",
+		"requestsLabel": "Richieste"
 	}
 }

@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "选择提供商...",
 		"addProvider": "添加提供商",
 		"noProvidersAvailable": "没有可用的提供商配置文件。请先配置至少一个非虚拟提供商配置文件。",
-		"tokensPerMinute": "Token/分钟",
-		"tokensPerHour": "Token/小时",
-		"tokensPerDay": "Token/天",
-		"requestsPerMinute": "请求/分钟",
-		"requestsPerHour": "请求/小时",
-		"requestsPerDay": "请求/天",
 		"dangerZoneTitle": "危险区域",
 		"dangerZoneDescription": "这些操作具有破坏性且无法撤销。",
 		"clearUsageData": "清除使用数据",
 		"confirmClearTitle": "确定吗？",
-		"confirmClearDescription": "这将永久删除虚拟提供商的所有存储使用数据。此操作无法撤销。"
+		"confirmClearDescription": "这将永久删除虚拟提供商的所有存储使用数据。此操作无法撤销。",
+		"perHour": "每小时",
+		"tokensLabel": "代币",
+		"perDay": "每天",
+		"requestsLabel": "请求",
+		"perMinute": "每分钟"
 	}
 }

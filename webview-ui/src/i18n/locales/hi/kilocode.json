@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "प्रोवाइडर चुनें...",
 		"addProvider": "प्रोवाइडर जोड़ें",
 		"noProvidersAvailable": "कोई प्रोवाइडर प्रोफाइल उपलब्ध नहीं है। कृपया पहले कम से कम एक गैर-वर्चुअल प्रोवाइडर प्रोफाइल कॉन्फ़िगर करें।",
-		"tokensPerMinute": "टोकन/मिनट",
-		"tokensPerHour": "टोकन/घंटा",
-		"tokensPerDay": "टोकन/दिन",
-		"requestsPerMinute": "अनुरोध/मिनट",
-		"requestsPerHour": "अनुरोध/घंटा",
-		"requestsPerDay": "अनुरोध/दिन",
 		"dangerZoneTitle": "खतरा क्षेत्र",
 		"dangerZoneDescription": "ये क्रियाएं विनाशकारी हैं और इन्हें पूर्ववत नहीं किया जा सकता।",
 		"clearUsageData": "उपयोग डेटा साफ़ करें",
 		"confirmClearTitle": "क्या आप सुनिश्चित हैं?",
-		"confirmClearDescription": "यह वर्चुअल प्रोवाइडर्स के लिए संग्रहीत सभी उपयोग डेटा को स्थायी रूप से हटा देगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।"
+		"confirmClearDescription": "यह वर्चुअल प्रोवाइडर्स के लिए संग्रहीत सभी उपयोग डेटा को स्थायी रूप से हटा देगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+		"tokensLabel": "टोकन",
+		"perMinute": "प्रति मिनट",
+		"perHour": "प्रति घंटा",
+		"perDay": "प्रति दिन",
+		"requestsLabel": "अनुरोध"
 	}
 }

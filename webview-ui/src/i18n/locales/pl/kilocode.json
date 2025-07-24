@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Wybierz dostawcę...",
 		"addProvider": "Dodaj Dostawcę",
 		"noProvidersAvailable": "Brak dostępnych profili dostawców. Najpierw skonfiguruj co najmniej jeden profil dostawcy nie-wirtualnego.",
-		"tokensPerMinute": "Tokeny/min",
-		"tokensPerHour": "Tokeny/godz",
-		"tokensPerDay": "Tokeny/dzień",
-		"requestsPerMinute": "Żądania/min",
-		"requestsPerHour": "Żądania/godz",
-		"requestsPerDay": "Żądania/dzień",
 		"dangerZoneTitle": "Strefa Niebezpieczna",
 		"dangerZoneDescription": "Te działania są destrukcyjne i nie można ich cofnąć.",
 		"clearUsageData": "Wyczyść Dane Użytkowania",
 		"confirmClearTitle": "Czy jesteś pewien?",
-		"confirmClearDescription": "To trwale usunie wszystkie przechowywane dane użytkowania dla wirtualnych dostawców. Tej akcji nie można cofnąć."
+		"confirmClearDescription": "To trwale usunie wszystkie przechowywane dane użytkowania dla wirtualnych dostawców. Tej akcji nie można cofnąć.",
+		"perMinute": "Na minutę",
+		"tokensLabel": "Tokeny",
+		"perDay": "Dziennie",
+		"perHour": "Za godzinę",
+		"requestsLabel": "Prośby"
 	}
 }

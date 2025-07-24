@@ -21,7 +21,7 @@ import type { ExtensionContext } from "vscode"
 import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsManager"
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { buildApiHandler } from "../../index"
-import { VirtualHandler } from "../virtual-quota-fallback"
+import { VirtualQuotaFallbackHandler } from "../virtual-quota-fallback"
 import { UsageEvent, UsageTracker } from "../../../utils/usage-tracker"
 
 // Mock dependencies
@@ -174,7 +174,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 				return undefined
 			})
 
-			const handler = new VirtualHandler({
+			const handler = new VirtualQuotaFallbackHandler({
 				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
@@ -209,7 +209,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
 
-			const handler = new VirtualHandler({
+			const handler = new VirtualQuotaFallbackHandler({
 				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
@@ -231,13 +231,13 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 		describe("underLimit", () => {
 			it("should return true if provider has no limits", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = { providerId: "p1" }
 				expect(handler.underLimit(providerData as any)).toBe(true)
 			})
 
 			it("should return false if requests per minute are exceeded", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = {
 					providerId: "p1",
 					providerLimits: { requestsPerMinute: 10 },
@@ -248,7 +248,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should return false if tokens per day are exceeded", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const providerData = {
 					providerId: "p1",
 					providerLimits: { tokensPerDay: 1000 },
@@ -261,7 +261,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 		describe("adjustActiveHandler", () => {
 			it("should set first handler as active if it is under limit", async () => {
-				const handler = new VirtualHandler({
+				const handler = new VirtualQuotaFallbackHandler({
 					providers: [mockPrimaryProvider],
 				} as any)
 				// Set up the handlers array directly for testing
@@ -277,7 +277,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should switch to second handler if first is over limit", async () => {
-				const handler = new VirtualHandler({
+				const handler = new VirtualQuotaFallbackHandler({
 					providers: [mockPrimaryProvider, mockSecondaryProvider],
 				} as any)
 				// Set up the handlers array directly for testing
@@ -297,7 +297,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should use first handler as fallback if all are over limit", async () => {
-				const handler = new VirtualHandler({
+				const handler = new VirtualQuotaFallbackHandler({
 					providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 				} as any)
 				// Set up the handlers array directly for testing
@@ -316,7 +316,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should set active handler to undefined if no providers are available", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				// Ensure handlers array is empty
 				;(handler as any).handlers = []
 				await handler.adjustActiveHandler()
@@ -327,7 +327,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 		describe("createMessage", () => {
 			it("should forward the call to the active handler and track usage", async () => {
-				const handler = new VirtualHandler({
+				const handler = new VirtualQuotaFallbackHandler({
 					providers: [mockPrimaryProvider],
 				} as any)
 
@@ -372,7 +372,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should throw an error if no active handler is configured", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 
 				const stream = handler.createMessage("system", [])
@@ -382,7 +382,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 		describe("countTokens", () => {
 			it("should delegate to the active handler", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const countTokensMock = vitest.fn().mockResolvedValue(123)
 				;(handler as any).activeHandler = { countTokens: countTokensMock }
 
@@ -394,7 +394,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should return 0 if no active handler", async () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 				const result = await handler.countTokens([])
 				expect(result).toBe(0)
@@ -403,7 +403,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 
 		describe("getModel", () => {
 			it("should delegate to the active handler", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const getModelMock = vitest.fn().mockReturnValue({ id: "test-model" })
 				;(handler as any).activeHandler = { getModel: getModelMock }
 
@@ -414,7 +414,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			})
 
 			it("should throw an error if no active handler", () => {
-				const handler = new VirtualHandler({} as any)
+				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
 				expect(() => handler.getModel()).toThrow("No active handler configured")
 			})

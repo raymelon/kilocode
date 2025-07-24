@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Pilih penyedia...",
 		"addProvider": "Tambah Penyedia",
 		"noProvidersAvailable": "Tidak ada profil penyedia yang tersedia. Silakan konfigurasikan setidaknya satu profil penyedia non-virtual terlebih dahulu.",
-		"tokensPerMinute": "Token/menit",
-		"tokensPerHour": "Token/jam",
-		"tokensPerDay": "Token/hari",
-		"requestsPerMinute": "Permintaan/menit",
-		"requestsPerHour": "Permintaan/jam",
-		"requestsPerDay": "Permintaan/hari",
 		"dangerZoneTitle": "Zona Bahaya",
 		"dangerZoneDescription": "Tindakan ini bersifat merusak dan tidak dapat dibatalkan.",
 		"clearUsageData": "Hapus Data Penggunaan",
 		"confirmClearTitle": "Apakah Anda yakin?",
-		"confirmClearDescription": "Ini akan menghapus secara permanen semua data penggunaan yang tersimpan untuk penyedia virtual. Tindakan ini tidak dapat dibatalkan."
+		"confirmClearDescription": "Ini akan menghapus secara permanen semua data penggunaan yang tersimpan untuk penyedia virtual. Tindakan ini tidak dapat dibatalkan.",
+		"tokensLabel": "Token",
+		"perMinute": "Per Menit",
+		"perHour": "Per Jam",
+		"perDay": "Per Hari",
+		"requestsLabel": "Permintaan"
 	}
 }

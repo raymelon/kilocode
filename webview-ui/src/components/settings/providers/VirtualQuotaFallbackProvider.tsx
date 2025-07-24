@@ -158,7 +158,7 @@ export const VirtualQuotaFallbackProvider = ({
 	return (
 		<>
 			<h3 className="text-lg font-medium mb-0">
-				<Trans i18nKey="kilocode:virtualProvider.title">Virtual Provider Settings</Trans>
+				<Trans i18nKey="kilocode:virtualProvider.title">Virtual Quota Fallback Settings</Trans>
 			</h3>
 			<div className="text-sm text-vscode-descriptionForeground mb-4">
 				<Trans i18nKey="kilocode:virtualProvider.description">

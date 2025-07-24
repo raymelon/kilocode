@@ -21,6 +21,6 @@ export { OpenRouterHandler } from "./openrouter"
 export { RequestyHandler } from "./requesty"
 export { UnboundHandler } from "./unbound"
 export { VertexHandler } from "./vertex"
-export { VirtualHandler } from "./virtual-quota-fallback"  // kilocode_change
+export { VirtualQuotaFallbackHandler as VirtualHandler } from "./virtual-quota-fallback" // kilocode_change
 export { VsCodeLmHandler } from "./vscode-lm"
 export { XAIHandler } from "./xai"

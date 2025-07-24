@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Selecteer provider...",
 		"addProvider": "Provider Toevoegen",
 		"noProvidersAvailable": "Geen provider profielen beschikbaar. Configureer eerst ten minste één niet-virtueel provider profiel.",
-		"tokensPerMinute": "Tokens/min",
-		"tokensPerHour": "Tokens/uur",
-		"tokensPerDay": "Tokens/dag",
-		"requestsPerMinute": "Verzoeken/min",
-		"requestsPerHour": "Verzoeken/uur",
-		"requestsPerDay": "Verzoeken/dag",
 		"dangerZoneTitle": "Gevaarzone",
 		"dangerZoneDescription": "Deze acties zijn destructief en kunnen niet ongedaan worden gemaakt.",
 		"clearUsageData": "Gebruiksgegevens Wissen",
 		"confirmClearTitle": "Weet je het zeker?",
-		"confirmClearDescription": "Dit zal permanent alle opgeslagen gebruiksgegevens voor virtuele providers verwijderen. Deze actie kan niet ongedaan worden gemaakt."
+		"confirmClearDescription": "Dit zal permanent alle opgeslagen gebruiksgegevens voor virtuele providers verwijderen. Deze actie kan niet ongedaan worden gemaakt.",
+		"tokensLabel": "Tokens",
+		"perMinute": "Per Minuut",
+		"perHour": "Per Uur",
+		"perDay": "Per dag",
+		"requestsLabel": "Verzoeken"
 	}
 }

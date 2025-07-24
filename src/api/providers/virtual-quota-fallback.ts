@@ -23,7 +23,7 @@ interface HandlerConfig {
  * Virtual Quota Fallback Provider API processor.
  * This handler is designed to call other API handlers with automatic fallback when quota limits are reached.
  */
-export class VirtualHandler implements ApiHandler {
+export class VirtualQuotaFallbackHandler implements ApiHandler {
 	private settingsManager: ProviderSettingsManager
 	private settings: ProviderSettings
 

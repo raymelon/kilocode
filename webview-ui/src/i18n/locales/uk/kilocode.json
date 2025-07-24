@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Виберіть провайдера...",
 		"addProvider": "Додати Провайдера",
 		"noProvidersAvailable": "Немає доступних профілів провайдерів. Спочатку налаштуйте принаймні один не-віртуальний профіль провайдера.",
-		"tokensPerMinute": "Токенів/хв",
-		"tokensPerHour": "Токенів/год",
-		"tokensPerDay": "Токенів/день",
-		"requestsPerMinute": "Запитів/хв",
-		"requestsPerHour": "Запитів/год",
-		"requestsPerDay": "Запитів/день",
 		"dangerZoneTitle": "Небезпечна Зона",
 		"dangerZoneDescription": "Ці дії є руйнівними і не можуть бути скасовані.",
 		"clearUsageData": "Очистити Дані Використання",
 		"confirmClearTitle": "Ви впевнені?",
-		"confirmClearDescription": "Це назавжди видалить всі збережені дані використання для віртуальних провайдерів. Цю дію неможливо скасувати."
+		"confirmClearDescription": "Це назавжди видалить всі збережені дані використання для віртуальних провайдерів. Цю дію неможливо скасувати.",
+		"tokensLabel": "Токени",
+		"perDay": "На день",
+		"perMinute": "За хвилину",
+		"perHour": "На годину",
+		"requestsLabel": "Запити"
 	}
 }

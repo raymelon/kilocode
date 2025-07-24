@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Vybrat poskytovatele...",
 		"addProvider": "Přidat poskytovatele",
 		"noProvidersAvailable": "Nejsou dostupné žádné profily poskytovatelů. Nejprve nakonfiguruj alespoň jeden ne-virtuální profil poskytovatele.",
-		"tokensPerMinute": "Tokeny/min",
-		"tokensPerHour": "Tokeny/hod",
-		"tokensPerDay": "Tokeny/den",
-		"requestsPerMinute": "Požadavky/min",
-		"requestsPerHour": "Požadavky/hod",
-		"requestsPerDay": "Požadavky/den",
 		"dangerZoneTitle": "Nebezpečná zóna",
 		"dangerZoneDescription": "Tyto akce jsou destruktivní a nelze je vrátit zpět.",
 		"clearUsageData": "Vymazat data o využití",
 		"confirmClearTitle": "Jsi si jistý?",
-		"confirmClearDescription": "Toto trvale smaže všechna uložená data o využití pro virtuální poskytovatele. Tuto akci nelze vrátit zpět."
+		"confirmClearDescription": "Toto trvale smaže všechna uložená data o využití pro virtuální poskytovatele. Tuto akci nelze vrátit zpět.",
+		"tokensLabel": "Tokeny",
+		"perMinute": "Za minutu",
+		"perHour": "Za hodinu",
+		"requestsLabel": "Požadavky",
+		"perDay": "Za den"
 	}
 }

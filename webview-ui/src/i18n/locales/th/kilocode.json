@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "เลือกผู้ให้บริการ...",
 		"addProvider": "เพิ่มผู้ให้บริการ",
 		"noProvidersAvailable": "ไม่มีโปรไฟล์ผู้ให้บริการที่ใช้ได้ กรุณากำหนดค่าโปรไฟล์ผู้ให้บริการที่ไม่ใช่เสมือนอย่างน้อยหนึ่งรายการก่อน",
-		"tokensPerMinute": "โทเค็น/นาที",
-		"tokensPerHour": "โทเค็น/ชั่วโมง",
-		"tokensPerDay": "โทเค็น/วัน",
-		"requestsPerMinute": "คำขอ/นาที",
-		"requestsPerHour": "คำขอ/ชั่วโมง",
-		"requestsPerDay": "คำขอ/วัน",
 		"dangerZoneTitle": "โซนอันตราย",
 		"dangerZoneDescription": "การกระทำเหล่านี้เป็นการทำลายและไม่สามารถยกเลิกได้",
 		"clearUsageData": "ล้างข้อมูลการใช้งาน",
 		"confirmClearTitle": "คุณแน่ใจหรือไม่?",
-		"confirmClearDescription": "การกระทำนี้จะลบข้อมูลการใช้งานที่เก็บไว้ทั้งหมดสำหรับผู้ให้บริการเสมือนอย่างถาวร การกระทำนี้ไม่สามารถยกเลิกได้"
+		"confirmClearDescription": "การกระทำนี้จะลบข้อมูลการใช้งานที่เก็บไว้ทั้งหมดสำหรับผู้ให้บริการเสมือนอย่างถาวร การกระทำนี้ไม่สามารถยกเลิกได้",
+		"tokensLabel": "โทเค็น",
+		"perMinute": "ต่อนาที",
+		"perDay": "ต่อวัน",
+		"perHour": "ต่อชั่วโมง",
+		"requestsLabel": "คำขอ"
 	}
 }

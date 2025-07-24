@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "プロバイダーを選択...",
 		"addProvider": "プロバイダーを追加",
 		"noProvidersAvailable": "利用可能なプロバイダープロファイルがありません。まず少なくとも1つの非仮想プロバイダープロファイルを設定してください。",
-		"tokensPerMinute": "トークン/分",
-		"tokensPerHour": "トークン/時",
-		"tokensPerDay": "トークン/日",
-		"requestsPerMinute": "リクエスト/分",
-		"requestsPerHour": "リクエスト/時",
-		"requestsPerDay": "リクエスト/日",
 		"dangerZoneTitle": "危険ゾーン",
 		"dangerZoneDescription": "これらのアクションは破壊的で、元に戻すことはできません。",
 		"clearUsageData": "使用データをクリア",
 		"confirmClearTitle": "本当によろしいですか？",
-		"confirmClearDescription": "これにより、仮想プロバイダーの保存された使用データがすべて永続的に削除されます。この操作は元に戻すことができません。"
+		"confirmClearDescription": "これにより、仮想プロバイダーの保存された使用データがすべて永続的に削除されます。この操作は元に戻すことができません。",
+		"tokensLabel": "トークン",
+		"perMinute": "毎分",
+		"requestsLabel": "リクエスト",
+		"perDay": "1日あたり",
+		"perHour": "1時間あたり"
 	}
 }

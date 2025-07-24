@@ -167,16 +167,15 @@
 		"selectProviderPlaceholder": "Sélectionner un fournisseur...",
 		"addProvider": "Ajouter un Fournisseur",
 		"noProvidersAvailable": "Aucun profil de fournisseur disponible. Veuillez d'abord configurer au moins un profil de fournisseur non virtuel.",
-		"tokensPerMinute": "Tokens/min",
-		"tokensPerHour": "Tokens/h",
-		"tokensPerDay": "Tokens/jour",
-		"requestsPerMinute": "Requêtes/min",
-		"requestsPerHour": "Requêtes/h",
-		"requestsPerDay": "Requêtes/jour",
 		"dangerZoneTitle": "Zone de Danger",
 		"dangerZoneDescription": "Ces actions sont destructives et ne peuvent pas être annulées.",
 		"clearUsageData": "Effacer les Données d'Utilisation",
 		"confirmClearTitle": "Êtes-vous sûr ?",
-		"confirmClearDescription": "Cela supprimera définitivement toutes les données d'utilisation stockées pour les fournisseurs virtuels. Cette action ne peut pas être annulée."
+		"confirmClearDescription": "Cela supprimera définitivement toutes les données d'utilisation stockées pour les fournisseurs virtuels. Cette action ne peut pas être annulée.",
+		"tokensLabel": "Jetons",
+		"perHour": "Par heure",
+		"perMinute": "Par minute",
+		"requestsLabel": "Demandes",
+		"perDay": "Par jour"
 	}
 }
