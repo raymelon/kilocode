@@ -45,9 +45,9 @@
 		"enableDescription": "Enable code indexing for improved search and context understanding",
 		"settingsTitle": "Indexing Settings",
 		"disabledMessage": "Codebase indexing is currently disabled. Enable it in the global settings to configure indexing options.",
-		"providerLabel": "Embeddings Provider",
+		"profileLabel": "Embeddings Provider",
 		"embedderProviderLabel": "Embedder Provider",
-		"selectProviderPlaceholder": "Select provider",
+		"selectProfilePlaceholder": "Select provider",
 		"openaiProvider": "OpenAI",
 		"ollamaProvider": "Ollama",
 		"geminiProvider": "Gemini",
@@ -641,10 +641,6 @@
 		"MULTI_FILE_APPLY_DIFF": {
 			"name": "Enable concurrent file edits",
 			"description": "When enabled, Kilo Code can edit multiple files in a single request. When disabled, Kilo Code must edit files one at a time. Disabling this can help when working with less capable models or when you want more control over file modifications."
-		},
-		"VIRTUAL_PROVIDER": {
-			"name": "Enable virtual quota fallback provider",
-			"description": "When enabled, a new virtual quota fallback provider will be available for selection. This provider can be used to rotate through other providers with automatic fallback when quota limits are reached."
 		}
 	},
 	"promptCaching": {
