@@ -178,8 +178,8 @@ describe("VirtualQuotaFallbackProvider", () => {
 				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
-			// Allow async operations in constructor to complete
-			await new Promise(process.nextTick)
+			// Explicitly call initialize since constructor no longer does this automatically
+			await handler.initialize()
 
 			expect(mockSettingsManager.getProfile).toHaveBeenCalledTimes(3)
 			expect(buildApiHandler).toHaveBeenCalledTimes(3)
@@ -213,7 +213,8 @@ describe("VirtualQuotaFallbackProvider", () => {
 				providers: [mockPrimaryProvider, mockSecondaryProvider, mockBackupProvider],
 			} as any)
 
-			await new Promise(process.nextTick)
+			// Explicitly call initialize since constructor no longer does this automatically
+			await handler.initialize()
 
 			// Check the new array structure - only successful handlers should be loaded
 			const handlers = (handler as any).handlers
@@ -385,6 +386,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 				const handler = new VirtualQuotaFallbackHandler({} as any)
 				const countTokensMock = vitest.fn().mockResolvedValue(123)
 				;(handler as any).activeHandler = { countTokens: countTokensMock }
+				;(handler as any).isInitialized = true // Mark as initialized to skip initialization
 
 				const content = [{ type: "text", text: "count me" }] as any
 				const result = await handler.countTokens(content)
@@ -396,6 +398,7 @@ describe("VirtualQuotaFallbackProvider", () => {
 			it("should return 0 if no active handler", async () => {
 				const handler = new VirtualQuotaFallbackHandler({} as any)
 				;(handler as any).activeHandler = undefined
+				;(handler as any).isInitialized = true // Mark as initialized to skip initialization
 				const result = await handler.countTokens([])
 				expect(result).toBe(0)
 			})
