@@ -26,9 +26,9 @@ type VirtualQuotaFallbackProviderProps = {
 }
 
 type VirtualQuotaFallbackProviderData = {
-	providerName?: string
-	providerId?: string
-	providerLimits?: {
+	profileName?: string
+	profileId?: string
+	profileLimits?: {
 		tokensPerMinute?: number
 		tokensPerHour?: number
 		tokensPerDay?: number
@@ -39,9 +39,9 @@ type VirtualQuotaFallbackProviderData = {
 }
 
 type LimitInputsProps = {
-	provider: VirtualQuotaFallbackProviderData
+	profile: VirtualQuotaFallbackProviderData
 	index: number
-	onProviderChange: (index: number, provider: VirtualQuotaFallbackProviderData) => void
+	onProfileChange: (index: number, profile: VirtualQuotaFallbackProviderData) => void
 }
 
 export const VirtualQuotaFallbackProvider = ({
@@ -52,11 +52,11 @@ export const VirtualQuotaFallbackProvider = ({
 	const [isAlertOpen, setIsAlertOpen] = useState(false)
 	const { t } = useTranslation()
 
-	// Get current profile ID to exclude from available providers
+	// Get current profile ID to exclude from available profiles
 	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
 	const currentProfileId = currentProfile?.id
 
-	// Filter out virtual provider profiles and current profile
+	// Filter out virtual profile profiles and current profile
 	const availableProfiles = useMemo(() => {
 		return (
 			listApiConfigMeta?.filter((profile: ProviderSettingsEntry) => {
@@ -65,80 +65,80 @@ export const VirtualQuotaFallbackProvider = ({
 		)
 	}, [listApiConfigMeta, currentProfileId])
 
-	// Get providers array
-	const providers = useMemo(() => {
-		return apiConfiguration.providers && apiConfiguration.providers.length > 0 ? apiConfiguration.providers : [{}]
-	}, [apiConfiguration.providers])
+	// Get profiles array
+	const profiles = useMemo(() => {
+		return apiConfiguration.profiles && apiConfiguration.profiles.length > 0 ? apiConfiguration.profiles : [{}]
+	}, [apiConfiguration.profiles])
 
-	const updateProviders = useCallback(
-		(newProviders: VirtualQuotaFallbackProviderData[]) => {
-			setApiConfigurationField("providers", newProviders)
+	const updateProfiles = useCallback(
+		(newProfiles: VirtualQuotaFallbackProviderData[]) => {
+			setApiConfigurationField("profiles", newProfiles)
 		},
 		[setApiConfigurationField],
 	)
 
-	const handleProviderChange = useCallback(
-		(index: number, provider: VirtualQuotaFallbackProviderData) => {
-			const newProviders = [...providers]
-			newProviders[index] = provider
-			updateProviders(newProviders)
+	const handleProfileChange = useCallback(
+		(index: number, profile: VirtualQuotaFallbackProviderData) => {
+			const newProfiles = [...profiles]
+			newProfiles[index] = profile
+			updateProfiles(newProfiles)
 		},
-		[providers, updateProviders],
+		[profiles, updateProfiles],
 	)
 
-	const handleProviderSelect = useCallback(
+	const handleProfileSelect = useCallback(
 		(index: number, selectedId: string) => {
 			const selectedProfile = availableProfiles.find((profile) => profile.id === selectedId)
 			if (selectedProfile) {
-				const updatedProvider = {
-					...providers[index],
-					providerId: selectedProfile.id,
-					providerName: selectedProfile.name,
+				const updatedProfile = {
+					...profiles[index],
+					profileId: selectedProfile.id,
+					profileName: selectedProfile.name,
 				}
-				handleProviderChange(index, updatedProvider)
+				handleProfileChange(index, updatedProfile)
 			}
 		},
-		[availableProfiles, providers, handleProviderChange],
+		[availableProfiles, profiles, handleProfileChange],
 	)
 
-	const addProvider = useCallback(() => {
-		const newProviders = [...providers, {}]
-		updateProviders(newProviders)
-	}, [providers, updateProviders])
+	const addProfile = useCallback(() => {
+		const newProfiles = [...profiles, {}]
+		updateProfiles(newProfiles)
+	}, [profiles, updateProfiles])
 
-	const removeProvider = useCallback(
+	const removeProfile = useCallback(
 		(index: number) => {
-			if (providers.length > 1) {
-				const newProviders = providers.filter((_, i) => i !== index)
-				updateProviders(newProviders)
+			if (profiles.length > 1) {
+				const newProfiles = profiles.filter((_, i) => i !== index)
+				updateProfiles(newProfiles)
 			}
 		},
-		[providers, updateProviders],
+		[profiles, updateProfiles],
 	)
-	const moveProviderUp = useCallback(
+	const moveProfileUp = useCallback(
 		(index: number) => {
 			if (index > 0) {
-				const newProviders = [...providers]
-				const temp = newProviders[index]
-				newProviders[index] = newProviders[index - 1]
-				newProviders[index - 1] = temp
-				updateProviders(newProviders)
+				const newProfiles = [...profiles]
+				const temp = newProfiles[index]
+				newProfiles[index] = newProfiles[index - 1]
+				newProfiles[index - 1] = temp
+				updateProfiles(newProfiles)
 			}
 		},
-		[providers, updateProviders],
+		[profiles, updateProfiles],
 	)
 
-	const moveProviderDown = useCallback(
+	const moveProfileDown = useCallback(
 		(index: number) => {
-			if (index < providers.length - 1) {
-				const newProviders = [...providers]
-				const temp = newProviders[index]
-				newProviders[index] = newProviders[index + 1]
-				newProviders[index + 1] = temp
-				updateProviders(newProviders)
+			if (index < profiles.length - 1) {
+				const newProfiles = [...profiles]
+				const temp = newProfiles[index]
+				newProfiles[index] = newProfiles[index + 1]
+				newProfiles[index + 1] = temp
+				updateProfiles(newProfiles)
 			}
 		},
-		[providers, updateProviders],
+		[profiles, updateProfiles],
 	)
 
 	const handleClearUsageData = useCallback(() => {
@@ -146,32 +146,32 @@ export const VirtualQuotaFallbackProvider = ({
 		setIsAlertOpen(false)
 	}, [])
 
-	const getUsedProviderIds = useCallback(
+	const getUsedProfileIds = useCallback(
 		(excludeIndex: number) => {
-			return providers
-				.map((p, i) => (i !== excludeIndex ? p.providerId : null))
+			return profiles
+				.map((p, i) => (i !== excludeIndex ? p.profileId : null))
 				.filter((id): id is string => Boolean(id))
 		},
-		[providers],
+		[profiles],
 	)
 
 	return (
 		<>
 			<h3 className="text-lg font-medium mb-0">
-				<Trans i18nKey="kilocode:virtualProvider.title">Virtual Quota Fallback Settings</Trans>
+				<Trans i18nKey="kilocode:virtualProfile.title">Virtual Quota Fallback Settings</Trans>
 			</h3>
 			<div className="text-sm text-vscode-descriptionForeground mb-4">
-				<Trans i18nKey="kilocode:virtualProvider.description">
-					Configure a list of providers each with their own limits. When one providers limits are reached, the
-					next provider in the list will be used until none remain.
+				<Trans i18nKey="kilocode:virtualProfile.description">
+					Configure a list of profiles each with their own limits. When one profiles limits are reached, the
+					next profile in the list will be used until none remain.
 				</Trans>
 			</div>
 
 			<div className="space-y-1">
-				{providers.map((provider, index) => {
-					const usedProviderIds = getUsedProviderIds(index)
+				{profiles.map((profile, index) => {
+					const usedProfileIds = getUsedProfileIds(index)
 					const availableForThisSlot = availableProfiles.filter(
-						(profile) => !usedProviderIds.includes(profile.id),
+						(profile) => !usedProfileIds.includes(profile.id),
 					)
 
 					return (
@@ -179,32 +179,32 @@ export const VirtualQuotaFallbackProvider = ({
 							<div className="flex items-center justify-between mb-3">
 								<label className="block font-medium">
 									{index === 0
-										? t("kilocode:virtualProvider.primaryProviderLabel", { number: index + 1 })
-										: t("kilocode:virtualProvider.providerLabel", { number: index + 1 })}
+										? t("kilocode:virtualProfile.primaryProfileLabel", { number: index + 1 })
+										: t("kilocode:virtualProfile.profileLabel", { number: index + 1 })}
 								</label>
 								<div className="flex items-center gap-1">
 									{/* Move Up Button */}
 									<VSCodeButton
 										appearance="icon"
-										onClick={() => moveProviderUp(index)}
+										onClick={() => moveProfileUp(index)}
 										disabled={index === 0}
-										title={t("kilocode:virtualProvider.moveProviderUp")}>
+										title={t("kilocode:virtualProfile.moveProfileUp")}>
 										<ChevronUp size={16} />
 									</VSCodeButton>
 									{/* Move Down Button */}
 									<VSCodeButton
 										appearance="icon"
-										onClick={() => moveProviderDown(index)}
-										disabled={index === providers.length - 1}
-										title={t("kilocode:virtualProvider.moveProviderDown")}>
+										onClick={() => moveProfileDown(index)}
+										disabled={index === profiles.length - 1}
+										title={t("kilocode:virtualProfile.moveProfileDown")}>
 										<ChevronDown size={16} />
 									</VSCodeButton>
 									{/* Remove Button */}
-									{providers.length > 1 && (
+									{profiles.length > 1 && (
 										<VSCodeButton
 											appearance="icon"
-											onClick={() => removeProvider(index)}
-											title={t("kilocode:virtualProvider.removeProvider")}>
+											onClick={() => removeProfile(index)}
+											title={t("kilocode:virtualProfile.removeProfile")}>
 											<TrashIcon />
 										</VSCodeButton>
 									)}
@@ -212,13 +212,11 @@ export const VirtualQuotaFallbackProvider = ({
 							</div>
 
 							<Select
-								value={provider.providerId || ""}
-								onValueChange={(value) => handleProviderSelect(index, value)}
+								value={profile.profileId || ""}
+								onValueChange={(value) => handleProfileSelect(index, value)}
 								disabled={availableForThisSlot.length === 0}>
 								<SelectTrigger className="w-full">
-									<SelectValue
-										placeholder={t("kilocode:virtualProvider.selectProviderPlaceholder")}
-									/>
+									<SelectValue placeholder={t("kilocode:virtualProfile.selectProfilePlaceholder")} />
 								</SelectTrigger>
 								<SelectContent>
 									{availableForThisSlot.map((profile) => (
@@ -229,11 +227,7 @@ export const VirtualQuotaFallbackProvider = ({
 								</SelectContent>
 							</Select>
 
-							<VirtualLimitInputs
-								provider={provider}
-								index={index}
-								onProviderChange={handleProviderChange}
-							/>
+							<VirtualLimitInputs profile={profile} index={index} onProfileChange={handleProfileChange} />
 						</div>
 					)
 				})}
@@ -241,17 +235,17 @@ export const VirtualQuotaFallbackProvider = ({
 				<div className="flex justify-center p-4">
 					<VSCodeButton
 						appearance="secondary"
-						onClick={addProvider}
-						disabled={availableProfiles.length <= providers.length}>
+						onClick={addProfile}
+						disabled={availableProfiles.length <= profiles.length}>
 						<PlusIcon className="mr-2" />
-						<Trans i18nKey="kilocode:virtualProvider.addProvider">Add Provider</Trans>
+						<Trans i18nKey="kilocode:virtualProfile.addProfile">Add Profile</Trans>
 					</VSCodeButton>
 				</div>
 
 				{availableProfiles.length === 0 ? (
 					<div className="text-sm text-vscode-descriptionForeground text-center p-4 border border-vscode-settings-sashBorder rounded-md">
-						<Trans i18nKey="kilocode:virtualProvider.noProvidersAvailable">
-							No provider profiles available. Please configure at least one non-virtual provider profile
+						<Trans i18nKey="kilocode:virtualProfile.noProfilesAvailable">
+							No profile profiles available. Please configure at least one non-virtual profile profile
 							first.
 						</Trans>
 					</div>
@@ -260,15 +254,15 @@ export const VirtualQuotaFallbackProvider = ({
 
 			<div className="p-4 border border-vscode-editorWarning-foreground rounded-md">
 				<div className="text-md font-semibold text-vscode-editorWarning-foreground">
-					<Trans i18nKey="kilocode:virtualProvider.dangerZoneTitle">Danger Zone</Trans>
+					<Trans i18nKey="kilocode:virtualProfile.dangerZoneTitle">Danger Zone</Trans>
 				</div>
 				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
-					<Trans i18nKey="kilocode:virtualProvider.dangerZoneDescription">
+					<Trans i18nKey="kilocode:virtualProfile.dangerZoneDescription">
 						These actions are destructive and cannot be undone.
 					</Trans>
 				</p>
 				<VSCodeButton appearance="secondary" onClick={() => setIsAlertOpen(true)}>
-					<Trans i18nKey="kilocode:virtualProvider.clearUsageData">Clear Usage Data</Trans>
+					<Trans i18nKey="kilocode:virtualProfile.clearUsageData">Clear Usage Data</Trans>
 				</VSCodeButton>
 			</div>
 
@@ -276,11 +270,11 @@ export const VirtualQuotaFallbackProvider = ({
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>
-							<Trans i18nKey="kilocode:virtualProvider.confirmClearTitle">Are you sure?</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.confirmClearTitle">Are you sure?</Trans>
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							<Trans i18nKey="kilocode:virtualProvider.confirmClearDescription">
-								This will permanently delete all stored usage data for virtual providers. This action
+							<Trans i18nKey="kilocode:virtualProfile.confirmClearDescription">
+								This will permanently delete all stored usage data for virtual profiles. This action
 								cannot be undone.
 							</Trans>
 						</AlertDialogDescription>
@@ -299,23 +293,23 @@ export const VirtualQuotaFallbackProvider = ({
 	)
 }
 
-const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsProps) => {
+const VirtualLimitInputs = ({ profile, index, onProfileChange }: LimitInputsProps) => {
 	const handleLimitChange = useCallback(
-		(limitKey: keyof NonNullable<VirtualQuotaFallbackProviderData["providerLimits"]>) => (event: any) => {
+		(limitKey: keyof NonNullable<VirtualQuotaFallbackProviderData["profileLimits"]>) => (event: any) => {
 			const value = inputEventTransform(event)
-			const updatedProvider = {
-				...provider,
-				providerLimits: {
-					...provider.providerLimits,
+			const updatedProfile = {
+				...profile,
+				profileLimits: {
+					...profile.profileLimits,
 					[limitKey]: value === "" ? undefined : Number(value),
 				},
 			}
-			onProviderChange(index, updatedProvider)
+			onProfileChange(index, updatedProfile)
 		},
-		[provider, index, onProviderChange],
+		[profile, index, onProfileChange],
 	)
 
-	if (!provider.providerId) {
+	if (!profile.profileId) {
 		return null
 	}
 
@@ -324,35 +318,35 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 			{/* Tokens Row */}
 			<div>
 				<label className="block text-sm font-medium mb-2">
-					<Trans i18nKey="kilocode:virtualProvider.tokensLabel">Tokens</Trans>
+					<Trans i18nKey="kilocode:virtualProfile.tokensLabel">Tokens</Trans>
 				</label>
 				<div className="grid grid-cols-3 gap-x-4">
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perMinute">Per Minute</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perMinute">Per Minute</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.tokensPerMinute?.toString() ?? ""}
+							value={profile.profileLimits?.tokensPerMinute?.toString() ?? ""}
 							onInput={handleLimitChange("tokensPerMinute")}
 							className="w-full"
 						/>
 					</div>
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perHour">Per Hour</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perHour">Per Hour</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.tokensPerHour?.toString() ?? ""}
+							value={profile.profileLimits?.tokensPerHour?.toString() ?? ""}
 							onInput={handleLimitChange("tokensPerHour")}
 							className="w-full"
 						/>
 					</div>
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perDay">Per Day</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perDay">Per Day</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.tokensPerDay?.toString() ?? ""}
+							value={profile.profileLimits?.tokensPerDay?.toString() ?? ""}
 							onInput={handleLimitChange("tokensPerDay")}
 							className="w-full"
 						/>
@@ -363,35 +357,35 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 			{/* Requests Row */}
 			<div>
 				<label className="block text-sm font-medium mb-2">
-					<Trans i18nKey="kilocode:virtualProvider.requestsLabel">Requests</Trans>
+					<Trans i18nKey="kilocode:virtualProfile.requestsLabel">Requests</Trans>
 				</label>
 				<div className="grid grid-cols-3 gap-x-4">
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perMinute">Per Minute</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perMinute">Per Minute</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.requestsPerMinute?.toString() ?? ""}
+							value={profile.profileLimits?.requestsPerMinute?.toString() ?? ""}
 							onInput={handleLimitChange("requestsPerMinute")}
 							className="w-full"
 						/>
 					</div>
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perHour">Per Hour</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perHour">Per Hour</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.requestsPerHour?.toString() ?? ""}
+							value={profile.profileLimits?.requestsPerHour?.toString() ?? ""}
 							onInput={handleLimitChange("requestsPerHour")}
 							className="w-full"
 						/>
 					</div>
 					<div>
 						<label className="block text-xs text-vscode-descriptionForeground mb-1">
-							<Trans i18nKey="kilocode:virtualProvider.perDay">Per Day</Trans>
+							<Trans i18nKey="kilocode:virtualProfile.perDay">Per Day</Trans>
 						</label>
 						<VSCodeTextField
-							value={provider.providerLimits?.requestsPerDay?.toString() ?? ""}
+							value={profile.profileLimits?.requestsPerDay?.toString() ?? ""}
 							onInput={handleLimitChange("requestsPerDay")}
 							className="w-full"
 						/>

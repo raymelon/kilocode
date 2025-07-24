@@ -248,10 +248,10 @@ const cerebrasSchema = baseProviderSettingsSchema.extend({
 	cerebrasApiKey: z.string().optional(),
 	cerebrasModelId: z.string().optional(),
 })
-export const virtualQuotaFallbackProviderDataSchema = z.object({
-	providerName: z.string().optional(),
-	providerId: z.string().optional(),
-	providerLimits: z
+export const virtualQuotaFallbackProfileDataSchema = z.object({
+	profileName: z.string().optional(),
+	profileId: z.string().optional(),
+	profileLimits: z
 		.object({
 			tokensPerMinute: z.coerce.number().optional(),
 			tokensPerHour: z.coerce.number().optional(),
@@ -263,7 +263,7 @@ export const virtualQuotaFallbackProviderDataSchema = z.object({
 		.optional(),
 })
 const virtualQuotaFallbackSchema = baseProviderSettingsSchema.extend({
-	providers: z.array(virtualQuotaFallbackProviderDataSchema).optional(),
+	profiles: z.array(virtualQuotaFallbackProfileDataSchema).optional(),
 })
 // kilocode_change end
 

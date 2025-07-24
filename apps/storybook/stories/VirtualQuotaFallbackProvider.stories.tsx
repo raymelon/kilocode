@@ -71,7 +71,7 @@ export const Default: Story = {
 	args: {
 		apiConfiguration: {
 			apiProvider: "virtual-quota-fallback",
-			providers: [],
+			profiles: [],
 		} as ProviderSettings,
 	},
 }
@@ -80,11 +80,11 @@ export const WithQuotas: Story = {
 	args: {
 		apiConfiguration: {
 			apiProvider: "virtual-quota-fallback",
-			providers: [
+			profiles: [
 				{
-					providerId: "anthropic-1",
-					providerName: "Anthropic Claude",
-					providerLimits: {
+					profileId: "anthropic-1",
+					profileName: "Anthropic Claude",
+					profileLimits: {
 						tokensPerMinute: 100,
 						tokensPerHour: 5000,
 						tokensPerDay: 50000,
@@ -94,9 +94,9 @@ export const WithQuotas: Story = {
 					},
 				},
 				{
-					providerId: "openai-1",
-					providerName: "OpenAI GPT-4",
-					providerLimits: {
+					profileId: "openai-1",
+					profileName: "OpenAI GPT-4",
+					profileLimits: {
 						tokensPerMinute: 150,
 						tokensPerHour: 7500,
 						tokensPerDay: 75000,
@@ -110,12 +110,11 @@ export const WithQuotas: Story = {
 	},
 }
 
-// Story with no available providers (edge case)
 export const NoAvailableProviders: Story = {
 	args: {
 		apiConfiguration: {
 			apiProvider: "virtual-quota-fallback",
-			providers: [],
+			profiles: [],
 		} as ProviderSettings,
 	},
 	parameters: {
