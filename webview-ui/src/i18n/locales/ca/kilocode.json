@@ -155,5 +155,28 @@
 			"triggers": "Activadors",
 			"keybindingDescription": "Les funcions d'Assistència en línia es desencadenen mitjançant ordres. Podeu configurar les <DocsLink>dreceres de teclat aquí</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Configuració del Proveïdor Virtual",
+		"description": "Configura una llista de proveïdors cadascun amb els seus propis límits. Quan s'arribi als límits d'un proveïdor, s'utilitzarà el següent proveïdor de la llista fins que no en quedi cap.",
+		"providerLabel": "Proveïdor {{number}}",
+		"primaryProviderLabel": "Proveïdor {{number}} (Principal)",
+		"moveProviderUp": "Moure proveïdor amunt",
+		"moveProviderDown": "Moure proveïdor avall",
+		"removeProvider": "Eliminar proveïdor",
+		"selectProviderPlaceholder": "Selecciona proveïdor...",
+		"addProvider": "Afegir Proveïdor",
+		"noProvidersAvailable": "No hi ha perfils de proveïdor disponibles. Si us plau, configura almenys un perfil de proveïdor no virtual primer.",
+		"tokensPerMinute": "Tokens/min",
+		"tokensPerHour": "Tokens/h",
+		"tokensPerDay": "Tokens/dia",
+		"requestsPerMinute": "Sol·licituds/min",
+		"requestsPerHour": "Sol·licituds/h",
+		"requestsPerDay": "Sol·licituds/dia",
+		"dangerZoneTitle": "Zona de Perill",
+		"dangerZoneDescription": "Aquestes accions són destructives i no es poden desfer.",
+		"clearUsageData": "Esborrar Dades d'Ús",
+		"confirmClearTitle": "Estàs segur?",
+		"confirmClearDescription": "Això eliminarà permanentment totes les dades d'ús emmagatzemades per als proveïdors virtuals. Aquesta acció no es pot desfer."
 	}
 }

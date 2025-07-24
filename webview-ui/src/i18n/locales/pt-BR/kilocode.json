@@ -155,5 +155,28 @@
 			"triggers": "Gatilhos",
 			"keybindingDescription": "Os recursos de Assistência em Linha são acionados por comandos. Você pode configurar os <DocsLink>atalhos de teclado aqui</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Configurações do Provedor Virtual",
+		"description": "Configure uma lista de provedores, cada um com seus próprios limites. Quando os limites de um provedor forem atingidos, o próximo provedor da lista será usado até que não reste nenhum.",
+		"providerLabel": "Provedor {{number}}",
+		"primaryProviderLabel": "Provedor {{number}} (Principal)",
+		"moveProviderUp": "Mover provedor para cima",
+		"moveProviderDown": "Mover provedor para baixo",
+		"removeProvider": "Remover provedor",
+		"selectProviderPlaceholder": "Selecionar provedor...",
+		"addProvider": "Adicionar Provedor",
+		"noProvidersAvailable": "Nenhum perfil de provedor disponível. Configure pelo menos um perfil de provedor não virtual primeiro.",
+		"tokensPerMinute": "Tokens/min",
+		"tokensPerHour": "Tokens/h",
+		"tokensPerDay": "Tokens/dia",
+		"requestsPerMinute": "Solicitações/min",
+		"requestsPerHour": "Solicitações/h",
+		"requestsPerDay": "Solicitações/dia",
+		"dangerZoneTitle": "Zona de Perigo",
+		"dangerZoneDescription": "Essas ações são destrutivas e não podem ser desfeitas.",
+		"clearUsageData": "Limpar Dados de Uso",
+		"confirmClearTitle": "Tem certeza?",
+		"confirmClearDescription": "Isso excluirá permanentemente todos os dados de uso armazenados para provedores virtuais. Esta ação não pode ser desfeita."
 	}
 }

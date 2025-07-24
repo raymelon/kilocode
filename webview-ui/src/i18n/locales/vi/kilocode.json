@@ -155,5 +155,28 @@
 			"triggers": "Các yếu tố kích hoạt",
 			"keybindingDescription": "Các tính năng Trợ giúp Nội tuyến được kích hoạt bằng các lệnh. Bạn có thể cấu hình <DocsLink>phím tắt tại đây</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Cài đặt Nhà cung cấp Ảo",
+		"description": "Cấu hình danh sách các nhà cung cấp, mỗi nhà có giới hạn riêng. Khi giới hạn của một nhà cung cấp đạt đến, nhà cung cấp tiếp theo trong danh sách sẽ được sử dụng cho đến khi không còn nhà nào.",
+		"providerLabel": "Nhà cung cấp {{number}}",
+		"primaryProviderLabel": "Nhà cung cấp {{number}} (Chính)",
+		"moveProviderUp": "Di chuyển nhà cung cấp lên",
+		"moveProviderDown": "Di chuyển nhà cung cấp xuống",
+		"removeProvider": "Xóa nhà cung cấp",
+		"selectProviderPlaceholder": "Chọn nhà cung cấp...",
+		"addProvider": "Thêm Nhà cung cấp",
+		"noProvidersAvailable": "Không có hồ sơ nhà cung cấp nào khả dụng. Vui lòng cấu hình ít nhất một hồ sơ nhà cung cấp không ảo trước.",
+		"tokensPerMinute": "Token/phút",
+		"tokensPerHour": "Token/giờ",
+		"tokensPerDay": "Token/ngày",
+		"requestsPerMinute": "Yêu cầu/phút",
+		"requestsPerHour": "Yêu cầu/giờ",
+		"requestsPerDay": "Yêu cầu/ngày",
+		"dangerZoneTitle": "Vùng Nguy hiểm",
+		"dangerZoneDescription": "Những hành động này có tính phá hoại và không thể hoàn tác.",
+		"clearUsageData": "Xóa Dữ liệu Sử dụng",
+		"confirmClearTitle": "Bạn có chắc chắn?",
+		"confirmClearDescription": "Điều này sẽ xóa vĩnh viễn tất cả dữ liệu sử dụng đã lưu trữ cho các nhà cung cấp ảo. Hành động này không thể hoàn tác."
 	}
 }

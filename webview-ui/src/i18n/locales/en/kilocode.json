@@ -155,5 +155,28 @@
 				"description": "Select an API configuration to use for Inline Assist prompts, or just use whatever is currently selected"
 			}
 		}
+	},
+	"virtualProvider": {
+		"title": "Virtual Provider Settings",
+		"description": "Configure a list of providers each with their own limits. When one providers limits are reached, the next provider in the list will be used until none remain.",
+		"providerLabel": "Provider {{number}}",
+		"primaryProviderLabel": "Provider {{number}} (Primary)",
+		"moveProviderUp": "Move provider up",
+		"moveProviderDown": "Move provider down",
+		"removeProvider": "Remove provider",
+		"selectProviderPlaceholder": "Select provider...",
+		"addProvider": "Add Provider",
+		"noProvidersAvailable": "No provider profiles available. Please configure at least one non-virtual provider profile first.",
+		"tokensPerMinute": "Tokens/min",
+		"tokensPerHour": "Tokens/hr",
+		"tokensPerDay": "Tokens/day",
+		"requestsPerMinute": "Requests/min",
+		"requestsPerHour": "Requests/hr",
+		"requestsPerDay": "Requests/day",
+		"dangerZoneTitle": "Danger Zone",
+		"dangerZoneDescription": "These actions are destructive and cannot be undone.",
+		"clearUsageData": "Clear Usage Data",
+		"confirmClearTitle": "Are you sure?",
+		"confirmClearDescription": "This will permanently delete all stored usage data for virtual providers. This action cannot be undone."
 	}
 }

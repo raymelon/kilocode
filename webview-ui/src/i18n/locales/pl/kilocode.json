@@ -155,5 +155,28 @@
 			"triggers": "Wyzwalacze",
 			"keybindingDescription": "Funkcje Inline Assist są uruchamiane za pomocą poleceń. Możesz skonfigurować <DocsLink>skróty klawiaturowe tutaj</DocsLink>."
 		}
+	},
+	"virtualProvider": {
+		"title": "Ustawienia Wirtualnego Dostawcy",
+		"description": "Skonfiguruj listę dostawców, każdy z własnymi limitami. Gdy limity jednego dostawcy zostaną osiągnięte, zostanie użyty następny dostawca z listy, aż do wyczerpania wszystkich.",
+		"providerLabel": "Dostawca {{number}}",
+		"primaryProviderLabel": "Dostawca {{number}} (Główny)",
+		"moveProviderUp": "Przenieś dostawcę w górę",
+		"moveProviderDown": "Przenieś dostawcę w dół",
+		"removeProvider": "Usuń dostawcę",
+		"selectProviderPlaceholder": "Wybierz dostawcę...",
+		"addProvider": "Dodaj Dostawcę",
+		"noProvidersAvailable": "Brak dostępnych profili dostawców. Najpierw skonfiguruj co najmniej jeden profil dostawcy nie-wirtualnego.",
+		"tokensPerMinute": "Tokeny/min",
+		"tokensPerHour": "Tokeny/godz",
+		"tokensPerDay": "Tokeny/dzień",
+		"requestsPerMinute": "Żądania/min",
+		"requestsPerHour": "Żądania/godz",
+		"requestsPerDay": "Żądania/dzień",
+		"dangerZoneTitle": "Strefa Niebezpieczna",
+		"dangerZoneDescription": "Te działania są destrukcyjne i nie można ich cofnąć.",
+		"clearUsageData": "Wyczyść Dane Użytkowania",
+		"confirmClearTitle": "Czy jesteś pewien?",
+		"confirmClearDescription": "To trwale usunie wszystkie przechowywane dane użytkowania dla wirtualnych dostawców. Tej akcji nie można cofnąć."
 	}
 }

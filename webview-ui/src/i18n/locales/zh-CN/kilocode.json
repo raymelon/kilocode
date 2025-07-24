@@ -155,5 +155,28 @@
 			"triggers": "触发器",
 			"keybindingDescription": "内联助手功能由命令触发。您可以在<DocsLink>这里配置键盘快捷键</DocsLink>。"
 		}
+	},
+	"virtualProvider": {
+		"title": "虚拟提供商设置",
+		"description": "配置提供商列表，每个都有自己的限制。当一个提供商的限制达到时，将使用列表中的下一个提供商，直到没有剩余。",
+		"providerLabel": "提供商 {{number}}",
+		"primaryProviderLabel": "提供商 {{number}} (主要)",
+		"moveProviderUp": "向上移动提供商",
+		"moveProviderDown": "向下移动提供商",
+		"removeProvider": "移除提供商",
+		"selectProviderPlaceholder": "选择提供商...",
+		"addProvider": "添加提供商",
+		"noProvidersAvailable": "没有可用的提供商配置文件。请先配置至少一个非虚拟提供商配置文件。",
+		"tokensPerMinute": "Token/分钟",
+		"tokensPerHour": "Token/小时",
+		"tokensPerDay": "Token/天",
+		"requestsPerMinute": "请求/分钟",
+		"requestsPerHour": "请求/小时",
+		"requestsPerDay": "请求/天",
+		"dangerZoneTitle": "危险区域",
+		"dangerZoneDescription": "这些操作具有破坏性且无法撤销。",
+		"clearUsageData": "清除使用数据",
+		"confirmClearTitle": "确定吗？",
+		"confirmClearDescription": "这将永久删除虚拟提供商的所有存储使用数据。此操作无法撤销。"
 	}
 }

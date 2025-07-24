@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
-import { Trans } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons"
 import { ChevronUp, ChevronDown } from "lucide-react"
@@ -47,6 +47,7 @@ type LimitInputsProps = {
 export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualProps) => {
 	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
 	const [isAlertOpen, setIsAlertOpen] = useState(false)
+	const { t } = useTranslation()
 
 	// Get current profile ID to exclude from available providers
 	const currentProfile = listApiConfigMeta?.find((config) => config.name === currentApiConfigName)
@@ -154,10 +155,10 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 	return (
 		<>
 			<h3 className="text-lg font-medium mb-0">
-				<Trans i18nKey="settings:providers.virtualTitle">Virtual Provider Settings</Trans>
+				<Trans i18nKey="kilocode:virtualProvider.title">Virtual Provider Settings</Trans>
 			</h3>
 			<div className="text-sm text-vscode-descriptionForeground">
-				<Trans i18nKey="settings:providers.virtualDescription">
+				<Trans i18nKey="kilocode:virtualProvider.description">
 					Configure a list of providers each with their own limits. When one providers limits are reached, the
 					next provider in the list will be used until none remain.
 				</Trans>
@@ -174,7 +175,9 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 						<div key={index} className="border border-vscode-settings-sashBorder rounded-md p-2">
 							<div className="flex items-center justify-between mb-3">
 								<label className="block font-medium">
-									Provider {index + 1} {index === 0 && "(Primary)"}
+									{index === 0
+										? t("kilocode:virtualProvider.primaryProviderLabel", { number: index + 1 })
+										: t("kilocode:virtualProvider.providerLabel", { number: index + 1 })}
 								</label>
 								<div className="flex items-center gap-1">
 									{/* Move Up Button */}
@@ -182,7 +185,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 										appearance="icon"
 										onClick={() => moveProviderUp(index)}
 										disabled={index === 0}
-										title="Move provider up">
+										title={t("kilocode:virtualProvider.moveProviderUp")}>
 										<ChevronUp size={16} />
 									</VSCodeButton>
 									{/* Move Down Button */}
@@ -190,7 +193,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 										appearance="icon"
 										onClick={() => moveProviderDown(index)}
 										disabled={index === providers.length - 1}
-										title="Move provider down">
+										title={t("kilocode:virtualProvider.moveProviderDown")}>
 										<ChevronDown size={16} />
 									</VSCodeButton>
 									{/* Remove Button */}
@@ -198,7 +201,7 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 										<VSCodeButton
 											appearance="icon"
 											onClick={() => removeProvider(index)}
-											title="Remove provider">
+											title={t("kilocode:virtualProvider.removeProvider")}>
 											<TrashIcon />
 										</VSCodeButton>
 									)}
@@ -210,7 +213,9 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 								onValueChange={(value) => handleProviderSelect(index, value)}
 								disabled={availableForThisSlot.length === 0}>
 								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Select provider..." />
+									<SelectValue
+										placeholder={t("kilocode:virtualProvider.selectProviderPlaceholder")}
+									/>
 								</SelectTrigger>
 								<SelectContent>
 									{availableForThisSlot.map((profile) => (
@@ -236,29 +241,31 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 						onClick={addProvider}
 						disabled={availableProfiles.length <= providers.length}>
 						<PlusIcon className="mr-2" />
-						Add Provider
+						<Trans i18nKey="kilocode:virtualProvider.addProvider">Add Provider</Trans>
 					</VSCodeButton>
 				</div>
 
 				{availableProfiles.length === 0 ? (
 					<div className="text-sm text-vscode-descriptionForeground text-center p-4 border border-vscode-settings-sashBorder rounded-md">
-						No provider profiles available. Please configure at least one non-virtual provider profile
-						first.
+						<Trans i18nKey="kilocode:virtualProvider.noProvidersAvailable">
+							No provider profiles available. Please configure at least one non-virtual provider profile
+							first.
+						</Trans>
 					</div>
 				) : null}
 			</div>
 
 			<div className="p-4 border border-vscode-editorWarning-foreground rounded-md">
 				<div className="text-md font-semibold text-vscode-editorWarning-foreground">
-					<Trans i18nKey="settings:providers.virtual.dangerZoneTitle">Danger Zone</Trans>
+					<Trans i18nKey="kilocode:virtualProvider.dangerZoneTitle">Danger Zone</Trans>
 				</div>
 				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
-					<Trans i18nKey="settings:providers.virtual.dangerZoneDescription">
+					<Trans i18nKey="kilocode:virtualProvider.dangerZoneDescription">
 						These actions are destructive and cannot be undone.
 					</Trans>
 				</p>
 				<VSCodeButton appearance="secondary" onClick={() => setIsAlertOpen(true)}>
-					<Trans i18nKey="settings:providers.virtual.clearUsageData">Clear Usage Data</Trans>
+					<Trans i18nKey="kilocode:virtualProvider.clearUsageData">Clear Usage Data</Trans>
 				</VSCodeButton>
 			</div>
 
@@ -266,10 +273,10 @@ export const Virtual = ({ apiConfiguration, setApiConfigurationField }: VirtualP
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>
-							<Trans i18nKey="settings:providers.virtual.confirmClearTitle">Are you sure?</Trans>
+							<Trans i18nKey="kilocode:virtualProvider.confirmClearTitle">Are you sure?</Trans>
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							<Trans i18nKey="settings:providers.virtual.confirmClearDescription">
+							<Trans i18nKey="kilocode:virtualProvider.confirmClearDescription">
 								This will permanently delete all stored usage data for virtual providers. This action
 								cannot be undone.
 							</Trans>
@@ -315,7 +322,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 			<div className="space-y-2">
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.tokensPerMinute">Tokens/min</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.tokensPerMinute">Tokens/min</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerMinute?.toString() ?? ""}
@@ -325,7 +332,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 				</div>
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.tokensPerHour">Tokens/hr</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.tokensPerHour">Tokens/hr</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerHour?.toString() ?? ""}
@@ -335,7 +342,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 				</div>
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.tokensPerDay">Tokens/day</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.tokensPerDay">Tokens/day</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.tokensPerDay?.toString() ?? ""}
@@ -349,7 +356,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 			<div className="space-y-2">
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.requestsPerMinute">Requests/min</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.requestsPerMinute">Requests/min</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerMinute?.toString() ?? ""}
@@ -359,7 +366,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 				</div>
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.requestsPerHour">Requests/hr</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.requestsPerHour">Requests/hr</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerHour?.toString() ?? ""}
@@ -369,7 +376,7 @@ const VirtualLimitInputs = ({ provider, index, onProviderChange }: LimitInputsPr
 				</div>
 				<div>
 					<label className="block text-sm font-medium mb-1">
-						<Trans i18nKey="settings:providers.virtual.requestsPerDay">Requests/day</Trans>
+						<Trans i18nKey="kilocode:virtualProvider.requestsPerDay">Requests/day</Trans>
 					</label>
 					<VSCodeTextField
 						value={provider.providerLimits?.requestsPerDay?.toString() ?? ""}
