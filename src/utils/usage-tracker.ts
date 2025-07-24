@@ -1,3 +1,4 @@
+// kilocode_change - new file
 import type { ExtensionContext, Memento } from "vscode"
 import { ContextProxy } from "../core/config/ContextProxy"
 
@@ -20,7 +21,7 @@ interface UsageResult {
 	requests: number
 }
 
-const USAGE_STORAGE_KEY = "kilocode.virtualquotafallbackprovider.usage.v1"
+const USAGE_STORAGE_KEY = "kilocode.virtualQuotaFallbackProvider.usage.v1"
 const ONE_MINUTE_MS = 60 * 1000
 const ONE_HOUR_MS = 60 * ONE_MINUTE_MS
 const ONE_DAY_MS = 24 * ONE_HOUR_MS

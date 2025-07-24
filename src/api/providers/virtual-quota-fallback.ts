@@ -1,3 +1,4 @@
+// kilocode_change - new file
 import { Anthropic } from "@anthropic-ai/sdk"
 import { z } from "zod"
 import type { ModelInfo, ProviderSettings } from "@roo-code/types"

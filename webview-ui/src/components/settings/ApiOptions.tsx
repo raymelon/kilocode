@@ -365,6 +365,7 @@ const ApiOptions = ({
 		}
 	}, [selectedProvider])
 
+	// kilocode_change start - filter out virtual-quota-fallback based on experiment
 	const filteredProviders = useMemo(() => {
 		const isVirtualEnabled = experimentsHelper.isEnabled(
 			experiments,
@@ -375,6 +376,7 @@ const ApiOptions = ({
 		}
 		return PROVIDERS.filter((p) => p.value !== "virtual-quota-fallback")
 	}, [experiments])
+	// kilocode_change end - filter out virtual-quota-fallback based on experiment
 
 	return (
 		<div className="flex flex-col gap-3">
