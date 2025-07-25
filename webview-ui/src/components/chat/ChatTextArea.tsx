@@ -681,29 +681,31 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				}
 			},
 			[
-				showSlashCommandsMenu, // kilocode_change
 				sendingDisabled,
+				onSend,
 				showContextMenu,
-				selectedSlashCommandsIndex,
-				slashCommandsQuery,
-				handleSlashCommandsSelect,
-				selectedMenuIndex,
 				searchQuery,
-				inputValue,
+				selectedMenuIndex,
+				handleMentionSelect,
 				selectedType,
+				inputValue,
+				cursorPosition,
+				setInputValue,
+				justDeletedSpaceAfterMention,
 				queryItems,
 				allModes,
 				fileSearchResults,
 				handleHistoryNavigation,
 				resetHistoryNavigation,
-				cursorPosition,
-				customModes,
-				handleMentionSelect,
-				justDeletedSpaceAfterMention,
-				onSend,
-				setInputValue,
-				localWorkflows, // kilocode_change
-				globalWorkflows, // kilocode_change
+				// kilocode_change start
+				customModes, // kilo
+				globalWorkflows, // kilo
+				handleSlashCommandsSelect, // kilo
+				localWorkflows, // kilo
+				selectedSlashCommandsIndex, // kilo
+				showSlashCommandsMenu, // kilo
+				slashCommandsQuery, // kilo
+				// kilocode_change end
 			],
 		)
 
