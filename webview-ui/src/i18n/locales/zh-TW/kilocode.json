@@ -53,7 +53,7 @@
 		},
 		"enhancePrompt": {
 			"cancelEnhancement": "取消增強功能",
-			"revertEnhancement": "恢复到原始提示"
+			"revertEnhancement": "恢復到原始提示"
 		}
 	},
 	"newTaskPreview": {

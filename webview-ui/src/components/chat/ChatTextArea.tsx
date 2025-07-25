@@ -728,8 +728,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				resetOnInputChange()
 
 				const newCursorPosition = e.target.selectionStart
-				setInputValue(newValue) // kilocode_change
 				setCursorPosition(newCursorPosition)
+
 				// kilocode_change start: pull slash commands from Cline
 				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
 				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
