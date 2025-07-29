@@ -43,15 +43,20 @@ export class GhostDocumentStore {
 					uri,
 					document,
 					history: [],
+					lastAccessed: Date.now(),
 				})
 			}
 
 			const item = this.documentStore.get(uri)!
 			item.document = document // Update the document reference
+			item.lastAccessed = Date.now() // Update access time
 			item.history.push(document.getText())
 			if (item.history.length > this.historyLimit) {
 				item.history.shift() // Remove the oldest snapshot if we exceed the limit
 			}
+
+			// Enforce document limit using LRU eviction
+			this.enforceDocumentLimit()
 
 			// Parse the AST if requested and if the document version has changed.
 			// Corrected conditional logic
@@ -182,6 +187,9 @@ export class GhostDocumentStore {
 	public getAST(documentUri: vscode.Uri): ASTContext | undefined {
 		const uri = documentUri.toString()
 		const item = this.documentStore.get(uri)
+		if (item) {
+			item.lastAccessed = Date.now() // Update access time
+		}
 		return item?.ast
 	}
 
@@ -192,7 +200,11 @@ export class GhostDocumentStore {
 	 */
 	public getDocument(documentUri: vscode.Uri): GhostDocumentStoreItem | undefined {
 		const uri = documentUri.toString()
-		return this.documentStore.get(uri)
+		const item = this.documentStore.get(uri)
+		if (item) {
+			item.lastAccessed = Date.now() // Update access time
+		}
+		return item
 	}
 
 	/**
@@ -223,6 +235,23 @@ export class GhostDocumentStore {
 			item.ast = undefined
 			item.lastParsedVersion = undefined
 		}
+	}
+
+	/**
+	 * Enforce document limit using LRU eviction
+	 */
+	private enforceDocumentLimit(): void {
+		if (this.documentStore.size <= GHOST_DOCUMENT_STORE_LIMITS.MAX_DOCUMENTS) {
+			return
+		}
+
+		// Sort by last accessed time (LRU) and remove oldest documents
+		const entries = Array.from(this.documentStore.entries()).sort((a, b) => a[1].lastAccessed - b[1].lastAccessed)
+
+		const toRemove = entries.slice(0, this.documentStore.size - GHOST_DOCUMENT_STORE_LIMITS.MAX_DOCUMENTS)
+		toRemove.forEach(([uri]) => {
+			this.removeDocument(vscode.Uri.parse(uri))
+		})
 	}
 
 	/**
