@@ -1,7 +1,7 @@
 // kilocode_change - new file
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { createSampleMessage } from "@/components/chat/hooks/useQueuedMessages"
-import { QueuedMessageListExample } from "src/components/chat/QueuedMessageListExample"
+import { QueuedMessageListExample } from "../src/components/chat/QueuedMessageListExample"
 
 const sampleMessages = [
 	createSampleMessage("Write a function to calculate fibonacci numbers"),
