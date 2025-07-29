@@ -34,7 +34,7 @@ export class GhostDocumentStore {
 		bypassDebounce?: boolean
 	}): Promise<void> {
 		const uri = document.uri.toString()
-		const debounceWait = 500 // 500ms delay
+		const debounceWait = bypassDebounce ? 0 : this.getDebounceTime(document)
 
 		// Function to perform the actual document storage
 		const performStorage = async () => {
@@ -86,6 +86,20 @@ export class GhostDocumentStore {
 
 		// Store the new timer ID, associating it with the document's URI.
 		this.debounceTimers.set(uri, timer)
+	}
+
+	/**
+	 * Get dynamic debounce time based on file size
+	 * @param document The document to get debounce time for
+	 * @returns Debounce time in milliseconds
+	 */
+	private getDebounceTime(document: vscode.TextDocument): number {
+		const contentLength = document.getText().length
+
+		if (contentLength < 1000) return 200 // Small files: 200ms
+		if (contentLength < 10000) return 500 // Medium files: 500ms
+		if (contentLength < 50000) return 1000 // Large files: 1s
+		return 2000 // Very large files: 2s
 	}
 
 	/**
