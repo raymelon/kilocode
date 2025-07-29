@@ -209,7 +209,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		includeDiagnosticMessages,
 		maxDiagnosticMessages,
 	} = cachedState
-	console.log("🚀 ~ terminalCommandApiConfigId:", terminalCommandApiConfigId)
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
 

@@ -26,7 +26,7 @@ vi.mock("../../core/config/ProviderSettingsManager", () => ({
 describe("generateTerminalCommand", () => {
 	const mockOutputChannel = {
 		appendLine: vi.fn(),
-	} as any
+	} as unknown as vscode.OutputChannel
 
 	const mockContext = {
 		subscriptions: [],
@@ -36,7 +36,7 @@ describe("generateTerminalCommand", () => {
 		globalState: {
 			get: vi.fn(),
 		},
-	} as any
+	} as unknown as vscode.ExtensionContext
 
 	const mockTerminal = {
 		sendText: vi.fn(),
@@ -46,7 +46,7 @@ describe("generateTerminalCommand", () => {
 				fsPath: "/test/path",
 			},
 		},
-	} as any
+	} as unknown as vscode.Terminal
 
 	beforeEach(() => {
 		vi.clearAllMocks()

@@ -10,14 +10,16 @@ export interface TerminalCommandGeneratorOptions {
 	context: vscode.ExtensionContext
 }
 
-/**
- * Generates and executes terminal commands using AI based on user input
- */
 export async function generateTerminalCommand(options: TerminalCommandGeneratorOptions): Promise<void> {
 	const { outputChannel, context } = options
 
 	try {
-		const userInput = await promptForCommandDescription()
+		const userInput = await vscode.window.showInputBox({
+			prompt: "Describe the command you want to generate",
+			placeHolder: "e.g., list all files in current directory, find large files, install npm package",
+			ignoreFocusOut: true,
+		})
+
 		if (!userInput) {
 			return
 		}
@@ -28,59 +30,48 @@ export async function generateTerminalCommand(options: TerminalCommandGeneratorO
 			return
 		}
 
-		await executeCommandGeneration(activeTerminal, userInput, outputChannel, context)
+		await vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: "Generating terminal command...",
+				cancellable: false,
+			},
+			async () => {
+				try {
+					const terminalContext = buildTerminalContext(activeTerminal)
+					const apiConfiguration = await getApiConfiguration(context)
+					const customSupportPrompts = ContextProxy.instance?.getValue("customSupportPrompts") || {}
+
+					const prompt = supportPrompt.create(
+						"TERMINAL_GENERATE",
+						{
+							userInput,
+							...terminalContext,
+						},
+						customSupportPrompts,
+					)
+
+					const generatedCommand = await singleCompletionHandler(apiConfiguration, prompt)
+					const cleanCommand = generatedCommand
+						.trim()
+						.replace(/^```[\w]*\n?|```$/g, "")
+						.trim()
+
+					activeTerminal.sendText(cleanCommand)
+					activeTerminal.show()
+					vscode.window.showInformationMessage(`Generated command: ${cleanCommand}`)
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+					outputChannel.appendLine(`Error generating terminal command: ${errorMessage}`)
+					vscode.window.showErrorMessage(`Failed to generate command: ${errorMessage}`)
+				}
+			},
+		)
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
 		outputChannel.appendLine(`Error in generateTerminalCommand: ${errorMessage}`)
 		vscode.window.showErrorMessage(`Error: ${errorMessage}`)
 	}
-}
-
-async function promptForCommandDescription(): Promise<string | undefined> {
-	return await vscode.window.showInputBox({
-		prompt: "Describe the command you want to generate",
-		placeHolder: "e.g., list all files in current directory, find large files, install npm package",
-		ignoreFocusOut: true,
-	})
-}
-
-async function executeCommandGeneration(
-	activeTerminal: vscode.Terminal,
-	userInput: string,
-	outputChannel: vscode.OutputChannel,
-	context: vscode.ExtensionContext,
-): Promise<void> {
-	await vscode.window.withProgress(
-		{
-			location: vscode.ProgressLocation.Notification,
-			title: "Generating terminal command...",
-			cancellable: false,
-		},
-		async () => {
-			try {
-				const terminalContext = buildTerminalContext(activeTerminal)
-				const apiConfiguration = await getApiConfiguration(context)
-				const customSupportPrompts = ContextProxy.instance?.getValue("customSupportPrompts") || {}
-
-				const prompt = supportPrompt.create(
-					"TERMINAL_GENERATE",
-					{
-						userInput,
-						...terminalContext,
-					},
-					customSupportPrompts,
-				)
-
-				const generatedCommand = await singleCompletionHandler(apiConfiguration, prompt)
-				const cleanCommand = cleanGeneratedCommand(generatedCommand)
-
-				executeCommandInTerminal(activeTerminal, cleanCommand)
-				showSuccessMessage(cleanCommand)
-			} catch (error) {
-				handleGenerationError(error, outputChannel)
-			}
-		},
-	)
 }
 
 function buildTerminalContext(activeTerminal: vscode.Terminal) {
@@ -129,26 +120,4 @@ async function getApiConfiguration(context: vscode.ExtensionContext): Promise<Pr
 	}
 
 	return configToUse
-}
-
-function cleanGeneratedCommand(generatedCommand: string): string {
-	return generatedCommand
-		.trim()
-		.replace(/^```[\w]*\n?|```$/g, "")
-		.trim()
-}
-
-function executeCommandInTerminal(activeTerminal: vscode.Terminal, command: string): void {
-	activeTerminal.sendText(command)
-	activeTerminal.show()
-}
-
-function showSuccessMessage(command: string): void {
-	vscode.window.showInformationMessage(`Generated command: ${command}`)
-}
-
-function handleGenerationError(error: unknown, outputChannel: vscode.OutputChannel): void {
-	const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-	outputChannel.appendLine(`Error generating terminal command: ${errorMessage}`)
-	vscode.window.showErrorMessage(`Failed to generate command: ${errorMessage}`)
 }

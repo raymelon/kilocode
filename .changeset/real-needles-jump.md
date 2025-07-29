@@ -1,10 +1,10 @@
 ---
-"@roo-code/extension": minor
+"kilo-code": minor
 ---
 
 # Terminal Command Generator
 
-Added a new AI-powered terminal command generator feature that helps users create terminal commands using natural language descriptions.
+New AI-powered terminal command generator- helps users create terminal commands using natural language
 
 ## New Features
 
