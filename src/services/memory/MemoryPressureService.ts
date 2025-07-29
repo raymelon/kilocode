@@ -121,7 +121,6 @@ export class MemoryPressureService {
 
 	private async triggerMemoryOptimization(): Promise<void> {
 		this.logMessage("Memory optimization requested by user")
-		// Force garbage collection if available
 		if (global.gc) {
 			global.gc()
 			this.logMessage("Forced garbage collection completed")
@@ -129,7 +128,6 @@ export class MemoryPressureService {
 			this.logMessage("Garbage collection not available (run with --expose-gc flag)")
 		}
 
-		// Log current memory after optimization attempt
 		setTimeout(() => {
 			this.logCurrentMemoryStats()
 		}, 1000)
@@ -160,11 +158,17 @@ export class MemoryPressureService {
 		}
 	}
 
+	private convertStatsToMB(stats: MemoryStats) {
+		return {
+			heapUsedMB: Math.round(stats.heapUsed / 1024 / 1024),
+			heapTotalMB: Math.round(stats.heapTotal / 1024 / 1024),
+			externalMB: Math.round(stats.external / 1024 / 1024),
+			rssMB: Math.round(stats.rss / 1024 / 1024),
+		}
+	}
+
 	private logMemoryStats(stats: MemoryStats): void {
-		const heapUsedMB = Math.round(stats.heapUsed / 1024 / 1024)
-		const heapTotalMB = Math.round(stats.heapTotal / 1024 / 1024)
-		const externalMB = Math.round(stats.external / 1024 / 1024)
-		const rssMB = Math.round(stats.rss / 1024 / 1024)
+		const { heapUsedMB, heapTotalMB, externalMB, rssMB } = this.convertStatsToMB(stats)
 
 		const level =
 			heapUsedMB > this.config.criticalThreshold
@@ -177,8 +181,7 @@ export class MemoryPressureService {
 	}
 
 	private logCurrentMemoryStats(): void {
-		const stats = this.getMemoryStats()
-		this.logMemoryStats(stats)
+		this.logMemoryStats(this.getMemoryStats())
 	}
 
 	private logMessage(message: string, level: "INFO" | "WARN" | "ERROR" = "INFO"): void {
@@ -188,12 +191,7 @@ export class MemoryPressureService {
 	}
 
 	public getMemoryStatsFormatted(): string {
-		const stats = this.getMemoryStats()
-		const heapUsedMB = Math.round(stats.heapUsed / 1024 / 1024)
-		const heapTotalMB = Math.round(stats.heapTotal / 1024 / 1024)
-		const externalMB = Math.round(stats.external / 1024 / 1024)
-		const rssMB = Math.round(stats.rss / 1024 / 1024)
-
+		const { heapUsedMB, heapTotalMB, externalMB, rssMB } = this.convertStatsToMB(this.getMemoryStats())
 		return `Heap: ${heapUsedMB}/${heapTotalMB}MB | External: ${externalMB}MB | RSS: ${rssMB}MB`
 	}
 

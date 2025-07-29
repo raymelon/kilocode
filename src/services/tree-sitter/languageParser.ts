@@ -52,7 +52,6 @@ async function loadLanguage(langName: string, sourceDirectory?: string) {
 
 let isParserInitialized = false
 
-// Parser cache management
 class ParserCacheManager {
 	private static instance: ParserCacheManager | null = null
 	private parserCache = new Map<string, { parser: ParserT; query: QueryT }>()
