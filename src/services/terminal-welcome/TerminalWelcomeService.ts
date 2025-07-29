@@ -15,14 +15,12 @@ export class TerminalWelcomeService {
 	 * Initialize the terminal welcome service
 	 */
 	public initialize(): void {
-		// Listen for new terminals being opened
 		const onDidOpenTerminal = vscode.window.onDidOpenTerminal((terminal) => {
 			this.handleTerminalOpened(terminal)
 		})
 
 		this.disposables.push(onDidOpenTerminal)
 
-		// Also check existing terminals that might have been opened before activation
 		vscode.window.terminals.forEach((terminal) => {
 			this.handleTerminalOpened(terminal)
 		})
@@ -32,25 +30,20 @@ export class TerminalWelcomeService {
 	 * Handle when a terminal is opened
 	 */
 	private handleTerminalOpened(terminal: vscode.Terminal): void {
-		// Skip if we've already shown a message for this terminal
 		if (this.shownTerminals.has(terminal)) {
 			return
 		}
 
-		// Skip extension-created terminals (like "Kilo Code")
 		if (this.isExtensionTerminal(terminal)) {
 			return
 		}
 
-		// Mark this terminal as having been shown a message
 		this.shownTerminals.add(terminal)
 
-		// Send the welcome message after a short delay to ensure terminal is ready
 		setTimeout(() => {
 			this.showWelcomeMessage(terminal)
 		}, 500)
 
-		// Clean up when terminal is closed
 		const onDidCloseTerminal = vscode.window.onDidCloseTerminal((closedTerminal) => {
 			if (closedTerminal === terminal) {
 				this.shownTerminals.delete(terminal)
@@ -67,7 +60,6 @@ export class TerminalWelcomeService {
 	private isExtensionTerminal(terminal: vscode.Terminal): boolean {
 		const name = terminal.name.toLowerCase()
 
-		// Skip terminals created by Kilo Code or other extensions
 		const extensionTerminalNames = [
 			"kilo code",
 			"kilocode",
@@ -84,22 +76,14 @@ export class TerminalWelcomeService {
 	}
 
 	private showWelcomeMessage(terminal: vscode.Terminal): void {
-		// Get the keyboard shortcut for the generate command
 		const shortcut = this.getKeyboardShortcut()
-
-		// Create the welcome message using translatable string
 		const message = t("kilocode:terminalWelcome.message", { shortcut })
-
-		// Show as a VSCode information message (toast notification)
 		vscode.window.showInformationMessage(message)
 	}
 
 	private getKeyboardShortcut(): string {
 		const isMac = process.platform === "darwin"
 		const modifier = isMac ? "Cmd" : "Ctrl"
-
-		// Try to get the actual configured keybinding
-		// Default to OS-appropriate shortcut if not found
 		return `${modifier}+Shift+G`
 	}
 

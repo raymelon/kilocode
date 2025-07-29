@@ -4,10 +4,24 @@ import { generateTerminalCommand } from "../terminalCommandGenerator"
 import { ContextProxy } from "../../core/config/ContextProxy"
 import { singleCompletionHandler } from "../single-completion-handler"
 
-// Mock dependencies
 vi.mock("vscode")
 vi.mock("../../core/config/ContextProxy")
 vi.mock("../single-completion-handler")
+vi.mock("../../shared/support-prompt", () => ({
+	supportPrompt: {
+		create: vi.fn().mockReturnValue("mocked prompt"),
+	},
+}))
+vi.mock("../../core/config/ProviderSettingsManager", () => ({
+	ProviderSettingsManager: vi.fn().mockImplementation(() => ({
+		initialize: vi.fn().mockResolvedValue(undefined),
+		getProfile: vi.fn().mockResolvedValue({
+			name: "test",
+			apiProvider: "anthropic",
+			apiKey: "test-key",
+		}),
+	})),
+}))
 
 describe("generateTerminalCommand", () => {
 	const mockOutputChannel = {
@@ -37,32 +51,40 @@ describe("generateTerminalCommand", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
-		// Mock ContextProxy
 		const mockContextProxy = {
 			getProviderSettings: vi.fn().mockReturnValue({
 				apiProvider: "anthropic",
 				apiKey: "test-key",
 			}),
-			getValue: vi.fn().mockReturnValue({}),
+			getValue: vi.fn().mockReturnValue(null),
 		}
 		Object.defineProperty(ContextProxy, "instance", {
 			get: vi.fn(() => mockContextProxy),
 			configurable: true,
 		})
 
-		// Mock vscode APIs
-		vi.mocked(vscode.window.showInputBox).mockResolvedValue("list files")
+		vscode.window.showInputBox = vi.fn().mockResolvedValue("list files")
 		Object.defineProperty(vscode.window, "activeTerminal", {
 			get: vi.fn(() => mockTerminal),
 			configurable: true,
 		})
-		vi.mocked(vscode.window.withProgress).mockImplementation(async (options, callback) => {
+		vscode.window.withProgress = vi.fn().mockImplementation(async (options, callback) => {
 			const mockProgress = { report: vi.fn() }
 			return await callback(mockProgress as any, {} as any)
 		})
-		vi.mocked(vscode.window.showInformationMessage).mockResolvedValue(undefined)
+		vscode.window.showInformationMessage = vi.fn().mockResolvedValue(undefined)
+		vscode.window.showErrorMessage = vi.fn().mockResolvedValue(undefined)
 
-		// Mock singleCompletionHandler
+		// Mock ProgressLocation enum
+		Object.defineProperty(vscode, "ProgressLocation", {
+			value: {
+				Notification: 15,
+				Window: 10,
+				SourceControl: 1,
+			},
+			configurable: true,
+		})
+
 		vi.mocked(singleCompletionHandler).mockResolvedValue("ls -la")
 	})
 
@@ -85,7 +107,7 @@ describe("generateTerminalCommand", () => {
 	})
 
 	it("should handle user cancellation", async () => {
-		vi.mocked(vscode.window.showInputBox).mockResolvedValue(undefined)
+		vscode.window.showInputBox = vi.fn().mockResolvedValue(undefined)
 
 		await generateTerminalCommand({
 			outputChannel: mockOutputChannel,
@@ -101,7 +123,6 @@ describe("generateTerminalCommand", () => {
 			get: vi.fn(() => undefined),
 			configurable: true,
 		})
-		vi.mocked(vscode.window.showErrorMessage).mockResolvedValue(undefined)
 
 		await generateTerminalCommand({
 			outputChannel: mockOutputChannel,
@@ -117,19 +138,20 @@ describe("generateTerminalCommand", () => {
 	it("should handle API configuration errors", async () => {
 		const mockContextProxy = {
 			getProviderSettings: vi.fn().mockReturnValue(null),
-			getValue: vi.fn().mockReturnValue({}),
+			getValue: vi.fn().mockReturnValue([]),
 		}
 		Object.defineProperty(ContextProxy, "instance", {
 			get: vi.fn(() => mockContextProxy),
 			configurable: true,
 		})
-		vi.mocked(vscode.window.showErrorMessage).mockResolvedValue(undefined)
 
 		await generateTerminalCommand({
 			outputChannel: mockOutputChannel,
 			context: mockContext,
 		})
 
-		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining("Error:"))
+		expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+			expect.stringContaining("Failed to generate command:"),
+		)
 	})
 })

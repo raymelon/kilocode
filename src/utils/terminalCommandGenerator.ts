@@ -19,7 +19,7 @@ export async function generateTerminalCommand(options: TerminalCommandGeneratorO
 	try {
 		const userInput = await promptForCommandDescription()
 		if (!userInput) {
-			return // User cancelled
+			return
 		}
 
 		const activeTerminal = vscode.window.activeTerminal
@@ -102,7 +102,6 @@ async function getApiConfiguration(context: vscode.ExtensionContext): Promise<Pr
 	const terminalCommandApiConfigId = contextProxy.getValue("terminalCommandApiConfigId")
 	const listApiConfigMeta = contextProxy.getValue("listApiConfigMeta") || []
 
-	// Try to get terminal command specific config first, fall back to current config
 	let configToUse: ProviderSettings = apiConfiguration
 
 	if (
@@ -121,7 +120,6 @@ async function getApiConfiguration(context: vscode.ExtensionContext): Promise<Pr
 				configToUse = providerSettings
 			}
 		} catch (error) {
-			// Fall back to default configuration if profile doesn't exist
 			console.warn(`Failed to load terminal command API config ${terminalCommandApiConfigId}:`, error)
 		}
 	}
