@@ -14,6 +14,10 @@ export class GhostDocumentStore {
 	private documentStore: Map<string, GhostDocumentStoreItem> = new Map()
 	private parserInitialized: boolean = false
 
+	// AST parsing limits to prevent excessive memory usage
+	private readonly MAX_AST_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+	private readonly MAX_AST_LINE_COUNT = 10000 // 10k lines
+
 	/**
 	 * Store a document in the document store and optionally parse its AST
 	 * @param document The document to store
@@ -80,6 +84,29 @@ export class GhostDocumentStore {
 	}
 
 	/**
+	 * Check if AST parsing should be performed for a document
+	 * @param document The document to check
+	 * @returns True if AST parsing should be performed
+	 */
+	private shouldParseAST(document: vscode.TextDocument): boolean {
+		// Check file size
+		const content = document.getText()
+		if (content.length > this.MAX_AST_FILE_SIZE) {
+			console.warn(`Skipping AST parsing for large file: ${document.uri.fsPath} (${content.length} bytes)`)
+			return false
+		}
+
+		// Check line count
+		const lineCount = document.lineCount
+		if (lineCount > this.MAX_AST_LINE_COUNT) {
+			console.warn(`Skipping AST parsing for file with many lines: ${document.uri.fsPath} (${lineCount} lines)`)
+			return false
+		}
+
+		return true
+	}
+
+	/**
 	 * Parse the AST for a document and store it
 	 * @param document The document to parse
 	 */
@@ -89,6 +116,11 @@ export class GhostDocumentStore {
 			const item = this.documentStore.get(uri)
 
 			if (!item) {
+				return
+			}
+
+			// Check if AST parsing should be performed
+			if (!this.shouldParseAST(document)) {
 				return
 			}
 
