@@ -222,6 +222,11 @@
 				"category": "%extension.displayName%"
 			},
 			{
+				"command": "kilo-code.generateTerminalCommand",
+				"title": "%command.terminal.generateCommand.title%",
+				"category": "%extension.displayName%"
+			},
+			{
 				"command": "kilo-code.setCustomStoragePath",
 				"title": "%command.setCustomStoragePath.title%",
 				"category": "%configuration.title%"
@@ -347,6 +352,11 @@
 				"key": "ctrl+i",
 				"mac": "cmd+i",
 				"when": "editorTextFocus && !editorTabMovesFocus && !inSnippetMode && kilocode.ghost.enableQuickInlineTaskKeybinding && github.copilot.completions.enabled"
+			},
+			{
+				"command": "kilo-code.generateTerminalCommand",
+				"key": "ctrl+shift+g",
+				"mac": "cmd+shift+g"
 			}
 		],
 		"menus": {

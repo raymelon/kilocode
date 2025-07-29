@@ -23,6 +23,15 @@ export class Terminal extends BaseTerminal {
 		if (Terminal.getTerminalZdotdir()) {
 			ShellIntegrationManager.terminalTmpDirs.set(id, env.ZDOTDIR)
 		}
+
+		// kilocode_change start - Show hint message for terminal command generation
+		if (!terminal) {
+			// Only show hint for newly created terminals, not existing ones
+			setTimeout(() => {
+				this.terminal.sendText(`echo "💡 Press Cmd + Shift + T to generate a command."`)
+			}, 100)
+		}
+		// kilocode_change end
 	}
 
 	/**
