@@ -31,7 +31,6 @@ export const IconButton: React.FC<IconButtonProps> = ({
 		"hover:opacity-100 hover:bg-vscode-list-hoverBackground",
 		"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
 		"active:bg-[rgba(255,255,255,0.1)]",
-		// Size variants
 		size === "sm" && "p-1 min-w-[20px] min-h-[20px]",
 		size === "md" && "p-1.5 min-w-[28px] min-h-[28px]",
 		!disabled && "cursor-pointer",

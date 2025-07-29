@@ -7,12 +7,11 @@ import { QueuedMessageRow } from "./QueuedMessageRow"
 import { IconButton } from "../ui/IconButton"
 import { cn } from "@/lib/utils"
 
-const maxHeight = 100 // roughly 4 messages worth of height
+const maxQueueHeight = 100
 
 interface QueuedMessageListProps {
 	messages: QueuedMessage[]
 	onRemoveMessage: (messageId: string) => void
-	onEditMessage: (messageId: string) => void
 	isQueuePaused: boolean
 	onResumeQueue: () => void
 	onPauseQueue: () => void
@@ -22,7 +21,6 @@ interface QueuedMessageListProps {
 export function QueuedMessageList({
 	messages,
 	onRemoveMessage,
-	onEditMessage,
 	isQueuePaused,
 	onResumeQueue,
 	onPauseQueue,
@@ -44,7 +42,6 @@ export function QueuedMessageList({
 		[isQueuePaused, onPauseQueue, onResumeQueue],
 	)
 
-	// Calculate content height when messages change
 	useLayoutEffect(() => {
 		setContentHeight((oldHeight) => {
 			const newHeight = contentRef.current?.scrollHeight ?? 0
@@ -92,7 +89,7 @@ export function QueuedMessageList({
 				initial={false}
 				animate={{
 					height: isOpen ? contentHeight : 0,
-					maxHeight: maxHeight,
+					maxHeight: maxQueueHeight,
 				}}
 				transition={{ duration: 0.2, ease: "easeOut" }}
 				className="overflow-y-scroll overflow-x-hidden">
@@ -111,11 +108,7 @@ export function QueuedMessageList({
 								ease: "easeOut",
 								layout: { duration: 0.3, ease: "easeOut" },
 							}}>
-							<QueuedMessageRow
-								message={message}
-								onRemove={() => onRemoveMessage(message.id)}
-								onEdit={() => onEditMessage(message.id)}
-							/>
+							<QueuedMessageRow message={message} onRemove={() => onRemoveMessage(message.id)} />
 						</motion.div>
 					))}
 				</div>

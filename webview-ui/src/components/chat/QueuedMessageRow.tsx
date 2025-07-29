@@ -8,7 +8,6 @@ import { IconButton } from "../ui/IconButton"
 interface QueuedMessageRowProps {
 	message: QueuedMessage
 	onRemove: () => void
-	onEdit: () => void
 }
 
 export function QueuedMessageRow({ message, onRemove }: QueuedMessageRowProps) {

@@ -7,13 +7,11 @@ import { createSampleMessage } from "../hooks/useQueuedMessages"
 
 describe("QueuedMessageList", () => {
 	const mockOnRemoveMessage = vi.fn()
-	const mockOnEditMessage = vi.fn()
 	const mockOnResumeQueue = vi.fn()
 	const mockOnPauseQueue = vi.fn()
 
 	const defaultProps = {
 		onRemoveMessage: mockOnRemoveMessage,
-		onEditMessage: mockOnEditMessage,
 		isQueuePaused: false,
 		onResumeQueue: mockOnResumeQueue,
 		onPauseQueue: mockOnPauseQueue,

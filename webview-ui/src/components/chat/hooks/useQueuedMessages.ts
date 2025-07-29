@@ -2,11 +2,7 @@
 import { useCallback, useState, useEffect, useRef } from "react"
 import type { ClineMessage } from "@roo-code/types"
 
-// Cooldown period to prevent rapid-fire sending
 const COOLDOWN_MS = 1000
-
-// Agent completion events that indicate readiness for next message
-// These are "say" messages that indicate the agent has finished processing and is ready for new input
 
 export interface QueuedMessage {
 	id: string
@@ -74,8 +70,6 @@ export function useQueuedMessages({ messages, onSendMessageRef }: UseQueuedMessa
 		setIsQueuePaused(true)
 	}, [])
 
-	// Helper function to check if a message indicates agent completion
-	// ONLY send when the "Start New Task" button would be showing
 	const isAgentCompletionMessage = useCallback(
 		(clineMessage: ClineMessage) =>
 			clineMessage.type === "ask" && !clineMessage.partial && clineMessage.ask === "completion_result",
@@ -85,8 +79,6 @@ export function useQueuedMessages({ messages, onSendMessageRef }: UseQueuedMessa
 	const resumeQueue = useCallback(() => {
 		setIsQueuePaused(false)
 
-		// Check if we should immediately send the first message when resuming
-		// This handles the case where the agent isn't running and we unpause
 		if (queuedMessages.length > 0) {
 			const nextMessage = queuedMessages[0]
 			setQueuedMessages((prevQueue) => {
@@ -97,23 +89,6 @@ export function useQueuedMessages({ messages, onSendMessageRef }: UseQueuedMessa
 		}
 	}, [queuedMessages, onSendMessageRef])
 
-	// Debug useEffect to log every lastMessage change
-	// useEffect(() => {
-	// 	if (messages.length === 0) {
-	// 		return
-	// 	}
-
-	// 	const lastMessage = messages[messages.length - 1]
-	// 	console.log(`🔍 lastMessage changed:`, {
-	// 		type: lastMessage?.type,
-	// 		say: lastMessage?.say,
-	// 		ask: lastMessage?.ask,
-	// 		partial: lastMessage?.partial,
-	// 		timestamp: new Date().toISOString(),
-	// 		messageLength: messages.length,
-	// 	})
-	// }, [messages])
-
 	const getNextAutoSendMessage = useCallback(() => {
 		const lastMessage = messages[messages.length - 1]
 		if (isQueuePaused || !lastMessage || !isAgentCompletionMessage(lastMessage)) {
@@ -122,7 +97,6 @@ export function useQueuedMessages({ messages, onSendMessageRef }: UseQueuedMessa
 		return queuedMessages[0]
 	}, [isAgentCompletionMessage, isQueuePaused, messages, queuedMessages])
 
-	// Auto-process queue when agent completion events are detected
 	useEffect(() => {
 		const nextAutoMessage = getNextAutoSendMessage()
 		if (!nextAutoMessage) {
@@ -145,7 +119,6 @@ export function useQueuedMessages({ messages, onSendMessageRef }: UseQueuedMessa
 				return
 			}
 
-			console.log(`🚀 State still ready after delay - proceeding with send!`, nextAutoMessage)
 			setQueuedMessages((prevQueue) => {
 				onSendMessageRef.current?.(nextAutoMessage.text, nextAutoMessage.images)
 				lastSentTimestampRef.current = Date.now()

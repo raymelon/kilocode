@@ -108,7 +108,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			onInterjection, // kilocode_change
 			queuedMessages, // kilocode_change
 			onRemoveQueuedMessage, // kilocode_change
-			onEditQueuedMessage, // kilocode_change
 			isQueuePaused, // kilocode_change
 			onResumeQueue, // kilocode_change
 			onPauseQueue, // kilocode_change
@@ -1689,7 +1688,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<QueuedMessageList
 						messages={queuedMessages || []}
 						onRemoveMessage={onRemoveQueuedMessage || (() => {})}
-						onEditMessage={onEditQueuedMessage || (() => {})}
 						isQueuePaused={isQueuePaused || false}
 						onResumeQueue={onResumeQueue || (() => {})}
 						onPauseQueue={onPauseQueue || (() => {})}
