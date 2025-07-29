@@ -1,7 +1,7 @@
 import { HTMLAttributes, useState, useCallback } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { vscode } from "@/utils/vscode"
-import { SquareTerminal } from "lucide-react"
+import { SquareTerminal, Webhook } from "lucide-react"
 import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { Trans } from "react-i18next"
 import { buildDocLink } from "@src/utils/docLinks"
@@ -10,7 +10,8 @@ import { useEvent, useMount } from "react-use"
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 
 import { cn } from "@/lib/utils"
-import { Slider } from "@/components/ui"
+import { Slider, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 import { SetCachedStateField } from "./types"
 import { SectionHeader } from "./SectionHeader"
@@ -28,6 +29,7 @@ type TerminalSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	terminalZshP10k?: boolean
 	terminalZdotdir?: boolean
 	terminalCompressProgressBar?: boolean
+	terminalCommandApiConfigId?: string
 	setCachedStateField: SetCachedStateField<
 		| "terminalOutputLineLimit"
 		| "terminalOutputCharacterLimit"
@@ -40,6 +42,7 @@ type TerminalSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "terminalZshP10k"
 		| "terminalZdotdir"
 		| "terminalCompressProgressBar"
+		| "terminalCommandApiConfigId"
 	>
 }
 
@@ -55,11 +58,13 @@ export const TerminalSettings = ({
 	terminalZshP10k,
 	terminalZdotdir,
 	terminalCompressProgressBar,
+	terminalCommandApiConfigId,
 	setCachedStateField,
 	className,
 	...props
 }: TerminalSettingsProps) => {
 	const { t } = useAppTranslation()
+	const { listApiConfigMeta } = useExtensionState()
 
 	const [inheritEnv, setInheritEnv] = useState<boolean>(true)
 
@@ -435,6 +440,61 @@ export const TerminalSettings = ({
 								</div>
 							</>
 						)}
+					</div>
+				</div>
+
+				{/* Terminal Command Generator Provider Settings */}
+				<div className="flex flex-col gap-3">
+					<div className="flex flex-col gap-1">
+						<div className="flex items-center gap-2 font-bold">
+							<Webhook className="w-4" />
+							<div>{t("kilocode:settings.terminal.commandGenerator.provider")}</div>
+						</div>
+					</div>
+					<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
+						<div>
+							<label className="block font-medium mb-1">
+								{t("kilocode:settings.terminal.commandGenerator.apiConfigId.label")}
+							</label>
+							<div className="flex items-center gap-2">
+								<div>
+									<Select
+										value={terminalCommandApiConfigId || "-"}
+										onValueChange={(value) =>
+											setCachedStateField(
+												"terminalCommandApiConfigId",
+												value === "-" ? "" : value,
+											)
+										}>
+										<SelectTrigger
+											data-testid="terminal-command-api-config-select"
+											className="w-full">
+											<SelectValue
+												placeholder={t(
+													"kilocode:settings.terminal.commandGenerator.apiConfigId.current",
+												)}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="-">
+												{t("kilocode:settings.terminal.commandGenerator.apiConfigId.current")}
+											</SelectItem>
+											{(listApiConfigMeta || []).map((config) => (
+												<SelectItem
+													key={config.id}
+													value={config.id}
+													data-testid={`terminal-command-${config.id}-option`}>
+													{config.name} ({config.apiProvider})
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<div className="text-sm text-vscode-descriptionForeground mt-1">
+										{t("kilocode:settings.terminal.commandGenerator.apiConfigId.description")}
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</Section>

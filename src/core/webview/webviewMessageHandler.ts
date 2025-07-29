@@ -1378,6 +1378,10 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("commitMessageApiConfigId", message.text)
 			await provider.postStateToWebview()
 			break
+		case "terminalCommandApiConfigId":
+			await updateGlobalState("terminalCommandApiConfigId", message.text)
+			await provider.postStateToWebview()
+			break
 		case "ghostServiceSettings":
 			if (!message.values) {
 				return
