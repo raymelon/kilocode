@@ -52,6 +52,10 @@ async function loadLanguage(langName: string, sourceDirectory?: string) {
 
 let isParserInitialized = false
 
+// Global parser cache to prevent recreation
+const globalParserCache = new Map<string, { parser: ParserT; query: QueryT }>()
+const parserUsageCount = new Map<string, number>()
+
 /*
 Using node bindings for tree-sitter is problematic in vscode extensions 
 because of incompatibility with electron. Going the .wasm route has the 
@@ -92,6 +96,15 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
 	const parsers: LanguageParser = {}
 
 	for (const ext of extensionsToLoad) {
+		const cacheKey = `${ext}-${sourceDirectory || "default"}`
+
+		// Check if parser already exists in cache
+		if (globalParserCache.has(cacheKey)) {
+			parsers[ext] = globalParserCache.get(cacheKey)!
+			// Increment usage count
+			parserUsageCount.set(cacheKey, (parserUsageCount.get(cacheKey) || 0) + 1)
+			continue
+		}
 		let language: LanguageT
 		let query: QueryT
 		let parserKey = ext // Default to using extension as key
@@ -224,8 +237,52 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
 
 		const parser = new Parser()
 		parser.setLanguage(language)
-		parsers[parserKey] = { parser, query }
+		const parserObject = { parser, query }
+
+		// Store in cache for reuse
+		globalParserCache.set(cacheKey, parserObject)
+		parserUsageCount.set(cacheKey, 1)
+
+		parsers[parserKey] = parserObject
 	}
 
 	return parsers
+}
+
+/**
+ * Dispose of a parser from the cache
+ * @param extension File extension
+ * @param sourceDirectory Source directory (optional)
+ */
+export function disposeParser(extension: string, sourceDirectory?: string): void {
+	const cacheKey = `${extension}-${sourceDirectory || "default"}`
+	const usage = parserUsageCount.get(cacheKey) || 0
+
+	if (usage <= 1) {
+		// Last usage, dispose the parser
+		globalParserCache.delete(cacheKey)
+		parserUsageCount.delete(cacheKey)
+	} else {
+		// Decrement usage count
+		parserUsageCount.set(cacheKey, usage - 1)
+	}
+}
+
+/**
+ * Dispose of all parsers from the cache
+ */
+export function disposeAllParsers(): void {
+	globalParserCache.clear()
+	parserUsageCount.clear()
+}
+
+/**
+ * Get cache statistics for monitoring
+ */
+export function getParserCacheStats(): { cacheSize: number; totalUsage: number } {
+	const totalUsage = Array.from(parserUsageCount.values()).reduce((sum, count) => sum + count, 0)
+	return {
+		cacheSize: globalParserCache.size,
+		totalUsage,
+	}
 }
