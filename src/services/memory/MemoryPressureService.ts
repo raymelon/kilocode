@@ -20,12 +20,13 @@ export class MemoryPressureService {
 	private outputChannel: vscode.OutputChannel
 	private lastWarningTime = 0
 	private isMonitoring = false
+	private isDisposed = false
 
 	private readonly config: MemoryPressureConfig = {
-		warningThreshold: 400, // 400MB
-		criticalThreshold: 600, // 600MB
-		checkInterval: 30000, // 30 seconds
-		warningCooldown: 5 * 60 * 1000, // 5 minutes
+		warningThreshold: 400,
+		criticalThreshold: 600,
+		checkInterval: 30000,
+		warningCooldown: 5 * 60 * 1000,
 	}
 
 	private constructor() {
@@ -34,7 +35,7 @@ export class MemoryPressureService {
 	}
 
 	public static getInstance(): MemoryPressureService {
-		if (!MemoryPressureService.instance) {
+		if (!MemoryPressureService.instance || MemoryPressureService.instance.isDisposed) {
 			MemoryPressureService.instance = new MemoryPressureService()
 		}
 		return MemoryPressureService.instance
@@ -67,7 +68,6 @@ export class MemoryPressureService {
 		const stats = this.getMemoryStats()
 		const heapUsedMB = Math.round(stats.heapUsed / 1024 / 1024)
 
-		// Log periodic memory stats
 		this.logMemoryStats(stats)
 
 		if (heapUsedMB > this.config.criticalThreshold) {
@@ -138,15 +138,12 @@ export class MemoryPressureService {
 	private async triggerAggressiveCleanup(): Promise<void> {
 		this.logMessage("Aggressive memory cleanup requested by user")
 
-		// Force multiple garbage collection cycles
 		if (global.gc) {
 			for (let i = 0; i < 3; i++) {
 				global.gc()
 				this.logMessage(`Garbage collection cycle ${i + 1} completed`)
 			}
 		}
-
-		// Log memory stats after cleanup
 		setTimeout(() => {
 			this.logCurrentMemoryStats()
 			this.logMessage("Aggressive cleanup completed")
@@ -212,8 +209,13 @@ export class MemoryPressureService {
 	}
 
 	public dispose(): void {
+		if (this.isDisposed) {
+			return
+		}
+
 		this.stopMonitoring()
 		this.outputChannel.dispose()
+		this.isDisposed = true
 		MemoryPressureService.instance = null
 	}
 }

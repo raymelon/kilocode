@@ -52,9 +52,55 @@ async function loadLanguage(langName: string, sourceDirectory?: string) {
 
 let isParserInitialized = false
 
-// Global parser cache to prevent recreation
-const globalParserCache = new Map<string, { parser: ParserT; query: QueryT }>()
-const parserUsageCount = new Map<string, number>()
+// Parser cache management
+class ParserCacheManager {
+	private static instance: ParserCacheManager | null = null
+	private parserCache = new Map<string, { parser: ParserT; query: QueryT }>()
+	private usageCount = new Map<string, number>()
+
+	public static getInstance(): ParserCacheManager {
+		if (!ParserCacheManager.instance) {
+			ParserCacheManager.instance = new ParserCacheManager()
+		}
+		return ParserCacheManager.instance
+	}
+
+	public getParser(key: string): { parser: ParserT; query: QueryT } | undefined {
+		const cached = this.parserCache.get(key)
+		if (cached) {
+			this.usageCount.set(key, (this.usageCount.get(key) || 0) + 1)
+		}
+		return cached
+	}
+
+	public setParser(key: string, parser: { parser: ParserT; query: QueryT }): void {
+		this.parserCache.set(key, parser)
+		this.usageCount.set(key, 1)
+	}
+
+	public disposeParser(key: string): void {
+		const usage = this.usageCount.get(key) || 0
+		if (usage <= 1) {
+			this.parserCache.delete(key)
+			this.usageCount.delete(key)
+		} else {
+			this.usageCount.set(key, usage - 1)
+		}
+	}
+
+	public disposeAll(): void {
+		this.parserCache.clear()
+		this.usageCount.clear()
+	}
+
+	public getStats(): { cacheSize: number; totalUsage: number } {
+		const totalUsage = Array.from(this.usageCount.values()).reduce((sum, count) => sum + count, 0)
+		return {
+			cacheSize: this.parserCache.size,
+			totalUsage,
+		}
+	}
+}
 
 /*
 Using node bindings for tree-sitter is problematic in vscode extensions 
@@ -95,14 +141,14 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
 	const extensionsToLoad = new Set(filesToParse.map((file) => path.extname(file).toLowerCase().slice(1)))
 	const parsers: LanguageParser = {}
 
+	const cacheManager = ParserCacheManager.getInstance()
+
 	for (const ext of extensionsToLoad) {
 		const cacheKey = `${ext}-${sourceDirectory || "default"}`
 
-		// Check if parser already exists in cache
-		if (globalParserCache.has(cacheKey)) {
-			parsers[ext] = globalParserCache.get(cacheKey)!
-			// Increment usage count
-			parserUsageCount.set(cacheKey, (parserUsageCount.get(cacheKey) || 0) + 1)
+		const cached = cacheManager.getParser(cacheKey)
+		if (cached) {
+			parsers[ext] = cached
 			continue
 		}
 		let language: LanguageT
@@ -239,9 +285,7 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
 		parser.setLanguage(language)
 		const parserObject = { parser, query }
 
-		// Store in cache for reuse
-		globalParserCache.set(cacheKey, parserObject)
-		parserUsageCount.set(cacheKey, 1)
+		cacheManager.setParser(cacheKey, parserObject)
 
 		parsers[parserKey] = parserObject
 	}
@@ -256,33 +300,19 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
  */
 export function disposeParser(extension: string, sourceDirectory?: string): void {
 	const cacheKey = `${extension}-${sourceDirectory || "default"}`
-	const usage = parserUsageCount.get(cacheKey) || 0
-
-	if (usage <= 1) {
-		// Last usage, dispose the parser
-		globalParserCache.delete(cacheKey)
-		parserUsageCount.delete(cacheKey)
-	} else {
-		// Decrement usage count
-		parserUsageCount.set(cacheKey, usage - 1)
-	}
+	ParserCacheManager.getInstance().disposeParser(cacheKey)
 }
 
 /**
  * Dispose of all parsers from the cache
  */
 export function disposeAllParsers(): void {
-	globalParserCache.clear()
-	parserUsageCount.clear()
+	ParserCacheManager.getInstance().disposeAll()
 }
 
 /**
  * Get cache statistics for monitoring
  */
 export function getParserCacheStats(): { cacheSize: number; totalUsage: number } {
-	const totalUsage = Array.from(parserUsageCount.values()).reduce((sum, count) => sum + count, 0)
-	return {
-		cacheSize: globalParserCache.size,
-		totalUsage,
-	}
+	return ParserCacheManager.getInstance().getStats()
 }

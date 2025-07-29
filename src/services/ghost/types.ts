@@ -35,7 +35,7 @@ export interface GhostDocumentStoreItem {
 	ast?: ASTContext
 	lastParsedVersion?: number
 	recentActions?: UserAction[]
-	lastAccessed: number // Track access time for LRU eviction
+	lastAccessed: number
 }
 
 export type GhostSuggestionEditOperationType = "+" | "-"

@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import * as path from "path"
 import { structuredPatch } from "diff"
 import { GhostDocumentStoreItem, ASTContext, UserAction, UserActionType } from "./types"
+import { DocumentStoreMemoryOptimizer } from "./MemoryOptimizer"
 
 export const GHOST_DOCUMENT_STORE_LIMITS = {
 	MAX_DOCUMENTS: 50, // Limit the number of documents to keep
@@ -14,9 +15,8 @@ export class GhostDocumentStore {
 	private documentStore: Map<string, GhostDocumentStoreItem> = new Map()
 	private parserInitialized: boolean = false
 
-	// AST parsing limits to prevent excessive memory usage
-	private readonly MAX_AST_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-	private readonly MAX_AST_LINE_COUNT = 10000 // 10k lines
+	private readonly MAX_AST_FILE_SIZE = 5 * 1024 * 1024
+	private readonly MAX_AST_LINE_COUNT = 10000
 
 	/**
 	 * Store a document in the document store and optionally parse its AST
@@ -34,7 +34,7 @@ export class GhostDocumentStore {
 		bypassDebounce?: boolean
 	}): Promise<void> {
 		const uri = document.uri.toString()
-		const debounceWait = bypassDebounce ? 0 : this.getDebounceTime(document)
+		const debounceWait = bypassDebounce ? 0 : DocumentStoreMemoryOptimizer.getDebounceTime(document)
 
 		// Function to perform the actual document storage
 		const performStorage = async () => {
@@ -48,20 +48,20 @@ export class GhostDocumentStore {
 			}
 
 			const item = this.documentStore.get(uri)!
-			item.document = document // Update the document reference
-			item.lastAccessed = Date.now() // Update access time
+			item.document = document
+			item.lastAccessed = Date.now()
 			item.history.push(document.getText())
 			if (item.history.length > this.historyLimit) {
 				item.history.shift() // Remove the oldest snapshot if we exceed the limit
 			}
 
-			// Enforce document limit using LRU eviction
-			this.enforceDocumentLimit()
+			DocumentStoreMemoryOptimizer.enforceLRULimit(
+				this.documentStore,
+				GHOST_DOCUMENT_STORE_LIMITS.MAX_DOCUMENTS,
+				(uri) => this.removeDocument(vscode.Uri.parse(uri)),
+			)
 
-			// Parse the AST if requested and if the document version has changed.
-			// Corrected conditional logic
 			if (parseAST && (!item.lastParsedVersion || item.lastParsedVersion !== document.version)) {
-				// Assuming parseDocumentAST is an async method in the same class.
 				await this.parseDocumentAST(document)
 			}
 
@@ -89,43 +89,6 @@ export class GhostDocumentStore {
 	}
 
 	/**
-	 * Get dynamic debounce time based on file size
-	 * @param document The document to get debounce time for
-	 * @returns Debounce time in milliseconds
-	 */
-	private getDebounceTime(document: vscode.TextDocument): number {
-		const contentLength = document.getText().length
-
-		if (contentLength < 1000) return 200 // Small files: 200ms
-		if (contentLength < 10000) return 500 // Medium files: 500ms
-		if (contentLength < 50000) return 1000 // Large files: 1s
-		return 2000 // Very large files: 2s
-	}
-
-	/**
-	 * Check if AST parsing should be performed for a document
-	 * @param document The document to check
-	 * @returns True if AST parsing should be performed
-	 */
-	private shouldParseAST(document: vscode.TextDocument): boolean {
-		// Check file size
-		const content = document.getText()
-		if (content.length > this.MAX_AST_FILE_SIZE) {
-			console.warn(`Skipping AST parsing for large file: ${document.uri.fsPath} (${content.length} bytes)`)
-			return false
-		}
-
-		// Check line count
-		const lineCount = document.lineCount
-		if (lineCount > this.MAX_AST_LINE_COUNT) {
-			console.warn(`Skipping AST parsing for file with many lines: ${document.uri.fsPath} (${lineCount} lines)`)
-			return false
-		}
-
-		return true
-	}
-
-	/**
 	 * Parse the AST for a document and store it
 	 * @param document The document to parse
 	 */
@@ -138,8 +101,9 @@ export class GhostDocumentStore {
 				return
 			}
 
-			// Check if AST parsing should be performed
-			if (!this.shouldParseAST(document)) {
+			if (
+				!DocumentStoreMemoryOptimizer.shouldParseAST(document, this.MAX_AST_FILE_SIZE, this.MAX_AST_LINE_COUNT)
+			) {
 				return
 			}
 
@@ -249,23 +213,6 @@ export class GhostDocumentStore {
 			item.ast = undefined
 			item.lastParsedVersion = undefined
 		}
-	}
-
-	/**
-	 * Enforce document limit using LRU eviction
-	 */
-	private enforceDocumentLimit(): void {
-		if (this.documentStore.size <= GHOST_DOCUMENT_STORE_LIMITS.MAX_DOCUMENTS) {
-			return
-		}
-
-		// Sort by last accessed time (LRU) and remove oldest documents
-		const entries = Array.from(this.documentStore.entries()).sort((a, b) => a[1].lastAccessed - b[1].lastAccessed)
-
-		const toRemove = entries.slice(0, this.documentStore.size - GHOST_DOCUMENT_STORE_LIMITS.MAX_DOCUMENTS)
-		toRemove.forEach(([uri]) => {
-			this.removeDocument(vscode.Uri.parse(uri))
-		})
 	}
 
 	/**
