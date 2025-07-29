@@ -158,7 +158,12 @@ export class MemoryPressureService {
 		}
 	}
 
-	private convertStatsToMB(stats: MemoryStats) {
+	private convertStatsToMB(stats: MemoryStats): {
+		heapUsedMB: number
+		heapTotalMB: number
+		externalMB: number
+		rssMB: number
+	} {
 		return {
 			heapUsedMB: Math.round(stats.heapUsed / 1024 / 1024),
 			heapTotalMB: Math.round(stats.heapTotal / 1024 / 1024),
@@ -191,7 +196,8 @@ export class MemoryPressureService {
 	}
 
 	public getMemoryStatsFormatted(): string {
-		const { heapUsedMB, heapTotalMB, externalMB, rssMB } = this.convertStatsToMB(this.getMemoryStats())
+		const stats = this.getMemoryStats()
+		const { heapUsedMB, heapTotalMB, externalMB, rssMB } = this.convertStatsToMB(stats)
 		return `Heap: ${heapUsedMB}/${heapTotalMB}MB | External: ${externalMB}MB | RSS: ${rssMB}MB`
 	}
 

@@ -25,8 +25,6 @@ export function registerMemoryCommands(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(startMonitoringCommand, stopMonitoringCommand, showDetailsCommand, showStatsCommand)
 
-	memoryService.startMonitoring()
-
 	context.subscriptions.push({
 		dispose: () => {
 			memoryService.dispose()
