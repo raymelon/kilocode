@@ -1,8 +1,7 @@
 // kilocode_change - new file
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { fn } from "storybook/test"
-import { QueuedMessageList } from "@/components/chat/QueuedMessageList"
 import { createSampleMessage } from "@/components/chat/hooks/useQueuedMessages"
+import { QueuedMessageListExample } from "src/components/chat/QueuedMessageListExample"
 
 const sampleMessages = [
 	createSampleMessage("Write a function to calculate fibonacci numbers"),
@@ -15,59 +14,25 @@ const sampleMessages = [
 
 const meta = {
 	title: "Component/QueuedMessageList",
-	component: QueuedMessageList,
+	component: QueuedMessageListExample,
 	tags: ["autodocs"],
 	args: {
-		messages: [],
-		onRemoveMessage: fn(),
+		initialMessages: [],
 	},
-} satisfies Meta<typeof QueuedMessageList>
+} satisfies Meta<typeof QueuedMessageListExample>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
 	args: {
-		messages: sampleMessages,
+		initialMessages: sampleMessages,
 	},
 }
 
-export const Empty: Story = {
+export const WithLongMessages: Story = {
 	args: {
-		messages: [],
-	},
-}
-
-export const SingleMessage: Story = {
-	args: {
-		messages: [createSampleMessage("Single queued message")],
-	},
-}
-
-export const TextOnly: Story = {
-	args: {
-		messages: [createSampleMessage("First text message"), createSampleMessage("Second text message")],
-	},
-}
-
-export const WithImages: Story = {
-	args: {
-		messages: [
-			createSampleMessage("Message with one image", ["screenshot.png"]),
-			createSampleMessage("Message with multiple images", ["img1.jpg", "img2.png", "img3.gif"]),
-		],
-	},
-}
-
-export const ImageOnly: Story = {
-	args: {
-		messages: [createSampleMessage("", ["single-image.png"]), createSampleMessage("", ["img1.jpg", "img2.png"])],
-	},
-}
-
-export const LongMessages: Story = {
-	args: {
-		messages: [
+		initialMessages: [
 			createSampleMessage(
 				"This is a very long message that demonstrates how the component handles text truncation and maintains proper layout even with extensive content that would normally overflow the container",
 			),
@@ -81,8 +46,17 @@ export const LongMessages: Story = {
 
 export const ManyMessages: Story = {
 	args: {
-		messages: Array.from({ length: 10 }, (_, i) =>
+		initialMessages: Array.from({ length: 10 }, (_, i) =>
 			createSampleMessage(`Queued message ${i + 1}`, i % 3 === 0 ? [`image${i}.png`] : []),
 		),
+	},
+}
+
+export const InteractivePlayground: Story = {
+	args: {
+		initialMessages: [
+			createSampleMessage("Welcome! Try the buttons above to add messages"),
+			createSampleMessage("You can also remove messages by clicking the trash icon", ["example.png"]),
+		],
 	},
 }

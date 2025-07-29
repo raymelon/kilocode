@@ -11,9 +11,18 @@ interface QueuedMessageListExampleProps {
 
 export function QueuedMessageListExample({ initialMessages = [], className }: QueuedMessageListExampleProps) {
 	const [messages, setMessages] = useState<QueuedMessage[]>(initialMessages)
+	const [isQueuePaused, setIsQueuePaused] = useState(false)
 
 	const handleRemoveMessage = (messageId: string) => {
 		setMessages((prev) => prev.filter((msg) => msg.id !== messageId))
+	}
+
+	const handlePauseQueue = () => {
+		setIsQueuePaused(true)
+	}
+
+	const handleResumeQueue = () => {
+		setIsQueuePaused(false)
 	}
 
 	const sampleTexts = [
@@ -73,7 +82,13 @@ export function QueuedMessageListExample({ initialMessages = [], className }: Qu
 
 			<div className="text-sm text-vscode-descriptionForeground">Messages: {messages.length}</div>
 
-			<QueuedMessageList messages={messages} onRemoveMessage={handleRemoveMessage} />
+			<QueuedMessageList
+				messages={messages}
+				onRemoveMessage={handleRemoveMessage}
+				isQueuePaused={isQueuePaused}
+				onPauseQueue={handlePauseQueue}
+				onResumeQueue={handleResumeQueue}
+			/>
 		</div>
 	)
 }
