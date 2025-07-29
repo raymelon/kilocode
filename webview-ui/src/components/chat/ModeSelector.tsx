@@ -3,7 +3,7 @@ import { ChevronUp, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRooPortal } from "@/components/ui/hooks/useRooPortal"
 import { Popover, PopoverContent, PopoverTrigger, StandardTooltip } from "@/components/ui"
-import { IconButton } from "./IconButton"
+import { IconButton } from "@/components/ui" // kilocode_change
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAppTranslation } from "@/i18n/TranslationContext"

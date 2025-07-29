@@ -8,7 +8,7 @@ import { vscode } from "@/utils/vscode"
 import { useCopyToClipboard } from "@/utils/clipboard"
 
 import { DeleteTaskDialog } from "../history/DeleteTaskDialog"
-import { IconButton } from "./IconButton"
+import { IconButton } from "@/components/ui"
 // import { ShareButton } from "./ShareButton" // kilocode_change unused
 
 interface TaskActionsProps {

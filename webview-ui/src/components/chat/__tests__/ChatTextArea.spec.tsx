@@ -1,4 +1,5 @@
 import { render, fireEvent, screen } from "@/utils/test-utils"
+import { vi, describe, it, expect, beforeEach } from "vitest"
 
 import { defaultModeSlug } from "@roo/modes"
 
@@ -909,6 +910,34 @@ describe("ChatTextArea", () => {
 			})
 		})
 	})
+
+	// kilocode_change start: Test Alt+Enter interjection behavior
+	describe("interjection handling", () => {
+		it("should call onInterjection when Alt+Enter is pressed", () => {
+			const onInterjection = vi.fn()
+			const { getByRole } = render(
+				<ChatTextArea {...defaultProps} inputValue="Test message" onInterjection={onInterjection} />,
+			)
+
+			const textarea = getByRole("textbox")
+			fireEvent.keyDown(textarea, { key: "Enter", altKey: true })
+
+			expect(onInterjection).toHaveBeenCalledTimes(1)
+		})
+
+		it("should not call onInterjection when Enter is pressed without Alt", () => {
+			const onInterjection = vi.fn()
+			const { getByRole } = render(
+				<ChatTextArea {...defaultProps} inputValue="Test message" onInterjection={onInterjection} />,
+			)
+
+			const textarea = getByRole("textbox")
+			fireEvent.keyDown(textarea, { key: "Enter" })
+
+			expect(onInterjection).not.toHaveBeenCalled()
+		})
+	})
+	// kilocode_change end: Test Alt+Enter interjection behavior
 
 	// kilocode_change: removed in kilcode
 	describe.skip("selectApiConfig", () => {

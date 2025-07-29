@@ -41,7 +41,9 @@ import { StandardTooltip } from "@src/components/ui"
 import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 import { useAutoApprovalToggles } from "@src/hooks/useAutoApprovalToggles"
 
+import { noop } from "framer-motion" // kilocode_change
 import TelemetryBanner from "../common/TelemetryBanner" // kilocode_change: deactivated for now
+import { useQueuedMessages } from "./hooks/useQueuedMessages" // kilocode_change
 // import VersionIndicator from "../common/VersionIndicator" // kilocode_change: unused
 import { useTaskSearch } from "../history/useTaskSearch"
 import HistoryPreview from "../history/HistoryPreview"
@@ -537,6 +539,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		return false
 	}, [modifiedMessages, clineAsk, enableButtons, primaryButtonText])
 
+	// kilocode_change start - useQueuedMessages
+	// Create a ref for the internal send function that bypasses queue logic
+	const sendMessageRef = useRef<typeof handleSendMessage>(noop) // kilocode_change
+	const sendMessageSkipQueueRef = useRef<(text: string, images: string[]) => void>(() => {})
+	const {
+		isQueuePaused,
+		queuedMessages,
+		addToQueue,
+		addToQueueAtFront,
+		removeFromQueue,
+		clearQueue,
+		pauseQueue,
+		resumeQueue,
+	} = useQueuedMessages({ messages, onSendMessageRef: sendMessageSkipQueueRef })
+	// kilocode_change end - useQueuedMessages
+
 	const markFollowUpAsAnswered = useCallback(() => {
 		const lastFollowUpMessage = messagesRef.current.findLast((msg) => msg.ask === "followup")
 		if (lastFollowUpMessage) {
@@ -562,8 +580,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// Do not reset mode here as it should persist.
 		// setPrimaryButtonText(undefined)
 		// setSecondaryButtonText(undefined)
+		clearQueue() // kilocode_change - Clear queued state on chat reset
 		disableAutoScrollRef.current = false
-	}, [])
+	}, [clearQueue])
 
 	const handleSendMessage = useCallback(
 		(text: string, images: string[]) => {
@@ -572,6 +591,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (text || images.length > 0) {
 				// Mark that user has responded - this prevents any pending auto-approvals
 				userRespondedRef.current = true
+
+				// kilocode_change start: Enhanced queued state logic - clear input and add to
+				resumeQueue() // resume queue when user sends a new message
+				if (sendingDisabled) {
+					addToQueue(text, images)
+					setInputValue("")
+					setSelectedImages([])
+					return
+				}
+				// kilocode_change end: Enhanced queued state logic - clear input and add to queue
 
 				if (messagesRef.current.length === 0) {
 					vscode.postMessage({ type: "newTask", text, images })
@@ -611,11 +640,73 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					}
 				}
 
-				handleChatReset()
+				// handleChatReset() - kilocode_change - manually reset the chat
+				setInputValue("") // kilocode_change - clear after sending message
+				setSelectedImages([]) // kilocode_change - clear after sending message
+				setSendingDisabled(true) // indicate agent is now busy
 			}
 		},
-		[handleChatReset, markFollowUpAsAnswered], // messagesRef and clineAskRef are stable
+		[sendingDisabled, addToQueue, markFollowUpAsAnswered, resumeQueue], // messagesRef and clineAskRef are stable
 	)
+	sendMessageRef.current = handleSendMessage
+
+	// Create internal send function that bypasses queue logic for queue-initiated sends
+	const internalSendMessage = useCallback(
+		(text: string, images: string[]) => {
+			text = text.trim()
+
+			if (text || images.length > 0) {
+				// Mark that user has responded - this prevents any pending auto-approvals
+				userRespondedRef.current = true
+
+				// Skip the queue logic - this is for queue-initiated sends
+				if (messagesRef.current.length === 0) {
+					vscode.postMessage({ type: "newTask", text, images })
+				} else if (clineAskRef.current) {
+					if (clineAskRef.current === "followup") {
+						markFollowUpAsAnswered()
+					}
+
+					// Use clineAskRef.current
+					switch (
+						clineAskRef.current // Use clineAskRef.current
+					) {
+						case "followup":
+						case "tool":
+						case "browser_action_launch":
+						case "command": // User can provide feedback to a tool or command use.
+						case "command_output": // User can send input to command stdin.
+						case "use_mcp_server":
+						case "completion_result": // If this happens then the user has feedback for the completion result.
+						case "resume_task":
+						case "resume_completed_task":
+						case "mistake_limit_reached":
+						case "report_bug":
+							vscode.postMessage({ type: "askResponse", askResponse: "messageResponse", text, images })
+							break
+						case "condense":
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "messageResponse",
+								text,
+								images,
+							})
+							break
+						default:
+							vscode.postMessage({ type: "newTask", text, images })
+							break
+					}
+				} else {
+					vscode.postMessage({ type: "newTask", text, images })
+				}
+
+				setInputValue("")
+				setSelectedImages([])
+			}
+		},
+		[markFollowUpAsAnswered],
+	)
+	sendMessageSkipQueueRef.current = internalSendMessage
 
 	const handleSetChatBoxMessage = useCallback(
 		(text: string, images: string[]) => {
@@ -633,6 +724,25 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	const startNewTask = useCallback(() => vscode.postMessage({ type: "clearTask" }), [])
+
+	// kilocode_change start: Add interjection handler for Alt/Option + Enter
+	const handleInterjection = useCallback(() => {
+		const trimmedInput = inputValue.trim()
+		if (trimmedInput || selectedImages.length > 0) {
+			// Add message to front of queue for immediate processing after cancel
+			addToQueueAtFront(trimmedInput, selectedImages)
+			setInputValue("")
+			setSelectedImages([])
+		}
+
+		// Cancel current operation and ensure queue is unpaused for interjection
+		vscode.postMessage({ type: "cancelTask" })
+		setDidClickCancel(true)
+
+		// Resume queue to ensure interjected message gets sent
+		resumeQueue()
+	}, [inputValue, selectedImages, addToQueueAtFront, resumeQueue])
+	// kilocode_change end: Add interjection handler for Alt/Option + Enter
 
 	// This logic depends on the useEffect[messages] above to set clineAsk,
 	// after which buttons are shown and we then send an askResponse to the
@@ -703,6 +813,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (isStreaming) {
 				vscode.postMessage({ type: "cancelTask" })
 				setDidClickCancel(true)
+				pauseQueue() // kilocode_change - pause the queue to prevent auto-processing until user resumes
 				return
 			}
 
@@ -740,7 +851,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming],
+		// [clineAsk, startNewTask, isStreaming],
+		[isStreaming, clineAsk, pauseQueue, startNewTask], // kilcode_change
 	)
 
 	const handleTaskCloseButtonClick = useCallback(() => startNewTask(), [startNewTask])
@@ -1158,9 +1270,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 		}
 
+		// kilocode_change start - Reset cancel state when streaming stops naturally (not via cancellation)
+		if (wasStreaming && !isStreaming && didClickCancel) {
+			setDidClickCancel(false)
+		}
+		// kilocode_change end - Reset cancel state
+
 		// Update previous value.
 		setWasStreaming(isStreaming)
-	}, [isStreaming, lastMessage, wasStreaming, isAutoApproved, messages.length])
+	}, [isStreaming, lastMessage, wasStreaming, isAutoApproved, messages.length, didClickCancel])
 
 	const isBrowserSessionMessage = (message: ClineMessage): boolean => {
 		// Which of visible messages are browser session messages, see above.
@@ -1969,6 +2087,27 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				mode={mode}
 				setMode={setMode}
 				modeShortcutText={modeShortcutText}
+				onInterjection={handleInterjection} // kilocode_change: Pass interjection handler
+				queuedMessages={queuedMessages} // kilocode_change: Pass message queue
+				onRemoveQueuedMessage={removeFromQueue} // kilocode_change: Pass remove callback
+				onEditQueuedMessage={(messageId: string) => {
+					// Find the message to edit
+					const messageToEdit = queuedMessages.find((msg) => msg.id === messageId)
+					if (messageToEdit) {
+						// Pause the queue
+						pauseQueue()
+						// Remove the message from queue
+						removeFromQueue(messageId)
+						// Set the message content back into the input
+						setInputValue(messageToEdit.text)
+						setSelectedImages(messageToEdit.images)
+						// Focus the input
+						textAreaRef.current?.focus()
+					}
+				}} // kilocode_change: Pass edit callback
+				isQueuePaused={isQueuePaused} // kilocode_change: Pass queue paused state
+				onResumeQueue={resumeQueue} // kilocode_change: Pass resume queue function
+				onPauseQueue={pauseQueue} // kilocode_change: Pass pause queue function
 			/>
 			{/* kilocode_change: added settings toggle the profile and model selection */}
 			<BottomControls showApiConfig />
