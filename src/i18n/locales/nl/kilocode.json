@@ -106,5 +106,8 @@
 			"disableCopilot": "Copilot uitschakelen",
 			"disableInlineAssist": "In-line Assistent uitschakelen"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Tip: Druk op {{shortcut}} om terminalopdrachten te genereren met Kilo Code!"
 	}
 }

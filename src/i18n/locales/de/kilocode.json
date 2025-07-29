@@ -106,5 +106,8 @@
 			"disableCopilot": "Copilot deaktivieren",
 			"disableInlineAssist": "Inline Assist deaktivieren"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Tipp: Drücke {{shortcut}} um Terminal-Befehle mit Kilo Code zu generieren!"
 	}
 }

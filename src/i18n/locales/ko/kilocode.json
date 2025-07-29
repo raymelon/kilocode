@@ -106,5 +106,8 @@
 			"disableCopilot": "Copilot 비활성화",
 			"disableInlineAssist": "인라인 지원 비활성화"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 팁: {{shortcut}}을 눌러 Kilo Code로 터미널 명령어를 생성하세요!"
 	}
 }

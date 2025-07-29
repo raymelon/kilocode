@@ -106,5 +106,8 @@
 			"disableCopilot": "Desactivar Copilot",
 			"disableInlineAssist": "Desactivar Assistència en línia"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Consell: Prem {{shortcut}} per generar ordres de terminal amb Kilo Code!"
 	}
 }

@@ -106,5 +106,8 @@
 			"disableCopilot": "Nonaktifkan Copilot",
 			"disableInlineAssist": "Nonaktifkan Bantuan Dalam Baris"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Tip: Tekan {{shortcut}} untuk menghasilkan perintah terminal dengan Kilo Code!"
 	}
 }

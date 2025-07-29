@@ -106,5 +106,8 @@
 			"disableCopilot": "停用 Copilot",
 			"disableInlineAssist": "停用 Inline Assist"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 小贴士：按下 {{shortcut}} 使用 Kilo Code 生成终端命令！"
 	}
 }

@@ -219,12 +219,12 @@
 			{
 				"command": "kilo-code.terminalExplainCommand",
 				"title": "%command.terminal.explainCommand.title%",
-				"category": "%extension.displayName%"
+				"category": "%configuration.title%"
 			},
 			{
 				"command": "kilo-code.generateTerminalCommand",
 				"title": "%command.terminal.generateCommand.title%",
-				"category": "%extension.displayName%"
+				"category": "%configuration.title%"
 			},
 			{
 				"command": "kilo-code.setCustomStoragePath",

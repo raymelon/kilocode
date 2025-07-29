@@ -106,5 +106,8 @@
 			"disableCopilot": "Copilot'u Devre Dışı Bırak",
 			"disableInlineAssist": "Satır İçi Yardım'ı Devre Dışı Bırak"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 İpucu: Terminal komutlarını Kilo Code ile oluşturmak için {{shortcut}} tuşlarına basın!"
 	}
 }

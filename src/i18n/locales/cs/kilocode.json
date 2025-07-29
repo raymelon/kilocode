@@ -106,5 +106,8 @@
 			"disableCopilot": "Deaktivovat Copilot",
 			"disableInlineAssist": "Deaktivovat Inline asistenta"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Tip: Stiskněte {{shortcut}} pro generování příkazů terminálu pomocí Kilo Code!"
 	}
 }

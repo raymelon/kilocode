@@ -106,5 +106,8 @@
 			"disableCopilot": "Copilot を無効にする",
 			"disableInlineAssist": "インライン アシストを無効にする"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 ヒント: {{shortcut}}を押すとKilo Codeでターミナルコマンドを生成できます！"
 	}
 }

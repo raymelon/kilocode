@@ -106,5 +106,8 @@
 			"disableCopilot": "Tắt Copilot",
 			"disableInlineAssist": "Tắt Trợ lý Nội dòng"
 		}
+	},
+	"terminalWelcome": {
+		"message": "💡 Mẹo: Nhấn {{shortcut}} để tạo lệnh terminal với Kilo Code!"
 	}
 }
