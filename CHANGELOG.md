@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.70.0
-
-### Minor Changes
+## [v4.70.0]
 
 - [#1588](https://github.com/Kilo-Org/kilocode/pull/1588) [`96be5a5`](https://github.com/Kilo-Org/kilocode/commit/96be5a5f82111ac2357112a04d3c0adc42103592) Thanks [@catrielmuller](https://github.com/catrielmuller)! - Add warning when Github Copilot conflicts with Kilo's Inline Assist keyboard commands
 
