@@ -25,14 +25,14 @@ vi.mock("../../core/config/ProviderSettingsManager", () => ({
 vi.mock("../../i18n", () => ({
 	t: vi.fn((key: string, params?: any) => {
 		const translations: Record<string, string> = {
-			"kilocode.terminalCommandGenerator.inputPrompt": "Kilo: Describe the command you want to generate",
-			"kilocode.terminalCommandGenerator.inputPlaceholder":
+			"kilocode:terminalCommandGenerator.inputPrompt": "Kilo: Describe the command you want to generate",
+			"kilocode:terminalCommandGenerator.inputPlaceholder":
 				"e.g., kill the process running on port 3001, find large files, etc",
-			"kilocode.terminalCommandGenerator.noActiveTerminal":
+			"kilocode:terminalCommandGenerator.noActiveTerminal":
 				"No active terminal found. Please open a terminal first.",
-			"kilocode.terminalCommandGenerator.generatingProgress": "Generating terminal command...",
-			"kilocode.terminalCommandGenerator.commandGenerated": `Generated command: ${params?.command || ""}`,
-			"kilocode.terminalCommandGenerator.generationFailed": `Failed to generate command: ${params?.error || ""}`,
+			"kilocode:terminalCommandGenerator.generatingProgress": "Generating terminal command...",
+			"kilocode:terminalCommandGenerator.commandGenerated": `Generated command: ${params?.command || ""}`,
+			"kilocode:terminalCommandGenerator.generationFailed": `Failed to generate command: ${params?.error || ""}`,
 		}
 		return translations[key] || key
 	}),

@@ -16,8 +16,8 @@ export async function generateTerminalCommand(options: TerminalCommandGeneratorO
 
 	try {
 		const userInput = await vscode.window.showInputBox({
-			prompt: t("kilocode.terminalCommandGenerator.inputPrompt"),
-			placeHolder: t("kilocode.terminalCommandGenerator.inputPlaceholder"),
+			prompt: t("kilocode:terminalCommandGenerator.inputPrompt"),
+			placeHolder: t("kilocode:terminalCommandGenerator.inputPlaceholder"),
 			ignoreFocusOut: true,
 		})
 
@@ -27,14 +27,14 @@ export async function generateTerminalCommand(options: TerminalCommandGeneratorO
 
 		const activeTerminal = vscode.window.activeTerminal
 		if (!activeTerminal) {
-			vscode.window.showErrorMessage(t("kilocode.terminalCommandGenerator.noActiveTerminal"))
+			vscode.window.showErrorMessage(t("kilocode:terminalCommandGenerator.noActiveTerminal"))
 			return
 		}
 
 		await vscode.window.withProgress(
 			{
 				location: vscode.ProgressLocation.Notification,
-				title: t("kilocode.terminalCommandGenerator.generatingProgress"),
+				title: t("kilocode:terminalCommandGenerator.generatingProgress"),
 				cancellable: false,
 			},
 			async () => {
@@ -61,13 +61,13 @@ export async function generateTerminalCommand(options: TerminalCommandGeneratorO
 					activeTerminal.sendText(cleanCommand, false)
 					activeTerminal.show()
 					vscode.window.showInformationMessage(
-						t("kilocode.terminalCommandGenerator.commandGenerated", { command: cleanCommand }),
+						t("kilocode:terminalCommandGenerator.commandGenerated", { command: cleanCommand }),
 					)
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
 					outputChannel.appendLine(`Error generating terminal command: ${errorMessage}`)
 					vscode.window.showErrorMessage(
-						t("kilocode.terminalCommandGenerator.generationFailed", { error: errorMessage }),
+						t("kilocode:terminalCommandGenerator.generationFailed", { error: errorMessage }),
 					)
 				}
 			},
