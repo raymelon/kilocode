@@ -72,22 +72,23 @@ export class NetworkCache {
 			return header
 		})
 	}
-
 	private redactApiKey(value: string): string {
-		// Redact API keys while preserving format for debugging
+		// Redact API keys with standardized format
 		if (value.startsWith("Bearer ")) {
 			const token = value.substring(7)
-			if (token.length > 8) {
-				return `Bearer ${token.substring(0, 4)}...${token.substring(token.length - 4)}`
+			if (token.startsWith("sk-")) {
+				return `Bearer sk-[REDACTED]`
 			}
+			return `Bearer [REDACTED]`
 		}
-		// For other API key formats
-		if (value.length > 8) {
-			return `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+
+		// For direct API key formats
+		if (value.startsWith("sk-")) {
+			return `sk-[REDACTED]`
 		}
+
 		return "[REDACTED]"
 	}
-
 	async setupHarRecording(context: BrowserContext, testName: string): Promise<void> {
 		await this.ensureCacheDir()
 		const harPath = this.getHarPath(testName)
@@ -205,10 +206,10 @@ export class NetworkCache {
 			]
 
 			const expectedSanitizedPatterns = [
-				/Bearer sk-[a-zA-Z0-9]{1,4}\.\.\.[\w]{1,4}/g, // Expected sanitized format
-				/sk-[a-zA-Z0-9]{1,4}\.\.\.[\w]{1,4}/g, // Expected sanitized format without Bearer
-				/"authorization"[^}]*"Bearer sk-[a-zA-Z0-9]{1,4}\.\.\.[\w]{1,4}"/g, // In JSON context
-				/"Authorization"[^}]*"Bearer sk-[a-zA-Z0-9]{1,4}\.\.\.[\w]{1,4}"/g, // In JSON context
+				/Bearer sk-\[REDACTED\]/g, // Expected sanitized format
+				/sk-\[REDACTED\]/g, // Expected sanitized format without Bearer
+				/"authorization"[^}]*"Bearer sk-\[REDACTED\]"/g, // In JSON context
+				/"Authorization"[^}]*"Bearer sk-\[REDACTED\]"/g, // In JSON context
 			]
 
 			// Check for unsanitized sensitive data

@@ -132,8 +132,8 @@ async function validateEnvironment() {
 	if (cacheMode === "none") {
 		log.info("Running in cache-only mode (no API key required)")
 		// Set a dummy API key that will sanitize to match HAR file signatures
-		// This will become "sk-o...c2af" after sanitization (first 4 + last 4 chars)
-		process.env.OPENROUTER_API_KEY = "sk-or-v1-dummy-key-for-cache-matching-ends-with-c2af"
+		// This will become "Bearer sk-[REDACTED]" after sanitization
+		process.env.OPENROUTER_API_KEY = "sk-dummy-key-for-cache-matching"
 		log.info("Set dummy API key for HAR cache matching")
 	}
 
