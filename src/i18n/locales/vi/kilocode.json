@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Mẹo: Nhấn {{shortcut}} để tạo lệnh terminal với Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Mô tả lệnh bạn muốn tạo",
+		"generatingProgress": "Đang tạo lệnh terminal...",
+		"inputPlaceholder": "ví dụ: dừng tiến trình đang chạy trên cổng 3001, tìm các tệp tin lớn, v.v.",
+		"noActiveTerminal": "Không tìm thấy terminal đang hoạt động. Vui lòng mở terminal trước.",
+		"commandGenerated": "Lệnh đã tạo: {{command}}",
+		"generationFailed": "Không thể tạo lệnh: {{error}}"
 	}
 }

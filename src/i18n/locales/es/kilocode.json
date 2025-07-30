@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Consejo: ¡Presiona {{shortcut}} para generar comandos de terminal con Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Describe el comando que deseas generar",
+		"noActiveTerminal": "No se encontró ninguna terminal activa. Por favor, abra una terminal primero.",
+		"inputPlaceholder": "p. ej., matar el proceso ejecutándose en el puerto 3001, encontrar archivos grandes, etc.",
+		"generatingProgress": "Generando comando de terminal...",
+		"commandGenerated": "Comando generado: {{command}}",
+		"generationFailed": "Error al generar comando: {{error}}"
 	}
 }

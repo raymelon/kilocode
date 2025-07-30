@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Tip: Tekan {{shortcut}} untuk menghasilkan perintah terminal dengan Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPlaceholder": "mis., menghentikan proses yang berjalan di port 3001, mencari file besar, dll",
+		"noActiveTerminal": "Tidak ditemukan terminal aktif. Silakan buka terminal terlebih dahulu.",
+		"inputPrompt": "Kilo: Jelaskan perintah yang ingin Anda hasilkan",
+		"generatingProgress": "Menghasilkan perintah terminal...",
+		"generationFailed": "Gagal menghasilkan perintah: {{error}}",
+		"commandGenerated": "Perintah yang dihasilkan: {{command}}"
 	}
 }

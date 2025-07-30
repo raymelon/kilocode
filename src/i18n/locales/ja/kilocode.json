@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 ヒント: {{shortcut}}を押すとKilo Codeでターミナルコマンドを生成できます！"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: 生成したいコマンドを説明してください",
+		"commandGenerated": "生成コマンド: {{command}}",
+		"inputPlaceholder": "例: ポート3001で実行中のプロセスを終了する、大きなファイルを見つける、など",
+		"generatingProgress": "ターミナルコマンドを生成しています...",
+		"noActiveTerminal": "アクティブなターミナルが見つかりません。先にターミナルを開いてください。",
+		"generationFailed": "コマンドの生成に失敗しました: {{error}}"
 	}
 }

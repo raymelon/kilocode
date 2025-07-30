@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 提示：按下 {{shortcut}} 使用 Kilo Code 生成终端命令！"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: 描述您想要生成的命令",
+		"inputPlaceholder": "例如，结束在3001端口运行的进程，查找大文件，等等",
+		"noActiveTerminal": "未找到活动终端。请先打开一个终端。",
+		"generatingProgress": "正在生成终端命令...",
+		"commandGenerated": "生成的命令：{{command}}",
+		"generationFailed": "命令生成失败：{{error}}"
 	}
 }

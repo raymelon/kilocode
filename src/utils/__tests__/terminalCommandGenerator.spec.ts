@@ -22,6 +22,21 @@ vi.mock("../../core/config/ProviderSettingsManager", () => ({
 		}),
 	})),
 }))
+vi.mock("../../i18n", () => ({
+	t: vi.fn((key: string, params?: any) => {
+		const translations: Record<string, string> = {
+			"kilocode.terminalCommandGenerator.inputPrompt": "Kilo: Describe the command you want to generate",
+			"kilocode.terminalCommandGenerator.inputPlaceholder":
+				"e.g., kill the process running on port 3001, find large files, etc",
+			"kilocode.terminalCommandGenerator.noActiveTerminal":
+				"No active terminal found. Please open a terminal first.",
+			"kilocode.terminalCommandGenerator.generatingProgress": "Generating terminal command...",
+			"kilocode.terminalCommandGenerator.commandGenerated": `Generated command: ${params?.command || ""}`,
+			"kilocode.terminalCommandGenerator.generationFailed": `Failed to generate command: ${params?.error || ""}`,
+		}
+		return translations[key] || key
+	}),
+}))
 
 describe("generateTerminalCommand", () => {
 	const mockOutputChannel = {
@@ -88,20 +103,20 @@ describe("generateTerminalCommand", () => {
 		vi.mocked(singleCompletionHandler).mockResolvedValue("ls -la")
 	})
 
-	it("should generate and execute terminal command successfully", async () => {
+	it("should generate and place terminal command without executing", async () => {
 		await generateTerminalCommand({
 			outputChannel: mockOutputChannel,
 			context: mockContext,
 		})
 
 		expect(vscode.window.showInputBox).toHaveBeenCalledWith({
-			prompt: "Describe the command you want to generate",
-			placeHolder: "e.g., list all files in current directory, find large files, install npm package",
+			prompt: "Kilo: Describe the command you want to generate",
+			placeHolder: "e.g., kill the process running on port 3001, find large files, etc",
 			ignoreFocusOut: true,
 		})
 
 		expect(singleCompletionHandler).toHaveBeenCalled()
-		expect(mockTerminal.sendText).toHaveBeenCalledWith("ls -la")
+		expect(mockTerminal.sendText).toHaveBeenCalledWith("ls -la", false)
 		expect(mockTerminal.show).toHaveBeenCalled()
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith("Generated command: ls -la")
 	})

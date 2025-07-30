@@ -12,6 +12,15 @@ export class TerminalWelcomeService {
 	constructor(private context: vscode.ExtensionContext) {}
 
 	/**
+	 * Register and initialize the terminal welcome service
+	 */
+	public static register(context: vscode.ExtensionContext): void {
+		const terminalWelcomeService = new TerminalWelcomeService(context)
+		terminalWelcomeService.initialize()
+		context.subscriptions.push(terminalWelcomeService)
+	}
+
+	/**
 	 * Initialize the terminal welcome service
 	 */
 	public initialize(): void {
@@ -60,17 +69,7 @@ export class TerminalWelcomeService {
 	private isExtensionTerminal(terminal: vscode.Terminal): boolean {
 		const name = terminal.name.toLowerCase()
 
-		const extensionTerminalNames = [
-			"kilo code",
-			"kilocode",
-			"roo code",
-			"extension host",
-			"task",
-			"git",
-			"npm",
-			"yarn",
-			"pnpm",
-		]
+		const extensionTerminalNames = ["kilo code", "kilocode", "extension host", "task", "git", "npm", "yarn", "pnpm"]
 
 		return extensionTerminalNames.some((extName) => name.includes(extName))
 	}

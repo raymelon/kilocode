@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Tip: Druk op {{shortcut}} om terminalopdrachten te genereren met Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Beschrijf het commando dat je wilt genereren",
+		"noActiveTerminal": "Geen actieve terminal gevonden. Open eerst een terminal.",
+		"inputPlaceholder": "bijv., het proces op poort 3001 beëindigen, grote bestanden zoeken, enz.",
+		"generatingProgress": "Terminalopdracht genereren...",
+		"commandGenerated": "Gegenereerde opdracht: {{command}}",
+		"generationFailed": "Genereren van commando mislukt: {{error}}"
 	}
 }

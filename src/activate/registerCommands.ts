@@ -243,11 +243,7 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 			outputChannel.appendLine(`Error in focusChatInput: ${error}`)
 		}
 	},
-	// kilocode_change start
-	generateTerminalCommand: async () => {
-		await generateTerminalCommand({ outputChannel, context })
-	},
-	// kilocode_change end
+	generateTerminalCommand: async () => await generateTerminalCommand({ outputChannel, context }), // kilocode_change
 	exportSettings: async () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 		if (!visibleProvider) return

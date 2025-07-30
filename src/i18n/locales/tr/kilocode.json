@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 İpucu: Terminal komutlarını Kilo Code ile oluşturmak için {{shortcut}} tuşlarına basın!"
+	},
+	"terminalCommandGenerator": {
+		"noActiveTerminal": "Aktif terminal bulunamadı. Lütfen önce bir terminal açın.",
+		"inputPrompt": "Kilo: Oluşturmak istediğiniz komutu açıklayın",
+		"inputPlaceholder": "örn. port 3001'de çalışan işlemi sonlandır, büyük dosyaları bul, vb.",
+		"generatingProgress": "Terminal komutu oluşturuluyor...",
+		"commandGenerated": "Oluşturulan komut: {{command}}",
+		"generationFailed": "Komut oluşturulamadı: {{error}}"
 	}
 }

@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Tipp: Drücke {{shortcut}} um Terminal-Befehle mit Kilo Code zu generieren!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Beschreiben Sie den Befehl, den Sie generieren möchten",
+		"generatingProgress": "Terminal-Befehl wird generiert...",
+		"noActiveTerminal": "Kein aktives Terminal gefunden. Bitte öffnen Sie zuerst ein Terminal.",
+		"inputPlaceholder": "z.B. den Prozess beenden, der auf Port 3001 läuft, große Dateien finden, usw.",
+		"generationFailed": "Befehlserstellung fehlgeschlagen: {{error}}",
+		"commandGenerated": "Generierter Befehl: {{command}}"
 	}
 }

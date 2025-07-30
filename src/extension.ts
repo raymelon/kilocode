@@ -42,7 +42,7 @@ import {
 } from "./activate"
 import { initializeI18n } from "./i18n"
 import { registerGhostProvider } from "./services/ghost" // kilocode_change
-import { registerTerminalWelcome } from "./services/terminal-welcome" // kilocode_change
+import { TerminalWelcomeService } from "./services/terminal-welcome/TerminalWelcomeService" // kilocode_change
 
 /**
  * Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -208,7 +208,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	registerCommitMessageProvider(context, outputChannel) // kilocode_change
 	registerCodeActions(context)
 	registerTerminalActions(context)
-	registerTerminalWelcome(context) // kilocode_change
+	TerminalWelcomeService.register(context) // kilocode_change
 
 	// Allows other extensions to activate once Kilo Code is ready.
 	vscode.commands.executeCommand(`${Package.name}.activationCompleted`)

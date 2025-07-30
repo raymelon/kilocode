@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Consell: Prem {{shortcut}} per generar ordres de terminal amb Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Descriu l'ordre que vols generar",
+		"generatingProgress": "Generant ordre de terminal...",
+		"noActiveTerminal": "No s'ha trobat cap terminal actiu. Si us plau, obriu primer un terminal.",
+		"inputPlaceholder": "p. ex., matar el procés que s'executa al port 3001, trobar fitxers grans, etc.",
+		"commandGenerated": "Ordre generada: {{command}}",
+		"generationFailed": "No s'ha pogut generar la comanda: {{error}}"
 	}
 }

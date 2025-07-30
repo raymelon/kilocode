@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 팁: {{shortcut}}을 눌러 Kilo Code로 터미널 명령어를 생성하세요!"
+	},
+	"terminalCommandGenerator": {
+		"generatingProgress": "터미널 명령어 생성 중...",
+		"noActiveTerminal": "활성화된 터미널을 찾을 수 없습니다. 먼저 터미널을 열어주세요.",
+		"inputPrompt": "Kilo: 생성하고 싶은 명령어를 설명하세요",
+		"inputPlaceholder": "예: 포트 3001에서 실행 중인 프로세스 종료, 대용량 파일 찾기 등",
+		"commandGenerated": "생성된 명령어: {{command}}",
+		"generationFailed": "명령 생성 실패: {{error}}"
 	}
 }

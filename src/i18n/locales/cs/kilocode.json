@@ -109,5 +109,13 @@
 	},
 	"terminalWelcome": {
 		"message": "💡 Tip: Stiskněte {{shortcut}} pro generování příkazů terminálu pomocí Kilo Code!"
+	},
+	"terminalCommandGenerator": {
+		"inputPrompt": "Kilo: Popište příkaz, který chcete vygenerovat",
+		"noActiveTerminal": "Nebyl nalezen žádný aktivní terminál. Nejprve prosím otevřete terminál.",
+		"inputPlaceholder": "např. ukončit proces běžící na portu 3001, najít velké soubory atd.",
+		"generatingProgress": "Generuji příkaz pro terminál...",
+		"generationFailed": "Generování příkazu selhalo: {{error}}",
+		"commandGenerated": "Vygenerovaný příkaz: {{command}}"
 	}
 }
