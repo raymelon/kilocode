@@ -28,6 +28,7 @@ import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonI
 import { TooltipProvider } from "./components/ui/tooltip"
 import { STANDARD_TOOLTIP_DELAY } from "./components/ui/standard-tooltip"
 import { useKiloIdentity } from "./utils/kilocode/useKiloIdentity"
+import { MemoryService } from "./services/MemoryService"
 
 type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account" | "profile" // kilocode_change: add "profile"
 
@@ -204,6 +205,10 @@ const App = () => {
 	useEffect(() => {
 		if (didHydrateState) {
 			telemetryClient.updateTelemetryState(telemetrySetting, telemetryKey, telemetryDistinctId)
+
+			const memoryService = new MemoryService()
+			memoryService.start()
+			return () => memoryService.stop()
 		}
 	}, [telemetrySetting, telemetryKey, telemetryDistinctId, didHydrateState])
 	// kilocode_change end
