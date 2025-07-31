@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.70.3
-
-### Patch Changes
+## [v4.70.3]
 
 - [#1647](https://github.com/Kilo-Org/kilocode/pull/1647) [`12a7a5a`](https://github.com/Kilo-Org/kilocode/commit/12a7a5a21ed34ce68694452d7d6bb67a59ca8904) Thanks [@catrielmuller](https://github.com/catrielmuller)! - Simplify the Welcome/Login screen
 
